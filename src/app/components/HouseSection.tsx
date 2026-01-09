@@ -123,10 +123,10 @@ function HouseCard({ title, subtitle, influencingTitle, icon, iconBg, factors, b
         {icon}
       </div>
       
-      <div className="flex flex-col gap-6 grow">
+      <div className="flex flex-col gap-10 grow">
         <div className="flex flex-col gap-0">
           <h3 className="text-[20px] font-semibold text-[#292929]">{title}</h3>
-          <p className="text-[16px] text-[#989898]">{subtitle}</p>
+          <p className="text-[16px] text-[#525252]">{subtitle}</p>
         </div>
         
         <div className="flex flex-col gap-3">
@@ -274,6 +274,9 @@ export function HouseSection() {
                 iconBg="bg-[#86EFAD]"
                 factors={["Digitalization", "Work and leisure", "Kundenorientierung"]}
                 badgeText="Top strength"
+                badgeBgColor="#DCFCE8"
+                badgeTextColor="#15803C"
+                badgeIcon={<TrendingUp className="w-5 h-5" style={{ color: "#15803C" }} />}
                 badgeTooltip="This area represents the strongest point in your team's satisfaction levels"
                 onClick={() => console.log("Satisfaction card clicked")}
             />

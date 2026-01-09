@@ -57,7 +57,7 @@ function ProcessStep({
       <button 
         disabled={variant === "future"}
         className={cn(
-          "flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border",
+          "flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-base transition-colors w-fit border",
           variant === "future" 
             ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed opacity-60"
             : buttonVariant === "secondary-outline"
@@ -95,7 +95,7 @@ export function ProcessTimeline() {
       phase: "Phase 3",
       title: "Define focus areas",
       description: "Discover where to focus your next actions.",
-      buttonText: "Open fields of action",
+      buttonText: "Open fields",
       buttonIcon: <ArrowUpRight className="w-4 h-4" />,
       variant: "future" as const
     },

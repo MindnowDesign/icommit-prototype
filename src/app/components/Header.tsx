@@ -38,6 +38,7 @@ export function Header() {
               className={cn(
                 "px-6 py-3 flex items-center gap-2 justify-center cursor-pointer transition-colors",
                 item.bg || "bg-transparent hover:bg-gray-50",
+                item.bg === "bg-[#00b2a9]" && "hover:bg-[#009a91]",
                 item.text || "text-[#989898]",
                 item.minWidth
               )}
