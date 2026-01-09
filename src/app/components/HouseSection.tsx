@@ -11,9 +11,26 @@ import {
   SelectValue,
 } from "./ui/select";
 
-// SVG Paths from Figma
-const ROOF_PATH = "M705.118 5.55024C705.118 2.48493 707.603 0 710.668 0H796.792C799.857 0 802.342 2.48493 802.342 5.55024V67.3069C802.342 70.3722 799.857 72.8571 796.792 72.8571H710.668C707.603 72.8571 705.118 70.3722 705.118 67.3069V5.55024Z";
-const ROOF_POLY_PATH = "M520 10.6856L1040 102H0L520 10.6856Z";
+// Custom Icons from assets
+const ArrowDownIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 shrink-0">
+    <path d="M15 5H9Z" fill="#FF6767"/>
+    <path d="M15 9V12H19L12 19L5 12H9V9H15Z" fill="#FF6767"/>
+    <path d="M15 5H9M15 9V12H19L12 19L5 12H9V9H15Z" stroke="#FF6767" strokeWidth="1.95" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ArrowUpIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 shrink-0">
+    <path d="M9 18V12H5L12 5L19 12H15V18H9Z" fill="#15803C" stroke="#15803C" strokeWidth="1.95" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const EqualIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 shrink-0">
+    <path d="M5 9H19M5 15H19" stroke="#525252" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
 
 // Lucide Icons - all perfectly uniform: 24x24, centered, same styling
 const CommitmentIcon = () => (
@@ -22,7 +39,7 @@ const CommitmentIcon = () => (
     strokeWidth={2} 
     className="w-6 h-6"
     style={{ display: 'block', flexShrink: 0 }}
-    color="#C51010"
+    color="#4A0505"
   />
 );
 
@@ -32,7 +49,7 @@ const SatisfactionIcon = () => (
     strokeWidth={2} 
     className="w-6 h-6"
     style={{ display: 'block', flexShrink: 0 }}
-    color="#15803C"
+    color="#052E14"
   />
 );
 
@@ -113,7 +130,16 @@ function HouseCard({ title, subtitle, influencingTitle, icon, iconBg, factors, b
         </div>
         
         <div className="flex flex-col gap-3">
-          <div className="flex items-start gap-1">
+          <div className="flex items-center gap-1">
+            {influencingTitle.includes("keeping Commitment low") && (
+              <ArrowDownIcon />
+            )}
+            {influencingTitle.includes("keeping high Satisfaction") && (
+              <ArrowUpIcon />
+            )}
+            {influencingTitle.includes("can decrease Resignation") && (
+              <EqualIcon />
+            )}
             <span className="text-base text-black">{influencingTitle}</span>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -217,30 +243,20 @@ export function HouseSection() {
       <div className="w-full flex flex-col items-center relative">
         {/* Roof Graphic */}
         <div className="w-full h-[102px] relative">
-           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1040 102">
-               <defs>
-                    <linearGradient id="roofGradient1" x1="753.73" y1="-38.16" x2="753.73" y2="72.85" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#DCDCDC" />
-                        <stop offset="1" stopColor="white" />
-                    </linearGradient>
-                     <linearGradient id="roofGradient2" x1="520" y1="-37.14" x2="520" y2="102" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#DCDCDC" />
-                        <stop offset="1" stopColor="white" />
-                    </linearGradient>
-               </defs>
-               <path d={ROOF_PATH} fill="url(#roofGradient1)" />
-               <path d={ROOF_POLY_PATH} fill="url(#roofGradient2)" />
+           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1040 102" fill="none" xmlns="http://www.w3.org/2000/svg">
+               <rect x="705" width="82" height="72" rx="8" fill="#DCDCDC"/>
+               <path d="M519.308 10.3637C519.766 10.2833 520.234 10.2833 520.692 10.3637L994.786 93.6168C999.601 94.4623 998.983 101.556 994.095 101.556H45.9055C41.0167 101.556 40.3985 94.4623 45.2137 93.6168L519.308 10.3637Z" fill="#EFEFEF"/>
            </svg>
         </div>
 
         {/* Cards Stack */}
-        <div className="w-full max-w-[976px] flex flex-col gap-6 relative mt-[-1px]">
+        <div className="w-full max-w-[976px] flex flex-col gap-6 relative mt-6">
             <HouseCard 
                 title="Commitment" 
                 subtitle="What can we achieve together?" 
                 influencingTitle="Areas that are keeping Commitment low"
                 icon={<CommitmentIcon />}
-                iconBg="bg-[#ffe0e0]"
+                iconBg="bg-[#FF9E9E]"
                 factors={["Digitalization", "Work and leisure", "Kundenorientierung"]}
                 badgeText="Top weakness"
                 badgeBgColor="#FEF0C3"
@@ -255,7 +271,7 @@ export function HouseSection() {
                 subtitle="What will I gain? Do I fit in here?" 
                 influencingTitle="Areas that are keeping high Satisfaction"
                 icon={<SatisfactionIcon />}
-                iconBg="bg-[#dcfce8]"
+                iconBg="bg-[#86EFAD]"
                 factors={["Digitalization", "Work and leisure", "Kundenorientierung"]}
                 badgeText="Top strength"
                 badgeTooltip="This area represents the strongest point in your team's satisfaction levels"
@@ -271,6 +287,14 @@ export function HouseSection() {
                 factors={["Digitalization", "Work and leisure", "Kundenorientierung"]}
                 onClick={() => console.log("Resignation card clicked")}
             />
+        </div>
+        
+        {/* Base Graphic */}
+        <div className="w-full max-w-[1040px] h-[81px] relative mt-8">
+          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1040 81" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="1040" height="22" rx="8" fill="#EFEFEF"/>
+            <rect y="34" width="1040" height="47" rx="8" fill="#FAFAFA"/>
+          </svg>
         </div>
         
         {/* CTA Button */}

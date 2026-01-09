@@ -23,6 +23,7 @@ function ProcessStep({
 }: ProcessStepProps) {
   const isActive = variant === "active";
   const isCompleted = variant === "default";
+  const isFuture = variant === "future";
   
   return (
     <div className="flex flex-col gap-4 flex-1">
@@ -47,9 +48,9 @@ function ProcessStep({
       </div>
 
       {/* Content */}
-      <div className="flex flex-col gap-1 min-h-[60px]">
+      <div className={cn("flex flex-col gap-1 min-h-[60px]", isFuture && "opacity-50")}>
         <h3 className="font-semibold text-[#292929] text-base">{title}</h3>
-        <p className="text-[#525252] text-xs leading-relaxed">{description}</p>
+        <p className="text-[#525252] text-sm leading-relaxed">{description}</p>
       </div>
 
       {/* Button */}
@@ -127,7 +128,7 @@ export function ProcessTimeline() {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="flex items-start gap-4 mb-8">
+      <div className="flex items-start gap-6 mb-8">
         <div className="bg-[#b9e2fe] p-2.5 rounded-lg border border-[#b9e2fe]">
           <Lightbulb className="w-5 h-5 text-[#015ea3]" />
         </div>

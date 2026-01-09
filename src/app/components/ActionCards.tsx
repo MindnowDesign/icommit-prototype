@@ -26,7 +26,7 @@ function ActionSection({
 }: ActionCardProps) {
   return (
     <div className="w-full flex flex-col gap-10">
-      <div className="flex flex-col gap-3 items-start max-w-[892px]">
+      <div className="flex flex-col gap-2 items-start max-w-[892px]">
         <div className="bg-[#b9e2fe] px-3 py-2 rounded-lg text-[#0b446f] text-sm">
             {phase}
         </div>
@@ -44,7 +44,7 @@ function ActionSection({
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
              <div className="flex flex-col gap-3 max-w-2xl">
                 <h3 className="text-lg font-semibold text-[#18181b]">{cardTitle}</h3>
-                <p className="text-sm text-[#7c7c7c] leading-[1.5]">
+                <p className="text-base text-[#7c7c7c] leading-[1.5]">
                     {cardText}
                 </p>
              </div>
@@ -83,7 +83,6 @@ export function ActionCards() {
             cardTitle="Discuss where you can have the most impact with your team"
             cardText="Download all the documentation to confidently prepare a discussion with your team about the most important areas of action."
             buttonText="Download documentation"
-            disabled={true}
         />
 
         {/* Phase 4 */}
@@ -99,7 +98,6 @@ export function ActionCards() {
             cardTitle="Discuss the measures and goals with your team"
             cardText="Download all the documentation to confidently prepare a discussion with your team about next measures and goals"
             buttonText="Download documentation"
-            disabled={true}
         />
     </SectionWrapper>
   );
