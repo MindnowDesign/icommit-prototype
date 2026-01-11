@@ -18,21 +18,31 @@ import {
   BarChart3,
   Pin,
   Leaf,
-  Equal
+  Equal,
+  Compass
 } from "lucide-react";
 import { cn } from "../components/ui/utils";
-
-// Mock data
-const mockUser = {
-  name: "Mario Rossi",
-  email: "mario.rossi@example.ch"
-};
-
-const mockDeepDiveTopics = [
-  "Mitarbeitendenförderung",
-  "Digitalization",
-  "Work-Life Balance"
-];
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "../components/ui/tooltip";
+import CompassIcon from "../../assets/Icons/Compass-2.svg";
+// Fake data for production teams - same as HomePage
+const productionTeams = [
+  { id: "production-a", label: "Production A team", members: 12, completion: 85 },
+  { id: "production-b", label: "Production B team", members: 15, completion: 72 },
+  { id: "production-c", label: "Production C team", members: 18, completion: 91 },
+  { id: "production-x", label: "Production X team", members: 20, completion: 68 },
+  { id: "production-d", label: "Production D team", members: 10, completion: 78 },
+] as const;
 
 const mockInfluencingFactors = [
   {
@@ -334,171 +344,565 @@ const ResultsTable = memo(function ResultsTable() {
   );
 });
 
+// Comparison options - same as HouseSection
+const comparisonOptions = [
+  { id: "swiss-companies", label: "121 Swiss companies", displayValue: "121 Swiss companies" },
+  { id: "other-groups", label: "11 other groups in the company", displayValue: "11 other groups in the company" },
+  { id: "historical", label: "Historical comparison (2021)", displayValue: "Historical comparison (2021)" },
+  { id: "external-benchmark", label: "External benchmark 2", displayValue: "External benchmark 2" },
+] as const;
+
 export const ResultsPage = memo(function ResultsPage() {
-  const [selectedTopic, setSelectedTopic] = React.useState(mockDeepDiveTopics[0]);
-  const [isTopicDropdownOpen, setIsTopicDropdownOpen] = React.useState(false);
+  const [selectedTeam, setSelectedTeam] = React.useState("production-b");
+  const [selectedComparison, setSelectedComparison] = React.useState("swiss-companies");
+
+  const handleTeamChange = React.useCallback((value: string) => {
+    setSelectedTeam(value);
+  }, []);
+
+  const handleComparisonChange = React.useCallback((value: string) => {
+    setSelectedComparison(value);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white w-full flex flex-col font-sans">
       <Header />
       
       <main className="w-full flex flex-col items-center pt-20">
-        <div className="w-full flex flex-col items-center gap-8 pb-20">
-          {/* User Info Section */}
-          <SectionWrapper>
-            <div className="bg-white rounded-[16px] border border-[#b9e2fe] p-8 relative overflow-hidden">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex flex-col gap-2">
-                  <h1 className="text-2xl font-semibold">{mockUser.name}</h1>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Viewing:</span>
-                    <div className="relative">
-                      <button
-                        onClick={() => setIsTopicDropdownOpen(!isTopicDropdownOpen)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+        <div className="w-full flex flex-col items-center gap-[120px] pb-20">
+          {/* Hero Section - same structure as HomePage */}
+          <SectionWrapper className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex flex-col gap-4">
+              <h2 className="text-[32px] font-semibold text-black flex items-center gap-2">
+                Survey results report
+              </h2>
+              <div className="flex items-center gap-3">
+                <span className="text-[#525252] text-lg font-normal">Du siehst hier</span>
+                <Select value={selectedTeam} onValueChange={handleTeamChange}>
+                  <SelectTrigger 
+                    className={cn(
+                      "bg-white border border-[#d8d8d8] rounded-[10px] px-3 py-1.5",
+                      "hover:border-gray-400 transition-colors",
+                      "h-auto min-h-[42px] w-[190px]",
+                      "focus:ring-0 focus:ring-offset-0 focus:border-gray-400",
+                      "shadow-none",
+                      "[&>span]:text-[#3b3b3b] [&>span]:text-lg [&>span]:font-normal",
+                      "[&_svg]:text-[#292929] [&_svg]:w-4 [&_svg]:h-4"
+                    )}
+                  >
+                    <SelectValue placeholder="Select team" />
+                  </SelectTrigger>
+                  <SelectContent 
+                    className={cn(
+                      "bg-white border border-[#d8d8d8] rounded-[10px]",
+                      "shadow-lg min-w-[190px] p-1"
+                    )}
+                  >
+                    {productionTeams.map((team) => (
+                      <SelectItem
+                        key={team.id}
+                        value={team.id}
+                        className={cn(
+                          "text-[#3b3b3b] text-base font-normal px-3 py-2 rounded-[6px]",
+                          "cursor-pointer hover:bg-[#fafafa]",
+                          "focus:bg-[#fafafa] focus:text-[#3b3b3b]",
+                          "data-[highlighted]:bg-[#fafafa]"
+                        )}
                       >
-                        <span className="text-sm font-medium">{selectedTopic}</span>
-                        <ChevronDown className="w-4 h-4" />
-                      </button>
-                      {isTopicDropdownOpen && (
-                        <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
-                          {mockDeepDiveTopics.map((topic) => (
-                            <button
-                              key={topic}
-                              onClick={() => {
-                                setSelectedTopic(topic);
-                                setIsTopicDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm"
-                            >
-                              {topic}
-                            </button>
-                          ))}
+                        {team.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6">
+              <div className="bg-[#e0f0fe] border border-[#b9e2fe] rounded-[10px] px-4 py-3 flex items-center gap-2 cursor-pointer hover:bg-[#d0e8fd] transition-colors">
+                <span className="text-[#015ea3] text-sm font-medium underline decoration-solid">
+                  Wie funktioniert's?
+                </span>
+                <Compass className="w-5 h-5 text-[#015ea3]" />
+              </div>
+            </div>
+          </SectionWrapper>
+
+          {/* Banner Section */}
+          <SectionWrapper className="-mt-[80px]">
+            <div className="bg-[#f0f8ff] border border-[#b9e2fe] rounded-[16px] px-8 py-8 relative overflow-hidden">
+              <div className="flex items-start gap-4">
+                <div className="bg-[#e0f0fe] rounded-lg flex items-center justify-center shrink-0 w-12 h-12">
+                  <Compass className="w-8 h-8 text-[#015ea3]" />
+                </div>
+                <div className="flex flex-col gap-1 flex-1">
+                  <h3 className="text-lg font-semibold text-black leading-[1.4]">
+                    What are the topics that matters the most to you?
+                  </h3>
+                  <p className="text-sm text-[#656565] leading-[1.5] tracking-[-0.14px]">
+                    Explore the results and choose a maximum of <span className="font-bold">2-3 topics</span> to work on with your team.
+                  </p>
+                </div>
+              </div>
+              {/* Decorative compass icon in top right */}
+              <img 
+                src={CompassIcon} 
+                alt="Compass" 
+                className="absolute -top-12 -right-12 opacity-30 z-0"
+                loading="lazy"
+              />
+            </div>
+          </SectionWrapper>
+
+          {/* Key Results Section */}
+          <SectionWrapper>
+            <div className="flex flex-col gap-6">
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <h2 className="text-2xl font-semibold text-black tracking-[-0.48px]">
+                  Key results
+                </h2>
+                <Select value={selectedComparison} onValueChange={handleComparisonChange}>
+                  <SelectTrigger 
+                    className={cn(
+                      "bg-white border border-[#d8d8d8] rounded-[10px] px-3 py-1.5",
+                      "hover:border-gray-400 transition-colors",
+                      "h-auto min-h-[38px] w-auto",
+                      "focus:ring-0 focus:ring-offset-0 focus:border-gray-400",
+                      "shadow-none",
+                      "[&_svg]:text-[#292929] [&_svg]:w-4 [&_svg]:h-4",
+                      "justify-start gap-2"
+                    )}
+                  >
+                    <Calendar className="w-4 h-4 text-[#292929] shrink-0" />
+                    <span className="text-[#3b3b3b] text-base whitespace-nowrap">
+                      Compared to <span className="font-bold">
+                        <SelectValue placeholder="121 Swiss companies" />
+                      </span>
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent 
+                    className={cn(
+                      "bg-white border border-[#d8d8d8] rounded-[10px]",
+                      "shadow-lg w-auto p-1"
+                    )}
+                  >
+                    {comparisonOptions.map((option) => (
+                      <SelectItem
+                        key={option.id}
+                        value={option.id}
+                        className={cn(
+                          "text-[#3b3b3b] text-base font-normal px-3 py-2 rounded-[6px]",
+                          "cursor-pointer hover:bg-[#fafafa]",
+                          "focus:bg-[#fafafa] focus:text-[#3b3b3b]",
+                          "data-[highlighted]:bg-[#fafafa]"
+                        )}
+                      >
+                        {option.displayValue}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Where your team is thriving */}
+              <div className="bg-[#fafafa] rounded-lg p-6 flex flex-col gap-6">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-base font-semibold text-black">Where your team is thriving</h3>
+                  <p className="text-sm text-[#525252] leading-[1.5] tracking-[-0.14px]">
+                    6 areas that are positively impacting <span className="font-bold">Commitment</span> and <span className="font-bold">Bleibeabsicht</span> in your team.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  {/* Card 1 */}
+                  <div className="bg-white border border-[#efefef] rounded-xl flex-1 pb-4 pt-3 px-3">
+                    <div className="flex gap-3 items-start">
+                      <div className="bg-[#dcfce8] border border-[#bbf7d1] rounded-[6.67px] w-9 h-9 flex items-center justify-center shrink-0">
+                        <MousePointerClick className="w-5 h-5 text-[#15803c]" />
+                      </div>
+                      <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex gap-2 items-center justify-center">
+                          <div className="flex gap-1 items-center">
+                            <ArrowUp className="w-6 h-6 text-[#15803c]" />
+                            <span className="text-lg font-medium text-[#525252] leading-[1.4]">+13</span>
+                          </div>
+                          <span className="text-xs text-[#656565] leading-[1.5]">compared to benchmark</span>
                         </div>
-                      )}
+                        <div className="flex gap-2 items-center">
+                          <span className="text-sm text-[#525252]">Digitalization</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-4 h-4 text-[#7c7c7c] cursor-help -ml-1 -mt-0.5" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Information about Digitalization and its impact</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end justify-center min-w-[85px] gap-2">
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-[#656565]">Commitment</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Zufriedenheit</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Bleibeabsicht</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Card 2 */}
+                  <div className="bg-white border border-[#efefef] rounded-xl flex-1 pb-4 pt-3 px-3">
+                    <div className="flex gap-3 items-start">
+                      <div className="bg-[#dcfce8] border border-[#bbf7d1] rounded-[6.67px] w-9 h-9 flex items-center justify-center shrink-0">
+                        <MousePointerClick className="w-5 h-5 text-[#15803c]" />
+                      </div>
+                      <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex gap-2 items-center justify-center">
+                          <div className="flex gap-1 items-center">
+                            <ArrowUp className="w-6 h-6 text-[#15803c]" />
+                            <span className="text-lg font-medium text-[#525252] leading-[1.4]">+13</span>
+                          </div>
+                          <span className="text-xs text-[#656565] leading-[1.5]">compared to benchmark</span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <span className="text-sm text-[#525252]">Digitalization</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-4 h-4 text-[#7c7c7c] cursor-help -ml-1 -mt-0.5" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Information about Digitalization and its impact</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end justify-center min-w-[85px] gap-2">
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-[#656565]">Bleibeabsicht</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Commitment</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Zufriedenheit</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Card 3 */}
+                  <div className="bg-white border border-[#efefef] rounded-xl flex-1 pb-4 pt-3 px-3">
+                    <div className="flex gap-3 items-start">
+                      <div className="bg-[#dcfce8] border border-[#bbf7d1] rounded-[6.67px] w-9 h-9 flex items-center justify-center shrink-0">
+                        <Newspaper className="w-5 h-5 text-[#15803c]" />
+                      </div>
+                      <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex gap-2 items-center justify-center">
+                          <div className="flex gap-1 items-center">
+                            <ArrowUp className="w-6 h-6 text-[#15803c]" />
+                            <span className="text-lg font-medium text-[#525252] leading-[1.4]">+8</span>
+                          </div>
+                          <span className="text-xs text-[#656565] leading-[1.5]">compared to benchmark</span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <span className="text-sm text-[#525252]">Einflussgrössen 3</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-4 h-4 text-[#7c7c7c] cursor-help -ml-1 -mt-0.5" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Information about Einflussgrössen 3 and its impact</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end justify-center min-w-[85px] gap-2">
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-[#656565]">Commitment</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Zufriedenheit</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Bleibeabsicht</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#15803c] opacity-30"></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>Wie funktioniert's?</span>
-                </div>
               </div>
 
-              {/* Main Influencing Factor Card */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3] flex-shrink-0">
-                    <Leaf className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ArrowUp className="w-5 h-5 text-green-600" />
-                      <span className="text-lg font-semibold text-green-600">+5</span>
-                      <span className="text-sm text-gray-600">vs last survey</span>
-                    </div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-lg font-semibold">{selectedTopic}</span>
-                      <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
-                        <span className="text-sm font-medium">80</span>
+              {/* Where you can create the most impact */}
+              <div className="bg-[#fafafa] rounded-lg p-6 flex flex-col gap-6">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-base font-semibold text-black">Where you can create the most impact</h3>
+                  <p className="text-sm text-[#525252] leading-[1.5] tracking-[-0.14px]">
+                    3 areas that can positively impact <span className="font-bold">Zufriedenheit</span> in your team.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  {/* Card 1 - Red */}
+                  <div className="bg-white border border-[#efefef] rounded-xl flex-1 pb-4 pt-3 px-3">
+                    <div className="flex gap-3 items-start">
+                      <div className="bg-[#fee2e4] border border-[#fda4aa] rounded-[6.67px] w-9 h-9 flex items-center justify-center shrink-0">
+                        <Orbit className="w-5 h-5 text-[#a31111]" />
                       </div>
-                    </div>
-                    <HelpCircle className="w-4 h-4 text-gray-400 mb-2" />
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-xs text-gray-600 mb-2">Vergleich mit anderen Benchmarks</p>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm">Trend der letzten Umfrage</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-4 bg-[#015ea3] rounded"></div>
-                              <ChangeIndicator change="+5" type="up" />
-                            </div>
+                      <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex gap-2 items-center justify-center">
+                          <div className="flex gap-1 items-center">
+                            <ArrowDown className="w-6 h-6 text-[#ba1b26]" />
+                            <span className="text-lg font-medium text-[#525252] leading-[1.4]">-15</span>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm">121 Schweizer Firmen</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-4 bg-[#015ea3] rounded"></div>
-                              <ChangeIndicator change="-14" type="down" />
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm">Firmenintern</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-4 bg-[#015ea3] rounded"></div>
-                              <ChangeIndicator change="-1" type="equal" />
-                            </div>
-                          </div>
+                          <span className="text-xs text-[#656565] leading-[1.5]">compared to benchmark</span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <span className="text-sm text-[#525252]">Einflussgrössen 4</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-4 h-4 text-[#7c7c7c] cursor-help -ml-1 -mt-0.5" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Information about Einflussgrössen 4 and its impact</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex gap-2">
-                          <button className="px-3 py-1.5 bg-[#015ea3] text-white text-xs rounded hover:bg-[#014a82] transition-colors">
-                            Open results
-                          </button>
-                          <button className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50 transition-colors">
-                            Export
-                          </button>
+                      <div className="flex flex-col items-end justify-center min-w-[85px] gap-2">
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-[#656565]">Zufriedenheit</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-600">Homogene Antworten</span>
-                          <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Bleibeabsicht</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111] opacity-30"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111] opacity-30"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Commitment</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                  {/* Card 2 - Red */}
+                  <div className="bg-white border border-[#efefef] rounded-xl flex-1 pb-4 pt-3 px-3">
+                    <div className="flex gap-3 items-start">
+                      <div className="bg-[#fee2e4] border border-[#fda4aa] rounded-[6.67px] w-9 h-9 flex items-center justify-center shrink-0">
+                        <Package className="w-5 h-5 text-[#a31111]" />
+                      </div>
+                      <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex gap-2 items-center justify-center">
+                          <div className="flex gap-1 items-center">
+                            <ArrowDown className="w-6 h-6 text-[#ba1b26]" />
+                            <span className="text-lg font-medium text-[#525252] leading-[1.4]">-9</span>
+                          </div>
+                          <span className="text-xs text-[#656565] leading-[1.5]">compared to benchmark</span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <span className="text-sm text-[#525252]">Einflussgrössen 5</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-4 h-4 text-[#7c7c7c] cursor-help -ml-1 -mt-0.5" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Information about Einflussgrössen 5 and its impact</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end justify-center min-w-[85px] gap-2">
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-[#656565]">Zufriedenheit</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Bleibeabsicht</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111] opacity-30"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111] opacity-30"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Commitment</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Card 3 - Red */}
+                  <div className="bg-white border border-[#efefef] rounded-xl flex-1 pb-4 pt-3 px-3">
+                    <div className="flex gap-3 items-start">
+                      <div className="bg-[#fee2e4] border border-[#fda4aa] rounded-[6.67px] w-9 h-9 flex items-center justify-center shrink-0">
+                        <Paperclip className="w-5 h-5 text-[#a31111]" />
+                      </div>
+                      <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex gap-2 items-center justify-center">
+                          <div className="flex gap-1 items-center">
+                            <ArrowDown className="w-6 h-6 text-[#ba1b26]" />
+                            <span className="text-lg font-medium text-[#525252] leading-[1.4]">-10</span>
+                          </div>
+                          <span className="text-xs text-[#656565] leading-[1.5]">compared to benchmark</span>
+                        </div>
+                        <div className="flex gap-2 items-center">
+                          <span className="text-sm text-[#525252]">Einflussgrössen 6</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="w-4 h-4 text-[#7c7c7c] cursor-help -ml-1 -mt-0.5" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Information about Einflussgrössen 6 and its impact</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end justify-center min-w-[85px] gap-2">
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-[#656565]">Zufriedenheit</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Bleibeabsicht</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111] opacity-30"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111] opacity-30"></div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 items-center px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] text-[#656565]">Commitment</span>
+                          <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#a31111]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-
-              {/* Influencing Factors Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {mockInfluencingFactors.slice(1, 4).map((factor) => (
-                  <InfluencingFactorCard key={factor.id} factor={factor} />
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {mockInfluencingFactors.slice(4).map((factor) => (
-                  <InfluencingFactorCard key={factor.id} factor={factor} />
-                ))}
               </div>
             </div>
           </SectionWrapper>
 
           {/* Save and Share Section */}
           <SectionWrapper>
-            <div className="w-full flex flex-col md:flex-row gap-8 justify-center">
-              <div className="flex flex-col items-center gap-4 text-center flex-1">
-                <div className="w-12 h-12 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3]">
-                  <LineChart className="w-6 h-6" />
+            <div className="flex flex-col gap-6">
+              <h2 className="text-2xl font-semibold text-black tracking-[-0.48px] text-center">
+                Results detailed view
+              </h2>
+              <div className="bg-[#f0f8ff] border border-[#b9e2fe] rounded-[16px] px-8 py-8 relative overflow-hidden">
+                <div className="w-full flex flex-col md:flex-row gap-8 justify-center">
+                  <div className="flex flex-col items-center gap-4 text-center flex-1">
+                    <div className="w-12 h-12 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3]">
+                      <LineChart className="w-6 h-6" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-lg font-semibold text-black">Confront results with other companies</h3>
+                      <p className="text-sm text-[#656565] leading-[1.5]">
+                        This is an interesting value to look at, and here's a sharp sentence why.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-4 text-center flex-1">
+                    <div className="w-12 h-12 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3]">
+                      <Contrast className="w-6 h-6" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-lg font-semibold text-black">Check response homogeneity</h3>
+                      <p className="text-sm text-[#656565] leading-[1.5]">
+                        This is an interesting value to look at, and here's a sharp sentence why.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-4 text-center flex-1">
+                    <div className="w-12 h-12 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3]">
+                      <History className="w-6 h-6" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-lg font-semibold text-black">Spot positive trends over the years</h3>
+                      <p className="text-sm text-[#656565] leading-[1.5]">
+                        This is an interesting value to look at, and here's a sharp sentence why.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-lg font-semibold text-black">Confront results with other companies</h3>
-                  <p className="text-sm text-[#656565] leading-[1.5]">
-                    This is an interesting value to look at, and here's a sharp sentence why.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-4 text-center flex-1">
-                <div className="w-12 h-12 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3]">
-                  <Contrast className="w-6 h-6" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-lg font-semibold text-black">Check response homogeneity</h3>
-                  <p className="text-sm text-[#656565] leading-[1.5]">
-                    This is an interesting value to look at, and here's a sharp sentence why.
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-4 text-center flex-1">
-                <div className="w-12 h-12 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3]">
-                  <History className="w-6 h-6" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-lg font-semibold text-black">Spot positive trends over the years</h3>
-                  <p className="text-sm text-[#656565] leading-[1.5]">
-                    This is an interesting value to look at, and here's a sharp sentence why.
-                  </p>
-                </div>
+                {/* Decorative compass icon in top right */}
+                <img 
+                  src={CompassIcon} 
+                  alt="Compass" 
+                  className="absolute -top-16 -right-16 opacity-30 z-0"
+                  loading="lazy"
+                />
               </div>
             </div>
           </SectionWrapper>
