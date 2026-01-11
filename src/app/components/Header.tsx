@@ -1,26 +1,31 @@
 import React, { memo } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User, Info } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import CompassIcon from "../../assets/Icons/Compass.svg";
 
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "Dashboard", bg: "bg-[#ededed]", text: "text-[#00b2a9]", minWidth: "min-w-[170px]" },
-  { icon: BarChart3, label: "Results", bg: "bg-[#00b2a9]", text: "text-white", minWidth: "min-w-[123px]" },
-  { icon: ScatterChart, label: "Fields of action", bg: "bg-[#00b2a9]", text: "text-white" },
-  { icon: Puzzle, label: "Measures", bg: "bg-[#00b2a9]", text: "text-white" },
-  { icon: Gauge, label: "Pulse", bg: "bg-[#00b2a9]", text: "text-white" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/", minWidth: "min-w-[170px]" },
+  { icon: BarChart3, label: "Results", path: "/results", minWidth: "min-w-[123px]" },
+  { icon: ScatterChart, label: "Fields of action", path: "/fields", minWidth: undefined },
+  { icon: Puzzle, label: "Measures", path: "/measures", minWidth: undefined },
+  { icon: Gauge, label: "Pulse", path: "/pulse", minWidth: undefined },
 ] as const;
 
 function NavItem({ item }: { item: typeof NAV_ITEMS[number] }) {
+  const location = useLocation();
   const Icon = item.icon;
+  const isActive = location.pathname === item.path;
+  
   return (
-    <div
+    <Link
+      to={item.path}
       className={cn(
         "px-6 py-3 flex items-center gap-2 justify-center cursor-pointer transition-colors",
-        item.bg || "bg-transparent hover:bg-gray-50",
-        item.bg === "bg-[#00b2a9]" && "hover:bg-[#009a91]",
-        item.text || "text-[#989898]",
+        isActive 
+          ? "bg-[#ededed] text-[#00b2a9] hover:bg-[#e0e0e0]" 
+          : "bg-transparent text-white hover:bg-[#009a91]",
         item.minWidth
       )}
     >
@@ -28,7 +33,7 @@ function NavItem({ item }: { item: typeof NAV_ITEMS[number] }) {
       <span className="text-lg font-medium">
         {item.label}
       </span>
-    </div>
+    </Link>
   );
 }
 
@@ -36,14 +41,14 @@ const MemoizedNavItem = memo(NavItem);
 
 export const Header = memo(function Header() {
   return (
-    <div className="w-full flex flex-col items-center bg-white shadow-sm z-50 relative">
+    <div className="w-full flex flex-col items-center bg-white shadow-sm z-50 sticky top-0">
       <SectionWrapper className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-4">
+        <Link to="/" className="flex items-center gap-4">
           <img src={CompassIcon} alt="Compass" className="w-[46px] h-[46px]" loading="lazy" />
           <h1 className="text-[#525252] text-2xl font-semibold tracking-tighter">
             DIGITAL COMMITMENT TOOL
           </h1>
-        </div>
+        </Link>
         <div className="flex items-center gap-3">
           <span className="text-[#525252] text-lg">user-email@gmail.ch</span>
           <div className="w-8 h-8 bg-[#00b2a9] rounded-2xl flex items-center justify-center text-white">

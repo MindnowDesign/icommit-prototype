@@ -28,7 +28,7 @@ export const HeroSection = memo(function HeroSection() {
   }, []);
 
   return (
-    <SectionWrapper className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pt-10">
+    <SectionWrapper className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
       <div className="flex flex-col gap-4">
         <h2 className="text-[32px] font-semibold text-black flex items-center gap-2">
           Hello, Hanna 👋
