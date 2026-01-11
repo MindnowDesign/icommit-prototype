@@ -1,9 +1,14 @@
-import React from "react";
+import React, { memo } from "react";
 import { LineChart, ArrowUpRight, History, Contrast } from "lucide-react";
-import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 
-function DetailColumn({ icon: Icon, title, description }: { icon: any, title: string, description: string }) {
+interface DetailColumnProps {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+}
+
+const DetailColumn = memo(function DetailColumn({ icon: Icon, title, description }: DetailColumnProps) {
   return (
     <div className="flex flex-col items-center gap-4 text-center flex-1">
       <div className="w-12 h-12 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3]">
@@ -17,9 +22,28 @@ function DetailColumn({ icon: Icon, title, description }: { icon: any, title: st
       </div>
     </div>
   );
-}
+});
 
-export function ResultsDetails() {
+// Detail columns data - extracted outside component
+const DETAIL_COLUMNS = [
+  {
+    icon: LineChart,
+    title: "Confront results with other companies",
+    description: "This is an interesting value to look at, and here's a sharp sentence why.",
+  },
+  {
+    icon: Contrast,
+    title: "Check response homogeneity",
+    description: "This is an interesting value to look at, and here's a sharp sentence why.",
+  },
+  {
+    icon: History,
+    title: "Spot positive trends over the years",
+    description: "This is an interesting value to look at, and here's a sharp sentence why.",
+  },
+] as const;
+
+export const ResultsDetails = memo(function ResultsDetails() {
   return (
     <SectionWrapper className="flex flex-col items-center gap-12">
       <div className="flex flex-col items-center gap-3">
@@ -30,21 +54,14 @@ export function ResultsDetails() {
       </div>
 
       <div className="w-full flex flex-col md:flex-row justify-center gap-16 md:gap-8 px-8">
-        <DetailColumn 
-            icon={LineChart} 
-            title="Confront results with other companies" 
-            description="This is an interesting value to look at, and here’s a sharp sentence why." 
-        />
-        <DetailColumn 
-            icon={Contrast} 
-            title="Check response homogeneity" 
-            description="This is an interesting value to look at, and here’s a sharp sentence why." 
-        />
-        <DetailColumn 
-            icon={History} 
-            title="Spot positive trends over the years" 
-            description="This is an interesting value to look at, and here’s a sharp sentence why." 
-        />
+        {DETAIL_COLUMNS.map((column, index) => (
+          <DetailColumn 
+            key={`${column.title}-${index}`}
+            icon={column.icon}
+            title={column.title}
+            description={column.description}
+          />
+        ))}
       </div>
 
       <button className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]">
@@ -53,4 +70,4 @@ export function ResultsDetails() {
       </button>
     </SectionWrapper>
   );
-}
+});

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User, Info } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
@@ -10,14 +10,36 @@ const NAV_ITEMS = [
   { icon: ScatterChart, label: "Fields of action", bg: "bg-[#00b2a9]", text: "text-white" },
   { icon: Puzzle, label: "Measures", bg: "bg-[#00b2a9]", text: "text-white" },
   { icon: Gauge, label: "Pulse", bg: "bg-[#00b2a9]", text: "text-white" },
-];
+] as const;
 
-export function Header() {
+function NavItem({ item }: { item: typeof NAV_ITEMS[number] }) {
+  const Icon = item.icon;
+  return (
+    <div
+      className={cn(
+        "px-6 py-3 flex items-center gap-2 justify-center cursor-pointer transition-colors",
+        item.bg || "bg-transparent hover:bg-gray-50",
+        item.bg === "bg-[#00b2a9]" && "hover:bg-[#009a91]",
+        item.text || "text-[#989898]",
+        item.minWidth
+      )}
+    >
+      <Icon className="w-6 h-6" />
+      <span className="text-lg font-medium">
+        {item.label}
+      </span>
+    </div>
+  );
+}
+
+const MemoizedNavItem = memo(NavItem);
+
+export const Header = memo(function Header() {
   return (
     <div className="w-full flex flex-col items-center bg-white shadow-sm z-50 relative">
       <SectionWrapper className="flex items-center justify-between py-4">
         <div className="flex items-center gap-4">
-          <img src={CompassIcon} alt="Compass" className="w-[46px] h-[46px]" />
+          <img src={CompassIcon} alt="Compass" className="w-[46px] h-[46px]" loading="lazy" />
           <h1 className="text-[#525252] text-2xl font-semibold tracking-tighter">
             DIGITAL COMMITMENT TOOL
           </h1>
@@ -30,30 +52,18 @@ export function Header() {
         </div>
       </SectionWrapper>
 
-      <SectionWrapper className="flex items-center justify-between mt-2 overflow-x-auto no-scrollbar gap-0 bg-[#00b2a9]">
-        <div className="flex">
-          {NAV_ITEMS.map((item, index) => (
-            <div
-              key={item.label}
-              className={cn(
-                "px-6 py-3 flex items-center gap-2 justify-center cursor-pointer transition-colors",
-                item.bg || "bg-transparent hover:bg-gray-50",
-                item.bg === "bg-[#00b2a9]" && "hover:bg-[#009a91]",
-                item.text || "text-[#989898]",
-                item.minWidth
-              )}
-            >
-              <item.icon className="w-6 h-6" />
-              <span className="text-lg font-medium">
-                {item.label}
-              </span>
-            </div>
-          ))}
+      <div className="w-full bg-[#00b2a9] mt-2">
+        <div className="w-full px-4 md:px-6 lg:px-8 max-w-[1312px] mx-auto flex items-center justify-between overflow-x-auto no-scrollbar gap-0">
+          <div className="flex">
+            {NAV_ITEMS.map((item) => (
+              <MemoizedNavItem key={item.label} item={item} />
+            ))}
+          </div>
+          <div className="px-6 py-3 flex items-center justify-center">
+            <Info className="w-6 h-6 text-white cursor-pointer" />
+          </div>
         </div>
-        <div className="px-6 py-3 flex items-center justify-center">
-          <Info className="w-6 h-6 text-white cursor-pointer" />
-        </div>
-      </SectionWrapper>
+      </div>
     </div>
   );
-}
+});

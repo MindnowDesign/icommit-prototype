@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ChevronDown, Lightbulb } from "lucide-react";
+import React, { useState, memo, useCallback } from "react";
+import { Lightbulb } from "lucide-react";
 import imgImage from "../../assets/fff264f6c39fb62af3d2bc43cb1af2321e7a47e9.png";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import {
@@ -11,17 +11,21 @@ import {
 } from "./ui/select";
 import { cn } from "./ui/utils";
 
-// Fake data for production teams
+// Fake data for production teams - extracted outside component
 const productionTeams = [
   { id: "production-a", label: "Production A team", members: 12, completion: 85 },
   { id: "production-b", label: "Production B team", members: 15, completion: 72 },
   { id: "production-c", label: "Production C team", members: 18, completion: 91 },
   { id: "production-x", label: "Production X team", members: 20, completion: 68 },
   { id: "production-d", label: "Production D team", members: 10, completion: 78 },
-];
+] as const;
 
-export function HeroSection() {
+export const HeroSection = memo(function HeroSection() {
   const [selectedTeam, setSelectedTeam] = useState("production-b");
+
+  const handleTeamChange = useCallback((value: string) => {
+    setSelectedTeam(value);
+  }, []);
 
   return (
     <SectionWrapper className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pt-10">
@@ -31,7 +35,7 @@ export function HeroSection() {
         </h2>
         <div className="flex items-center gap-3">
           <span className="text-[#525252] text-lg font-normal">Du siehst hier</span>
-          <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+          <Select value={selectedTeam} onValueChange={handleTeamChange}>
             <SelectTrigger 
               className={cn(
                 "bg-white border border-[#d8d8d8] rounded-[10px] px-3 py-1.5",
@@ -81,10 +85,10 @@ export function HeroSection() {
         <div className="bg-white border border-[#dcdcdc] rounded-[10px] px-4 py-2.5 flex items-center gap-2">
           <span className="text-[#464646] text-16px font-normal">AlpinaVista AG</span>
           <div className="w-6 h-6 rounded-[4px] overflow-hidden relative">
-            <img src={imgImage} alt="Workspace" className="w-full h-full object-cover" />
+            <img src={imgImage} alt="Workspace" className="w-full h-full object-cover" loading="lazy" />
           </div>
         </div>
       </div>
     </SectionWrapper>
   );
-}
+});

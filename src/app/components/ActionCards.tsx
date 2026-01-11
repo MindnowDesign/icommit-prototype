@@ -1,5 +1,5 @@
-import React from "react";
-import { MessageSquare, Target, ArrowDownToLine, MoveRight } from "lucide-react";
+import React, { memo } from "react";
+import { MessageSquare, Target, ArrowDownToLine } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 
@@ -14,7 +14,7 @@ interface ActionCardProps {
   disabled?: boolean;
 }
 
-function ActionSection({
+const ActionSection = memo(function ActionSection({
   phase,
   title,
   description,
@@ -65,40 +65,53 @@ function ActionSection({
       </div>
     </div>
   );
-}
+});
 
-export function ActionCards() {
+// Action cards data - extracted outside component
+const ACTION_CARDS_DATA = [
+  {
+    phase: "Phase 3",
+    title: "Define the areas of action you want to focus on",
+    description: (
+      <span>
+        We suggest to pick a maximum of <span className="font-semibold text-[#525252]">2/3 areas</span> to focus on in <span className="font-semibold text-[#525252]">the next 6 month.</span>
+      </span>
+    ),
+    cardIcon: <MessageSquare className="w-8 h-8" />,
+    cardTitle: "Discuss where you can have the most impact with your team",
+    cardText: "Download all the documentation to confidently prepare a discussion with your team about the most important areas of action.",
+    buttonText: "Download documentation",
+  },
+  {
+    phase: "Phase 4",
+    title: "Define actionable steps towards specific goals",
+    description: (
+      <span>
+        Based on the areas of action, we need to <span className="font-semibold text-[#525252]">define specific goals</span> and how to implement them <span className="font-semibold text-[#525252]">over time.</span>
+      </span>
+    ),
+    cardIcon: <Target className="w-8 h-8" />,
+    cardTitle: "Discuss the measures and goals with your team",
+    cardText: "Download all the documentation to confidently prepare a discussion with your team about next measures and goals",
+    buttonText: "Download documentation",
+  },
+] as const;
+
+export const ActionCards = memo(function ActionCards() {
   return (
     <SectionWrapper className="flex flex-col gap-32">
-        {/* Phase 3 */}
+      {ACTION_CARDS_DATA.map((card, index) => (
         <ActionSection 
-            phase="Phase 3"
-            title="Define the areas of action you want to focus on"
-            description={
-                <span>
-                    We suggest to pick a maximum of <span className="font-semibold text-[#525252]">2/3 areas</span> to focus on in <span className="font-semibold text-[#525252]">the next 6 month.</span>
-                </span>
-            }
-            cardIcon={<MessageSquare className="w-8 h-8" />}
-            cardTitle="Discuss where you can have the most impact with your team"
-            cardText="Download all the documentation to confidently prepare a discussion with your team about the most important areas of action."
-            buttonText="Download documentation"
+          key={`${card.phase}-${index}`}
+          phase={card.phase}
+          title={card.title}
+          description={card.description}
+          cardIcon={card.cardIcon}
+          cardTitle={card.cardTitle}
+          cardText={card.cardText}
+          buttonText={card.buttonText}
         />
-
-        {/* Phase 4 */}
-         <ActionSection 
-            phase="Phase 4"
-            title="Define actionable steps towards specific goals"
-            description={
-                <span>
-                    Based on the areas of action, we need to <span className="font-semibold text-[#525252]">define specific goals</span> and how to implement them <span className="font-semibold text-[#525252]">over time.</span>
-                </span>
-            }
-            cardIcon={<Target className="w-8 h-8" />}
-            cardTitle="Discuss the measures and goals with your team"
-            cardText="Download all the documentation to confidently prepare a discussion with your team about next measures and goals"
-            buttonText="Download documentation"
-        />
+      ))}
     </SectionWrapper>
   );
-}
+});

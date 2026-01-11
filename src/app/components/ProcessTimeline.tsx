@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo, useMemo } from "react";
 import { Lightbulb, RotateCcw, ArrowUpRight } from "lucide-react";
 import { cn } from "./ui/utils";
 
@@ -12,7 +12,7 @@ interface ProcessStepProps {
   buttonVariant?: "default" | "secondary-outline";
 }
 
-function ProcessStep({
+const ProcessStep = memo(function ProcessStep({
   phase,
   title,
   description,
@@ -57,7 +57,8 @@ function ProcessStep({
       <button 
         disabled={variant === "future"}
         className={cn(
-          "flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-base transition-colors w-fit border",
+          "flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors w-fit border",
+          "px-2.5", // small variant padding
           variant === "future" 
             ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed opacity-60"
             : buttonVariant === "secondary-outline"
@@ -70,61 +71,62 @@ function ProcessStep({
       </button>
     </div>
   );
-}
+});
 
-export function ProcessTimeline() {
-  const steps = [
-    {
-      phase: "Phase 1",
-      title: "Onboarding starten",
-      description: "Get set up and begin your journey with icommit.",
-      buttonText: "Restart onboarding",
-      buttonIcon: <RotateCcw className="w-4 h-4" />,
-      variant: "default" as const,
-      buttonVariant: "secondary-outline" as const
-    },
-    {
-      phase: "Phase 2",
-      title: "Analyse data",
-      description: "View your survey results and key insights.",
-      buttonText: "Open results",
-      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-      variant: "active" as const
-    },
-    {
-      phase: "Phase 3",
-      title: "Define focus areas",
-      description: "Discover where to focus your next actions.",
-      buttonText: "Open fields",
-      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-      variant: "future" as const
-    },
-    {
-      phase: "Phase 4",
-      title: "Discuss with your team",
-      description: "Share and align on next steps together.",
-      buttonText: "Open proposals",
-      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-      variant: "future" as const
-    },
-    {
-      phase: "Phase 5",
-      title: "Set clear goals",
-      description: "Turn insights into actionable steps for your team.",
-      buttonText: "Open measures",
-      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-      variant: "future" as const
-    },
-    {
-      phase: "Phase 6",
-      title: "Check your team pulse",
-      description: "Check progress and measure improvements over time.",
-      buttonText: "Open pulse",
-      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-      variant: "future" as const
-    }
-  ];
+// Steps data - extracted outside component
+const PROCESS_STEPS = [
+  {
+    phase: "Phase 1",
+    title: "Onboarding starten",
+    description: "Get set up and begin your journey with icommit.",
+    buttonText: "Restart onboarding",
+    buttonIcon: <RotateCcw className="w-4 h-4" />,
+    variant: "default" as const,
+    buttonVariant: "secondary-outline" as const
+  },
+  {
+    phase: "Phase 2",
+    title: "Analyse data",
+    description: "View your survey results and key insights.",
+    buttonText: "Open results",
+    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+    variant: "active" as const
+  },
+  {
+    phase: "Phase 3",
+    title: "Define focus areas",
+    description: "Discover where to focus your next actions.",
+    buttonText: "Open fields",
+    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+    variant: "future" as const
+  },
+  {
+    phase: "Phase 4",
+    title: "Discuss with your team",
+    description: "Share and align on next steps together.",
+    buttonText: "Open proposals",
+    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+    variant: "future" as const
+  },
+  {
+    phase: "Phase 5",
+    title: "Set clear goals",
+    description: "Turn insights into actionable steps for your team.",
+    buttonText: "Open measures",
+    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+    variant: "future" as const
+  },
+  {
+    phase: "Phase 6",
+    title: "Check your team pulse",
+    description: "Check progress and measure improvements over time.",
+    buttonText: "Open pulse",
+    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+    variant: "future" as const
+  }
+] as const;
 
+export const ProcessTimeline = memo(function ProcessTimeline() {
   return (
     <div className="w-full">
       {/* Header */}
@@ -149,11 +151,11 @@ export function ProcessTimeline() {
 
         {/* Steps Grid */}
         <div className="relative grid grid-cols-6 gap-8 pt-4">
-          {steps.map((step, index) => (
-            <ProcessStep key={index} {...step} />
+          {PROCESS_STEPS.map((step, index) => (
+            <ProcessStep key={`${step.phase}-${index}`} {...step} />
           ))}
         </div>
       </div>
     </div>
   );
-}
+});

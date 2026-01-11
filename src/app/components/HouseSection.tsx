@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Calendar, ChevronDown, HelpCircle, Rocket, Scale, Anchor, Monitor, Briefcase, Users, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react";
+import React, { useState, memo, useMemo, useCallback } from "react";
+import { Calendar, HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -11,29 +11,32 @@ import {
   SelectValue,
 } from "./ui/select";
 
-// Custom Icons from assets
-const ArrowDownIcon = () => (
+// Custom Icons from assets - memoized
+const ArrowDownIcon = memo(() => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 shrink-0">
     <path d="M15 5H9Z" fill="#FF6767"/>
     <path d="M15 9V12H19L12 19L5 12H9V9H15Z" fill="#FF6767"/>
     <path d="M15 5H9M15 9V12H19L12 19L5 12H9V9H15Z" stroke="#FF6767" strokeWidth="1.95" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
-);
+));
+ArrowDownIcon.displayName = "ArrowDownIcon";
 
-const ArrowUpIcon = () => (
+const ArrowUpIcon = memo(() => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 shrink-0">
     <path d="M9 18V12H5L12 5L19 12H15V18H9Z" fill="#15803C" stroke="#15803C" strokeWidth="1.95" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
-);
+));
+ArrowUpIcon.displayName = "ArrowUpIcon";
 
-const EqualIcon = () => (
+const EqualIcon = memo(() => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 shrink-0">
     <path d="M5 9H19M5 15H19" stroke="#525252" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
-);
+));
+EqualIcon.displayName = "EqualIcon";
 
 // Lucide Icons - all perfectly uniform: 24x24, centered, same styling
-const CommitmentIcon = () => (
+const CommitmentIcon = memo(() => (
   <Rocket 
     size={24} 
     strokeWidth={2} 
@@ -41,9 +44,10 @@ const CommitmentIcon = () => (
     style={{ display: 'block', flexShrink: 0 }}
     color="#4A0505"
   />
-);
+));
+CommitmentIcon.displayName = "CommitmentIcon";
 
-const SatisfactionIcon = () => (
+const SatisfactionIcon = memo(() => (
   <Scale 
     size={24} 
     strokeWidth={2} 
@@ -51,9 +55,10 @@ const SatisfactionIcon = () => (
     style={{ display: 'block', flexShrink: 0 }}
     color="#052E14"
   />
-);
+));
+SatisfactionIcon.displayName = "SatisfactionIcon";
 
-const ResignationIcon = () => (
+const ResignationIcon = memo(() => (
   <Anchor 
     size={24} 
     strokeWidth={2} 
@@ -61,26 +66,22 @@ const ResignationIcon = () => (
     style={{ display: 'block', flexShrink: 0 }}
     color="#656565"
   />
-);
+));
+ResignationIcon.displayName = "ResignationIcon";
+
+// Icon mapping for factors - extracted outside component
+const FACTOR_ICON_MAP: Record<string, React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>> = {
+  "Digitalization": MousePointerClick,
+  "Work and leisure": Sailboat,
+  "Kundenorientierung": Milestone,
+};
 
 // Function to get appropriate icon for each factor
 const getFactorIcon = (factor: string) => {
-  const iconProps = {
-    size: 16,
-    strokeWidth: 2,
-    className: "w-4 h-4 text-[#656565]",
-  };
-
-  switch (factor) {
-    case "Digitalization":
-      return <Monitor {...iconProps} />;
-    case "Work and leisure":
-      return <Briefcase {...iconProps} />;
-    case "Kundenorientierung":
-      return <Users {...iconProps} />;
-    default:
-      return null;
-  }
+  const IconComponent = FACTOR_ICON_MAP[factor];
+  if (!IconComponent) return null;
+  
+  return <IconComponent size={16} strokeWidth={2} className="w-4 h-4 text-[#656565]" />;
 };
 
 interface HouseCardProps {
@@ -89,7 +90,7 @@ interface HouseCardProps {
   influencingTitle: string;
   icon: React.ReactNode;
   iconBg: string;
-  factors: string[];
+  factors: readonly string[];
   badgeText?: string;
   badgeBgColor?: string;
   badgeTextColor?: string;
@@ -98,10 +99,40 @@ interface HouseCardProps {
   onClick?: () => void;
 }
 
-function HouseCard({ title, subtitle, influencingTitle, icon, iconBg, factors, badgeText, badgeBgColor = "#C7FFF6", badgeTextColor = "#0A6562", badgeIcon, badgeTooltip, onClick }: HouseCardProps) {
+const HouseCard = memo(function HouseCard({ 
+  title, 
+  subtitle, 
+  influencingTitle, 
+  icon, 
+  iconBg, 
+  factors, 
+  badgeText, 
+  badgeBgColor = "#C7FFF6", 
+  badgeTextColor = "#0A6562", 
+  badgeIcon, 
+  badgeTooltip, 
+  onClick 
+}: HouseCardProps) {
+  const handleClick = useCallback(() => {
+    onClick?.();
+  }, [onClick]);
+
+  const directionIcon = useMemo(() => {
+    if (influencingTitle.includes("keeping Commitment low")) {
+      return <ArrowDownIcon />;
+    }
+    if (influencingTitle.includes("keeping high Satisfaction")) {
+      return <ArrowUpIcon />;
+    }
+    if (influencingTitle.includes("can decrease Resignation")) {
+      return <EqualIcon />;
+    }
+    return null;
+  }, [influencingTitle]);
+
   return (
     <div 
-      onClick={onClick}
+      onClick={handleClick}
       className="bg-white rounded-[24px] border border-[#dcdcdc] p-6 flex gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
     >
       {badgeText && (
@@ -131,15 +162,7 @@ function HouseCard({ title, subtitle, influencingTitle, icon, iconBg, factors, b
         
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-1">
-            {influencingTitle.includes("keeping Commitment low") && (
-              <ArrowDownIcon />
-            )}
-            {influencingTitle.includes("keeping high Satisfaction") && (
-              <ArrowUpIcon />
-            )}
-            {influencingTitle.includes("can decrease Resignation") && (
-              <EqualIcon />
-            )}
+            {directionIcon}
             <span className="text-base text-black">{influencingTitle}</span>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -152,7 +175,7 @@ function HouseCard({ title, subtitle, influencingTitle, icon, iconBg, factors, b
           </div>
           <div className="flex flex-wrap gap-2">
             {factors.map((factor, i) => (
-              <div key={i} className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2">
+              <div key={`${factor}-${i}`} className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2">
                  {getFactorIcon(factor)}
                  <span className="text-[#3d3d3d] text-sm">{factor}</span>
               </div>
@@ -162,18 +185,103 @@ function HouseCard({ title, subtitle, influencingTitle, icon, iconBg, factors, b
       </div>
     </div>
   );
-}
+});
 
-// Comparison options data
+// Comparison options data - extracted outside component
 const comparisonOptions = [
   { id: "swiss-companies", label: "121 Swiss companies", displayValue: "121 Swiss companies" },
   { id: "other-groups", label: "11 other groups in the company", displayValue: "11 other groups in the company" },
   { id: "historical", label: "Historical comparison (2021)", displayValue: "Historical comparison (2021)" },
   { id: "external-benchmark", label: "External benchmark 2", displayValue: "External benchmark 2" },
-];
+] as const;
 
-export function HouseSection() {
+// House card data configuration - extracted outside component (without JSX)
+const HOUSE_CARDS_CONFIG = [
+  {
+    title: "Commitment",
+    subtitle: "What can we achieve together?",
+    influencingTitle: "Areas that are keeping Commitment low",
+    iconType: "commitment" as const,
+    iconBg: "bg-[#FF9E9E]",
+    factors: ["Digitalization", "Work and leisure", "Kundenorientierung"] as const,
+    badgeText: "Top weakness" as const,
+    badgeBgColor: "#FEF0C3",
+    badgeTextColor: "#A17C07",
+    badgeIconType: "trendingDown" as const,
+    badgeTooltip: "This area represents the weakest point in your team's commitment levels",
+  },
+  {
+    title: "Satisfaction",
+    subtitle: "What will I gain? Do I fit in here?",
+    influencingTitle: "Areas that are keeping high Satisfaction",
+    iconType: "satisfaction" as const,
+    iconBg: "bg-[#86EFAD]",
+    factors: ["Digitalization", "Work and leisure", "Kundenorientierung"] as const,
+    badgeText: "Top strength" as const,
+    badgeBgColor: "#DCFCE8",
+    badgeTextColor: "#15803C",
+    badgeIconType: "trendingUp" as const,
+    badgeTooltip: "This area represents the strongest point in your team's satisfaction levels",
+  },
+  {
+    title: "Resignation",
+    subtitle: "Why am I even here?",
+    influencingTitle: "Areas that can decrease Resignation levels",
+    iconType: "resignation" as const,
+    iconBg: "bg-[#efefef]",
+    factors: ["Digitalization", "Work and leisure", "Kundenorientierung"] as const,
+  },
+] as const;
+
+function HouseSectionComponent() {
   const [selectedComparison, setSelectedComparison] = useState("swiss-companies");
+
+  const handleComparisonChange = useCallback((value: string) => {
+    setSelectedComparison(value);
+  }, []);
+
+  const handleCardClick = useCallback((cardTitle: string) => {
+    console.log(`${cardTitle} card clicked`);
+  }, []);
+
+  // Create house cards data with JSX elements inside the component
+  const houseCardsData = useMemo(() => {
+    return HOUSE_CARDS_CONFIG.map((config) => {
+      let icon: React.ReactNode;
+      switch (config.iconType) {
+        case "commitment":
+          icon = <CommitmentIcon />;
+          break;
+        case "satisfaction":
+          icon = <SatisfactionIcon />;
+          break;
+        case "resignation":
+          icon = <ResignationIcon />;
+          break;
+      }
+
+      let badgeIcon: React.ReactNode | undefined;
+      if (config.badgeIconType === "trendingDown") {
+        badgeIcon = <TrendingDown className="w-5 h-5" style={{ color: config.badgeTextColor }} />;
+      } else if (config.badgeIconType === "trendingUp") {
+        badgeIcon = <TrendingUp className="w-5 h-5" style={{ color: config.badgeTextColor }} />;
+      }
+
+      return {
+        title: config.title,
+        subtitle: config.subtitle,
+        influencingTitle: config.influencingTitle,
+        icon,
+        iconBg: config.iconBg,
+        factors: config.factors,
+        badgeText: config.badgeText,
+        badgeBgColor: config.badgeBgColor,
+        badgeTextColor: config.badgeTextColor,
+        badgeIcon,
+        badgeTooltip: config.badgeTooltip,
+      };
+    });
+  }, []);
 
   return (
     <SectionWrapper className="flex flex-col items-center gap-8">
@@ -196,7 +304,7 @@ export function HouseSection() {
           </div>
           <span className="text-[18px] text-[#656565]">From your team's survey results, we suggest focusing on these key areas.</span>
         </div>
-        <Select value={selectedComparison} onValueChange={setSelectedComparison}>
+        <Select value={selectedComparison} onValueChange={handleComparisonChange}>
           <SelectTrigger 
             className={cn(
               "bg-white border border-[#d8d8d8] rounded-[10px] px-3 py-1.5",
@@ -251,45 +359,23 @@ export function HouseSection() {
 
         {/* Cards Stack */}
         <div className="w-full max-w-[976px] flex flex-col gap-6 relative mt-6">
-            <HouseCard 
-                title="Commitment" 
-                subtitle="What can we achieve together?" 
-                influencingTitle="Areas that are keeping Commitment low"
-                icon={<CommitmentIcon />}
-                iconBg="bg-[#FF9E9E]"
-                factors={["Digitalization", "Work and leisure", "Kundenorientierung"]}
-                badgeText="Top weakness"
-                badgeBgColor="#FEF0C3"
-                badgeTextColor="#A17C07"
-                badgeIcon={<TrendingDown className="w-5 h-5" style={{ color: "#A17C07" }} />}
-                badgeTooltip="This area represents the weakest point in your team's commitment levels"
-                onClick={() => console.log("Commitment card clicked")}
-            />
-
-            <HouseCard 
-                title="Satisfaction" 
-                subtitle="What will I gain? Do I fit in here?" 
-                influencingTitle="Areas that are keeping high Satisfaction"
-                icon={<SatisfactionIcon />}
-                iconBg="bg-[#86EFAD]"
-                factors={["Digitalization", "Work and leisure", "Kundenorientierung"]}
-                badgeText="Top strength"
-                badgeBgColor="#DCFCE8"
-                badgeTextColor="#15803C"
-                badgeIcon={<TrendingUp className="w-5 h-5" style={{ color: "#15803C" }} />}
-                badgeTooltip="This area represents the strongest point in your team's satisfaction levels"
-                onClick={() => console.log("Satisfaction card clicked")}
-            />
-
-            <HouseCard 
-                title="Resignation" 
-                subtitle="Why am I even here?" 
-                influencingTitle="Areas that can decrease Resignation levels"
-                icon={<ResignationIcon />}
-                iconBg="bg-[#efefef]"
-                factors={["Digitalization", "Work and leisure", "Kundenorientierung"]}
-                onClick={() => console.log("Resignation card clicked")}
-            />
+            {houseCardsData.map((card, index) => (
+              <HouseCard 
+                key={card.title}
+                title={card.title}
+                subtitle={card.subtitle}
+                influencingTitle={card.influencingTitle}
+                icon={card.icon}
+                iconBg={card.iconBg}
+                factors={card.factors}
+                badgeText={card.badgeText}
+                badgeBgColor={card.badgeBgColor}
+                badgeTextColor={card.badgeTextColor}
+                badgeIcon={card.badgeIcon}
+                badgeTooltip={card.badgeTooltip}
+                onClick={() => handleCardClick(card.title)}
+              />
+            ))}
         </div>
         
         {/* Base Graphic */}
@@ -312,3 +398,5 @@ export function HouseSection() {
     </SectionWrapper>
   );
 }
+
+export const HouseSection = memo(HouseSectionComponent);

@@ -17,13 +17,16 @@ export default function App() {
         <div className="w-full flex flex-col items-center gap-32 pb-20">
           <HeroSection />
           
-          <SectionWrapper className="bg-white rounded-[16px] border border-[#b9e2fe] !p-8 lg:!px-8 relative overflow-hidden -mt-20">
-             <img 
-               src={CompassIcon} 
-               alt="Compass" 
-               className="absolute -top-12 -right-12 opacity-30 z-0"
-             />
-             <ProcessTimeline />
+          <SectionWrapper className="-mt-20">
+            <div className="bg-white rounded-[16px] border border-[#b9e2fe] p-8 lg:px-8 relative overflow-hidden">
+              <img 
+                src={CompassIcon} 
+                alt="Compass" 
+                className="absolute -top-12 -right-12 opacity-30 z-0"
+                loading="lazy"
+              />
+              <ProcessTimeline />
+            </div>
           </SectionWrapper>
           
           <HouseSection />
