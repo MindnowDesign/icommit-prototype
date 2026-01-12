@@ -1,4 +1,5 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Lightbulb, RotateCcw, ArrowUpRight } from "lucide-react";
 import { cn } from "./ui/utils";
 
@@ -19,8 +20,9 @@ const ProcessStep = memo(function ProcessStep({
   buttonText,
   buttonIcon,
   variant = "future",
-  buttonVariant = "default"
-}: ProcessStepProps) {
+  buttonVariant = "default",
+  onButtonClick
+}: ProcessStepProps & { onButtonClick?: () => void }) {
   const isActive = variant === "active";
   const isCompleted = variant === "default";
   const isFuture = variant === "future";
@@ -55,6 +57,7 @@ const ProcessStep = memo(function ProcessStep({
 
       {/* Button */}
       <button 
+        onClick={onButtonClick}
         disabled={variant === "future"}
         className={cn(
           "flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors w-fit border",
@@ -127,6 +130,14 @@ const PROCESS_STEPS = [
 ] as const;
 
 export const ProcessTimeline = memo(function ProcessTimeline() {
+  const navigate = useNavigate();
+
+  const handleButtonClick = useCallback((buttonText: string) => {
+    if (buttonText === "Open results") {
+      navigate("/results");
+    }
+  }, [navigate]);
+
   return (
     <div className="w-full">
       {/* Header */}
@@ -152,7 +163,11 @@ export const ProcessTimeline = memo(function ProcessTimeline() {
         {/* Steps Grid */}
         <div className="relative grid grid-cols-6 gap-8 pt-4">
           {PROCESS_STEPS.map((step, index) => (
-            <ProcessStep key={`${step.phase}-${index}`} {...step} />
+            <ProcessStep 
+              key={`${step.phase}-${index}`} 
+              {...step} 
+              onButtonClick={() => handleButtonClick(step.buttonText)}
+            />
           ))}
         </div>
       </div>

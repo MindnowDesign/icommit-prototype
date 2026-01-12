@@ -1,4 +1,5 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { LineChart, ArrowUpRight, History, Contrast } from "lucide-react";
 import { SectionWrapper } from "./ui/SectionWrapper";
 
@@ -44,6 +45,12 @@ const DETAIL_COLUMNS = [
 ] as const;
 
 export const ResultsDetails = memo(function ResultsDetails() {
+  const navigate = useNavigate();
+
+  const handleSeeResultsClick = useCallback(() => {
+    navigate("/results");
+  }, [navigate]);
+
   return (
     <SectionWrapper className="flex flex-col items-center gap-12">
       <div className="flex flex-col items-center gap-3">
@@ -64,7 +71,10 @@ export const ResultsDetails = memo(function ResultsDetails() {
         ))}
       </div>
 
-      <button className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]">
+      <button 
+        onClick={handleSeeResultsClick}
+        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
+      >
         <span>See survey results</span>
         <ArrowUpRight className="w-4 h-4" />
       </button>

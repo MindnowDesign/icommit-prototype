@@ -1,4 +1,5 @@
 import React, { useState, memo, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Calendar, HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
@@ -234,6 +235,7 @@ const HOUSE_CARDS_CONFIG = [
 ] as const;
 
 function HouseSectionComponent() {
+  const navigate = useNavigate();
   const [selectedComparison, setSelectedComparison] = useState("swiss-companies");
 
   const handleComparisonChange = useCallback((value: string) => {
@@ -243,6 +245,10 @@ function HouseSectionComponent() {
   const handleCardClick = useCallback((cardTitle: string) => {
     console.log(`${cardTitle} card clicked`);
   }, []);
+
+  const handleSeeResultsClick = useCallback(() => {
+    navigate("/results");
+  }, [navigate]);
 
   // Create house cards data with JSX elements inside the component
   const houseCardsData = useMemo(() => {
@@ -387,7 +393,10 @@ function HouseSectionComponent() {
         </div>
         
         {/* CTA Button */}
-        <button className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] mt-6">
+        <button 
+          onClick={handleSeeResultsClick}
+          className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] mt-6"
+        >
           <span>See survey results</span>
           <ArrowUpRight className="w-4 h-4" />
         </button>
