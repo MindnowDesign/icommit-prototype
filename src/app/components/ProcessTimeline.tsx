@@ -60,7 +60,7 @@ const ProcessStep = memo(function ProcessStep({
           className={cn(
             "inline-flex items-center text-sm font-medium transition-colors w-fit underline decoration-1 underline-offset-4 cursor-pointer",
             variant === "future" 
-              ? "text-[#9e9e9e] cursor-not-allowed opacity-60 no-underline"
+              ? "text-[#9e9e9e] cursor-not-allowed opacity-60 decoration-[#9e9e9e]"
               : "text-[#015ea3] hover:text-[#014a82] hover:opacity-80 decoration-[#015ea3] hover:decoration-[#014a82]"
           )}
         >
