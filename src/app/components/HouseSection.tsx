@@ -444,16 +444,17 @@ function HouseSectionComponent() {
         {/* Left Column: House Graphic & Cards */}
         <div className="flex-1 flex flex-col items-center relative w-full lg:w-auto">
         {/* Roof Graphic - above first card, slightly wider */}
-        <div className="w-full max-w-[1100px] h-[87px] relative -mx-4 md:-mx-6 lg:-mx-8 mb-0">
+        <div className="w-full max-w-[1100px] h-[87px] relative -mx-4 md:-mx-6 lg:-mx-8 -mb-2">
            <img 
              src={TettoSvg} 
              alt="Roof" 
-             className="w-full h-full"
+             className="w-full h-full block m-0 p-0 object-cover"
            />
         </div>
 
         {/* Cards Stack */}
         <div className="w-full max-w-[1050px] flex flex-col gap-0 relative mt-0 -mx-4 md:-mx-6 lg:-mx-8">
+          <div className="mx-4 md:mx-6 lg:mx-8">
             {houseCardsData.map((card, index) => {
               // Determine background color based on card type
               let cardBgColor = "bg-[#f0f8ff]"; // Default cyan/50
@@ -494,6 +495,7 @@ function HouseSectionComponent() {
                 </div>
               );
             })}
+          </div>
         </div>
         
         {/* CTA Button */}
