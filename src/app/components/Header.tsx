@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User, Info } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
@@ -19,8 +19,7 @@ function NavItem({ item }: { item: typeof NAV_ITEMS[number] }) {
   const isActive = location.pathname === item.path;
   
   return (
-    <Link
-      to={item.path}
+    <div
       className={cn(
         "px-6 py-3 flex items-center gap-2 justify-center cursor-pointer transition-colors",
         isActive 
@@ -33,7 +32,7 @@ function NavItem({ item }: { item: typeof NAV_ITEMS[number] }) {
       <span className="text-lg font-medium">
         {item.label}
       </span>
-    </Link>
+    </div>
   );
 }
 
@@ -42,13 +41,13 @@ const MemoizedNavItem = memo(NavItem);
 export const Header = memo(function Header() {
   return (
     <div className="w-full flex flex-col items-center bg-white shadow-sm z-50 sticky top-0">
-      <SectionWrapper className="flex items-center justify-between py-4">
-        <Link to="/" className="flex items-center gap-4">
-          <img src={CompassIcon} alt="Compass" className="w-[46px] h-[46px]" loading="lazy" />
-          <h1 className="text-[#525252] text-2xl font-semibold tracking-tighter">
+      <SectionWrapper className="flex items-center justify-between py-3">
+        <div className="flex items-center gap-4">
+          <img src={CompassIcon} alt="Compass" className="w-[40px] h-[40px]" loading="lazy" />
+          <h1 className="text-[#525252] text-xl font-semibold tracking-tighter">
             DIGITAL COMMITMENT TOOL
           </h1>
-        </Link>
+        </div>
         <div className="flex items-center gap-3">
           <span className="text-[#525252] text-lg">user-email@gmail.ch</span>
           <div className="w-8 h-8 bg-[#015EA3] rounded-2xl flex items-center justify-center text-white">
@@ -57,14 +56,14 @@ export const Header = memo(function Header() {
         </div>
       </SectionWrapper>
 
-      <div className="w-full bg-[#015EA3] mt-2">
+      <div className="w-full bg-[#015EA3]">
         <div className="w-full px-4 md:px-6 lg:px-8 max-w-[1312px] mx-auto flex items-center justify-between overflow-x-auto no-scrollbar gap-0">
           <div className="flex">
             {NAV_ITEMS.map((item) => (
               <MemoizedNavItem key={item.label} item={item} />
             ))}
           </div>
-          <div className="px-6 py-3 flex items-center justify-center">
+          <div className="px-3 py-3 flex items-center justify-center">
             <Info className="w-6 h-6 text-white cursor-pointer" />
           </div>
         </div>

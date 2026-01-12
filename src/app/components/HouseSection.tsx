@@ -1,5 +1,4 @@
 import React, { useState, memo, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { Calendar, HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
@@ -295,7 +294,7 @@ const HOUSE_CARDS_CONFIG = [
     badgeBgColor: "#FEF0C3",
     badgeTextColor: "#A17C07",
     badgeIconType: "trendingDown" as const,
-    badgeTooltip: "This area represents the weakest point in your team's commitment levels",
+    badgeTooltip: "Commitment is your team's weakest Target Value",
   },
   {
     title: "Satisfaction",
@@ -308,7 +307,7 @@ const HOUSE_CARDS_CONFIG = [
     badgeBgColor: "#DCFCE8",
     badgeTextColor: "#15803C",
     badgeIconType: "trendingUp" as const,
-    badgeTooltip: "This area represents the strongest point in your team's satisfaction levels",
+    badgeTooltip: "Satisfaction is your team's strongest Target Value",
   },
   {
     title: "Resignation",
@@ -321,20 +320,11 @@ const HOUSE_CARDS_CONFIG = [
 ] as const;
 
 function HouseSectionComponent() {
-  const navigate = useNavigate();
   const [selectedComparison, setSelectedComparison] = useState("swiss-companies");
 
   const handleComparisonChange = useCallback((value: string) => {
     setSelectedComparison(value);
   }, []);
-
-  const handleCardClick = useCallback(() => {
-    navigate("/results");
-  }, [navigate]);
-
-  const handleSeeResultsClick = useCallback(() => {
-    navigate("/results");
-  }, [navigate]);
 
   // Create house cards data with JSX elements inside the component
   const houseCardsData = useMemo(() => {
@@ -490,7 +480,6 @@ function HouseSectionComponent() {
                     badgeTextColor={card.badgeTextColor}
                     badgeIcon={card.badgeIcon}
                     badgeTooltip={card.badgeTooltip}
-                    onClick={handleCardClick}
                   />
                 </div>
               );
@@ -500,7 +489,6 @@ function HouseSectionComponent() {
         
         {/* CTA Button */}
         <button 
-          onClick={handleSeeResultsClick}
           className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] mt-6"
         >
           <span>See survey results</span>

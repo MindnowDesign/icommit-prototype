@@ -1,5 +1,4 @@
-import React, { memo, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { memo } from "react";
 import { Lightbulb, RotateCcw, ArrowUpRight } from "lucide-react";
 import { cn } from "./ui/utils";
 
@@ -20,9 +19,8 @@ const ProcessStep = memo(function ProcessStep({
   buttonText,
   buttonIcon,
   variant = "future",
-  buttonVariant = "default",
-  onButtonClick
-}: ProcessStepProps & { onButtonClick?: () => void }) {
+  buttonVariant = "default"
+}: ProcessStepProps) {
   const isActive = variant === "active";
   const isCompleted = variant === "default";
   const isFuture = variant === "future";
@@ -55,7 +53,6 @@ const ProcessStep = memo(function ProcessStep({
 
         {/* Button */}
         <button 
-          onClick={onButtonClick}
           disabled={variant === "future"}
           className={cn(
             "inline-flex items-center text-sm font-medium transition-colors w-fit underline decoration-1 underline-offset-4 cursor-pointer",
@@ -125,14 +122,6 @@ const PROCESS_STEPS = [
 ] as const;
 
 export const ProcessTimeline = memo(function ProcessTimeline() {
-  const navigate = useNavigate();
-
-  const handleButtonClick = useCallback((buttonText: string) => {
-    if (buttonText === "Open results") {
-      navigate("/results");
-    }
-  }, [navigate]);
-
   return (
     <div className="w-full">
       {/* Header */}
@@ -161,7 +150,6 @@ export const ProcessTimeline = memo(function ProcessTimeline() {
             <ProcessStep 
               key={`${step.phase}-${index}`} 
               {...step} 
-              onButtonClick={() => handleButtonClick(step.buttonText)}
             />
           ))}
         </div>
