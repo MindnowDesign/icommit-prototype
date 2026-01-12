@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, forwardRef } from "react";
 import { cn } from "./utils";
 
 interface SectionWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -7,14 +7,15 @@ interface SectionWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   fullWidth?: boolean;
 }
 
-export const SectionWrapper = memo(function SectionWrapper({ 
+export const SectionWrapper = memo(forwardRef<HTMLDivElement, SectionWrapperProps>(function SectionWrapper({ 
   children, 
   className, 
   fullWidth = false, 
   ...props 
-}: SectionWrapperProps) {
+}, ref) {
   return (
     <div 
+      ref={ref}
       className={cn(
         "w-full px-4 md:px-6 lg:px-8", 
         !fullWidth && "max-w-[1312px]",
@@ -25,4 +26,4 @@ export const SectionWrapper = memo(function SectionWrapper({
       {children}
     </div>
   );
-});
+}));

@@ -4,6 +4,7 @@ import { Calendar, HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboa
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import TettoSvg from "../../assets/house/Tetto.svg";
 import {
   Select,
   SelectContent,
@@ -143,7 +144,7 @@ const HouseCard = memo(function HouseCard({
             {icon}
           </div>
           
-          <div className="flex flex-col gap-1 flex-1">
+          <div className="flex flex-col gap-0 flex-1">
             <h3 className="text-[20px] font-semibold text-[#292929]">{title}</h3>
             <p className="text-[16px] text-[#525252]">{subtitle}</p>
           </div>
@@ -358,19 +359,20 @@ function HouseSectionComponent() {
       </div>
 
       {/* Two Column Layout: House on Left, Fixed Banner on Right */}
-      <div className="w-full flex flex-col lg:flex-row gap-8 items-start relative">
+      <div className="w-full flex flex-col lg:flex-row gap-8 items-start lg:items-stretch">
         {/* Left Column: House Graphic & Cards */}
         <div className="flex-1 flex flex-col items-center relative w-full lg:w-auto">
         {/* Roof Graphic */}
-        <div className="w-full h-[102px] relative">
-           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1040 102" fill="none" xmlns="http://www.w3.org/2000/svg">
-               <rect x="705" width="82" height="72" rx="8" fill="#B9E2FE"/>
-               <path d="M519.308 10.3637C519.766 10.2833 520.234 10.2833 520.692 10.3637L994.786 93.6168C999.601 94.4623 998.983 101.556 994.095 101.556H45.9055C41.0167 101.556 40.3985 94.4623 45.2137 93.6168L519.308 10.3637Z" fill="#F0F8FF"/>
-           </svg>
+        <div className="w-full max-w-[1050px] h-[87px] relative -mx-4 md:-mx-6 lg:-mx-8">
+           <img 
+             src={TettoSvg} 
+             alt="Roof" 
+             className="w-full h-full"
+           />
         </div>
 
         {/* Cards Stack */}
-        <div className="w-full max-w-[976px] flex flex-col gap-0 relative mt-0">
+        <div className="w-full max-w-[940px] flex flex-col gap-0 relative mt-0">
             {houseCardsData.map((card, index) => {
               // Determine background color based on card type
               let cardBgColor = "bg-[#f0f8ff]"; // Default cyan/50
@@ -423,9 +425,9 @@ function HouseSectionComponent() {
         <div className="w-full max-w-[1040px] h-16 bg-gradient-to-t from-[#efefef] to-white mt-[-20px] -z-10 rounded-b-lg" />
         </div>
 
-        {/* Right Column: Fixed Banner */}
-        <div className="w-full lg:w-[305px] shrink-0">
-          <div className="lg:sticky lg:top-8 bg-[#f0f8ff] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-3">
+        {/* Right Column: Fixed Banner - Wrapped in container that limits sticky area */}
+        <div className="relative w-full lg:w-[305px] shrink-0 lg:flex lg:flex-col">
+          <div className="lg:sticky lg:top-[170px] bg-[#f0f8ff] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-3">
             <div className="flex items-center gap-3 h-6">
               <div className="w-5 h-5 shrink-0 flex items-center justify-center">
                 <Lightbulb className="w-5 h-5 text-[#015ea3]" strokeWidth={2} />
