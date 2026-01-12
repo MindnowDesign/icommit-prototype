@@ -8,7 +8,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/results" element={<ResultsPage />} />
+        {/* Results page route commented out - page code preserved */}
+        {/* <Route path="/results" element={<ResultsPage />} /> */}
       </Routes>
     </BrowserRouter>
   );

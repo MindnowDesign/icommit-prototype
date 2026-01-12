@@ -50,28 +50,23 @@ const ProcessStep = memo(function ProcessStep({
       </div>
 
       {/* Content */}
-      <div className={cn("flex flex-col gap-1 min-h-[60px]", isFuture && "opacity-50")}>
-        <h3 className="font-semibold text-[#292929] text-base">{title}</h3>
-        <p className="text-[#525252] text-sm leading-relaxed">{description}</p>
-      </div>
+      <div className="flex flex-col gap-2">
+        <h3 className={cn("font-semibold text-[#292929] text-base", isFuture && "opacity-50")}>{title}</h3>
 
-      {/* Button */}
-      <button 
-        onClick={onButtonClick}
-        disabled={variant === "future"}
-        className={cn(
-          "flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors w-fit border",
-          "px-2.5", // small variant padding
-          variant === "future" 
-            ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed opacity-60"
-            : buttonVariant === "secondary-outline"
-            ? "border-[#015ea3] bg-transparent text-[#015ea3] hover:bg-[#015ea3]/10 hover:border-[#014a82] hover:text-[#014a82]"
-            : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
-        )}
-      >
-        {buttonText}
-        {buttonIcon}
-      </button>
+        {/* Button */}
+        <button 
+          onClick={onButtonClick}
+          disabled={variant === "future"}
+          className={cn(
+            "inline-flex items-center text-sm font-medium transition-colors w-fit underline decoration-1 underline-offset-4 cursor-pointer",
+            variant === "future" 
+              ? "text-[#9e9e9e] cursor-not-allowed opacity-60 no-underline"
+              : "text-[#015ea3] hover:text-[#014a82] hover:opacity-80 decoration-[#015ea3] hover:decoration-[#014a82]"
+          )}
+        >
+          {buttonText}
+        </button>
+      </div>
     </div>
   );
 });
