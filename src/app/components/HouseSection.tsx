@@ -243,8 +243,8 @@ function HouseSectionComponent() {
   }, []);
 
   const handleCardClick = useCallback((cardTitle: string) => {
-    console.log(`${cardTitle} card clicked`);
-  }, []);
+    navigate("/results");
+  }, [navigate]);
 
   const handleSeeResultsClick = useCallback(() => {
     navigate("/results");

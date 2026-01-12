@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import { Header } from "../components/Header";
 import { SectionWrapper } from "../components/ui/SectionWrapper";
 import { 
@@ -18,9 +18,15 @@ import {
   BarChart3,
   Pin,
   Leaf,
-  Equal,
-  Compass
+  Compass,
+  Rocket,
+  Scale,
+  Anchor,
+  Filter
 } from "lucide-react";
+import ArrowUpIcon from "../../assets/Icons/Arrow Up.svg";
+import ArrowDownIcon from "../../assets/Icons/Arrow down.svg";
+import EqualIcon from "../../assets/Icons/Equal.svg";
 import { cn } from "../components/ui/utils";
 import {
   Select,
@@ -34,6 +40,11 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "../components/ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "../components/ui/collapsible";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 // Fake data for production teams - same as HomePage
 const productionTeams = [
@@ -44,298 +55,392 @@ const productionTeams = [
   { id: "production-d", label: "Production D team", members: 10, completion: 78 },
 ] as const;
 
-const mockInfluencingFactors = [
+// Category types
+type CategoryType = "commitment" | "satisfaction" | "resignation";
+
+interface SubItem {
+  name: string;
+  distribution: { positive: number; neutral: number; negative: number };
+  mean: number;
+  comparisons: {
+    companyGroups: { value: number; change: number };
+    historical: { value: number; change: number };
+    swissCompanies: { value: number; change: number };
+    external1: { value: number; change: number };
+    external2: { value: number; change: number };
+  };
+}
+
+interface CategoryData {
+  id: string;
+  name: string;
+  type: CategoryType;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
+  distribution: { positive: number; neutral: number; negative: number };
+  mean: number;
+  comparisons: {
+    companyGroups: { value: number; change: number };
+    historical: { value: number; change: number };
+    swissCompanies: { value: number; change: number };
+    external1: { value: number; change: number };
+    external2: { value: number; change: number };
+  };
+  subItems: SubItem[];
+}
+
+const mockCategories: CategoryData[] = [
   {
-    id: 1,
-    name: "Mitarbeitendenförderung",
-    icon: Leaf,
-    change: "+5",
-    changeType: "up" as const,
-    mean: 80,
-    subItems: ["Subitem 1", "Subitem 2", "Subitem 3"],
+    id: "commitment",
+    name: "Commitment",
+    type: "commitment",
+    icon: Rocket,
     distribution: { positive: 65, neutral: 8, negative: 27 },
+    mean: 66,
     comparisons: {
       companyGroups: { value: 75, change: -14 },
       historical: { value: 75, change: -3 },
       swissCompanies: { value: 66, change: -1 },
       external1: { value: 79, change: 5 },
       external2: { value: 79, change: 14 }
-    }
+    },
+    subItems: [
+      {
+        name: "Ich bin zuversichtlich, dass dieses Unternehmen die digitalen Herausforderungen erfolgreich bewältigen wird.",
+        distribution: { positive: 33, neutral: 34, negative: 33 },
+        mean: 66,
+        comparisons: {
+          companyGroups: { value: 75, change: -14 },
+          historical: { value: 75, change: -1 },
+          swissCompanies: { value: 66, change: 5 },
+          external1: { value: 79, change: -14 },
+          external2: { value: 79, change: 5 }
+        }
+      },
+      {
+        name: "Neue Technologien unterstützen mich bei meiner Arbeit.",
+        distribution: { positive: 25, neutral: 8, negative: 67 },
+        mean: 66,
+        comparisons: {
+          companyGroups: { value: 75, change: 14 },
+          historical: { value: 75, change: -3 },
+          swissCompanies: { value: 66, change: -1 },
+          external1: { value: 79, change: -1 },
+          external2: { value: 79, change: -3 }
+        }
+      },
+      {
+        name: "In meinem Arbeitsumfeld können die Mitarbeitenden gut mit neuen Technologien umgehen.",
+        distribution: { positive: 75, neutral: 5, negative: 20 },
+        mean: 66,
+        comparisons: {
+          companyGroups: { value: 75, change: 14 },
+          historical: { value: 75, change: -14 },
+          swissCompanies: { value: 66, change: 14 },
+          external1: { value: 79, change: -3 },
+          external2: { value: 79, change: -1 }
+        }
+      }
+    ]
   },
   {
-    id: 2,
-    name: "Digitalization",
-    icon: MousePointerClick,
-    change: "+5",
-    changeType: "up" as const,
-    mean: 66,
-    subItems: ["Subitem 1", "Subitem 2", "Subitem 3"],
+    id: "satisfaction",
+    name: "Satisfaction",
+    type: "satisfaction",
+    icon: Scale,
     distribution: { positive: 65, neutral: 8, negative: 27 },
+    mean: 66,
     comparisons: {
       companyGroups: { value: 75, change: -14 },
       historical: { value: 75, change: -3 },
       swissCompanies: { value: 66, change: -1 },
       external1: { value: 79, change: 5 },
       external2: { value: 79, change: 14 }
-    }
+    },
+    subItems: []
   },
   {
-    id: 3,
-    name: "Einflussgrössen 3",
-    icon: Newspaper,
-    change: "+3",
-    changeType: "up" as const,
-    mean: 66,
-    subItems: ["Subitem 1", "Subitem 2", "Subitem 3"],
+    id: "resignation",
+    name: "Resignation",
+    type: "resignation",
+    icon: Anchor,
     distribution: { positive: 65, neutral: 8, negative: 27 },
+    mean: 66,
     comparisons: {
       companyGroups: { value: 75, change: -14 },
       historical: { value: 75, change: -3 },
       swissCompanies: { value: 66, change: -1 },
       external1: { value: 79, change: 5 },
       external2: { value: 79, change: 14 }
-    }
-  },
-  {
-    id: 4,
-    name: "Einflussgrössen 4",
-    icon: Orbit,
-    change: "-14",
-    changeType: "down" as const,
-    mean: 66,
-    subItems: ["Subitem 1", "Subitem 2", "Subitem 3"],
-    distribution: { positive: 65, neutral: 8, negative: 27 },
-    comparisons: {
-      companyGroups: { value: 75, change: -14 },
-      historical: { value: 75, change: -3 },
-      swissCompanies: { value: 66, change: -1 },
-      external1: { value: 79, change: 5 },
-      external2: { value: 79, change: 14 }
-    }
-  },
-  {
-    id: 5,
-    name: "Einflussgrössen 5",
-    icon: Package,
-    change: "+2",
-    changeType: "up" as const,
-    mean: 66,
-    subItems: ["Subitem 1", "Subitem 2", "Subitem 3"],
-    distribution: { positive: 65, neutral: 8, negative: 27 },
-    comparisons: {
-      companyGroups: { value: 75, change: -14 },
-      historical: { value: 75, change: -3 },
-      swissCompanies: { value: 66, change: -1 },
-      external1: { value: 79, change: 5 },
-      external2: { value: 79, change: 14 }
-    }
-  },
-  {
-    id: 6,
-    name: "Einflussgrössen 6",
-    icon: Paperclip,
-    change: "+5",
-    changeType: "up" as const,
-    mean: 66,
-    subItems: ["Subitem 1", "Subitem 2", "Subitem 3"],
-    distribution: { positive: 65, neutral: 8, negative: 27 },
-    comparisons: {
-      companyGroups: { value: 75, change: -14 },
-      historical: { value: 75, change: -3 },
-      swissCompanies: { value: 66, change: -1 },
-      external1: { value: 79, change: 5 },
-      external2: { value: 79, change: 14 }
-    }
+    },
+    subItems: []
   }
 ];
 
-const BarChart = memo(function BarChart({ distribution }: { distribution: { positive: number; neutral: number; negative: number } }) {
+const BarChart = memo(function BarChart({ 
+  distribution, 
+  compact = false 
+}: { 
+  distribution: { positive: number; neutral: number; negative: number };
+  compact?: boolean;
+}) {
   const total = distribution.positive + distribution.neutral + distribution.negative;
   const positiveWidth = (distribution.positive / total) * 100;
   const neutralWidth = (distribution.neutral / total) * 100;
   const negativeWidth = (distribution.negative / total) * 100;
 
+  if (compact) {
+    return (
+      <div className="flex items-center h-6 w-full rounded overflow-hidden">
+        <div 
+          className="bg-[#FDA4AA] h-full flex items-center justify-center text-[#A31111] text-xs font-medium px-1"
+          style={{ width: `${negativeWidth}%`, minWidth: negativeWidth > 0 ? '30px' : '0' }}
+        >
+          {distribution.negative}%
+        </div>
+        <div 
+          className="bg-[#FEE28A] h-full flex items-center justify-center text-[#A17C07] text-xs font-medium px-1"
+          style={{ width: `${neutralWidth}%`, minWidth: neutralWidth > 0 ? '30px' : '0' }}
+        >
+          {distribution.neutral}%
+        </div>
+        <div 
+          className="bg-[#BBF7D1] h-full flex items-center justify-center text-[#166533] text-xs font-medium px-1"
+          style={{ width: `${positiveWidth}%`, minWidth: positiveWidth > 0 ? '30px' : '0' }}
+        >
+          {distribution.positive}%
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-1 h-6">
-      <div 
-        className="bg-[#015ea3] rounded flex items-center justify-center text-white text-xs font-medium"
-        style={{ width: `${positiveWidth}%`, minWidth: positiveWidth > 0 ? '40px' : '0' }}
-      >
-        {distribution.positive}%
+    <div className="flex flex-col gap-1 w-full">
+      <div className="flex items-center h-1.5 w-full rounded-sm overflow-hidden">
+        <div 
+          className="bg-[#FDA4AA] h-full"
+          style={{ width: `${negativeWidth}%` }}
+        />
+        <div 
+          className="bg-[#FEE28A] h-full"
+          style={{ width: `${neutralWidth}%` }}
+        />
+        <div 
+          className="bg-[#BBF7D1] h-full"
+          style={{ width: `${positiveWidth}%` }}
+        />
       </div>
-      <div 
-        className="bg-gray-300 rounded flex items-center justify-center text-gray-700 text-xs font-medium"
-        style={{ width: `${neutralWidth}%`, minWidth: neutralWidth > 0 ? '30px' : '0' }}
-      >
-        {distribution.neutral}%
-      </div>
-      <div 
-        className="bg-[#d4183d] rounded flex items-center justify-center text-white text-xs font-medium"
-        style={{ width: `${negativeWidth}%`, minWidth: negativeWidth > 0 ? '50px' : '0' }}
-      >
-        {distribution.negative}%
+      <div className="flex items-center gap-0 text-xs text-[#3d3d3d] w-full">
+        <span style={{ width: `${negativeWidth}%` }} className="text-center">{distribution.negative}%</span>
+        <span style={{ width: `${neutralWidth}%` }} className="text-center">{distribution.neutral}%</span>
+        <span style={{ width: `${positiveWidth}%` }} className="text-center">{distribution.positive}%</span>
       </div>
     </div>
   );
 });
 
-const ChangeIndicator = memo(function ChangeIndicator({ change, type }: { change: string; type: "up" | "down" | "equal" }) {
-  const isPositive = type === "up";
-  const isNegative = type === "down";
-  const isEqual = type === "equal";
+const ChangeIndicator = memo(function ChangeIndicator({ change }: { change: number }) {
+  const absChange = Math.abs(change);
+  const isPositive = change > 0;
+  const isNegative = change < 0;
+  const isEqual = change === 0;
   
+  // Determine icon based on magnitude
+  const getIcon = () => {
+    if (isEqual) {
+      return <img src={EqualIcon} alt="equal" className="w-6 h-6" />;
+    }
+    if (absChange >= 10) {
+      return isPositive 
+        ? <img src={ArrowUpIcon} alt="arrow up" className="w-6 h-6" />
+        : <img src={ArrowDownIcon} alt="arrow down" className="w-6 h-6" />;
+    } else {
+      // For smaller changes, we can still use the same icons or use Equal for very small changes
+      if (absChange <= 1) {
+        return <img src={EqualIcon} alt="equal" className="w-6 h-6" />;
+      }
+      return isPositive
+        ? <img src={ArrowUpIcon} alt="arrow up" className="w-6 h-6" />
+        : <img src={ArrowDownIcon} alt="arrow down" className="w-6 h-6" />;
+    }
+  };
+
   return (
-    <div className="flex items-center gap-1">
-      {isPositive && <ArrowUp className="w-4 h-4 text-green-600" />}
-      {isNegative && <ArrowDown className="w-4 h-4 text-red-600" />}
-      {isEqual && <Equal className="w-4 h-4 text-gray-600" />}
-      <span className={cn(
-        "text-sm font-medium",
-        isPositive && "text-green-600",
-        isNegative && "text-red-600",
-        isEqual && "text-gray-600"
-      )}>
-        {change}
+    <div className="flex items-center gap-1 justify-center">
+      {getIcon()}
+      <span className="text-base font-medium text-[#525252]">
+        {isPositive ? '+' : ''}{change}
       </span>
     </div>
   );
 });
 
-const InfluencingFactorCard = memo(function InfluencingFactorCard({ factor }: { factor: typeof mockInfluencingFactors[0] }) {
-  const Icon = factor.icon;
-  const changeType = factor.change.startsWith("+") ? "up" : factor.change.startsWith("-") ? "down" : "equal";
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-4">
-      <div className="w-10 h-10 bg-[#e0f0fe] rounded-lg flex items-center justify-center text-[#015ea3] flex-shrink-0">
-        <Icon className="w-5 h-5" />
-      </div>
-      
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <ChangeIndicator change={factor.change} type={changeType} />
-          <span className="text-sm text-gray-600">vs last survey</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-base font-medium">{factor.name}</span>
-          <HelpCircle className="w-4 h-4 text-gray-400" />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-1">
-        {factor.subItems.map((item, idx) => (
-          <div key={idx} className="flex items-center gap-2 text-xs text-gray-600">
-            <span>{item}</span>
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-              <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-});
 
 const ResultsTable = memo(function ResultsTable() {
+  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
+
+  const toggleCategory = (categoryId: string) => {
+    setOpenCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="w-full overflow-x-auto">
-      <div className="min-w-[1312px]">
+      <div className="min-w-[1312px] border border-[#dcdcdc] rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="grid grid-cols-[305px_281px_87px_136px_136px_136px_136px_136px] gap-0 border-b border-gray-200 bg-gray-50">
-          <div className="p-4">
+        <div className="grid grid-cols-[305px_281px_87px_136px_136px_136px_136px_136px] gap-0 border-b border-[#dcdcdc] bg-[#fafafa]">
+          <div className="px-4 py-3.5 sticky left-0 z-10 bg-[#fafafa] border-r border-[#dcdcdc]">
+          </div>
+          <div className="px-4 py-3.5 sticky left-[305px] z-10 bg-[#fafafa] border-r border-[#dcdcdc]">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Impact strength</span>
-              <HelpCircle className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium text-black">Antwortverteilung</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="w-4 h-4 text-[#989898] cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Information about response distribution</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
-          <div className="p-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Antwortverteilung</span>
-              <HelpCircle className="w-4 h-4 text-gray-400" />
-            </div>
+          <div className="px-4 py-3.5 flex flex-col items-center justify-center sticky left-[586px] z-10 bg-[#fafafa] border-r border-[#dcdcdc]">
+            <span className="text-sm font-medium text-black">Mean</span>
+            <span className="text-xs text-[#656565]">out of 100</span>
           </div>
-          <div className="p-4">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">Mean</span>
-              <span className="text-xs text-gray-500">out of 100</span>
-            </div>
+          <div className="px-4 py-3.5 flex flex-col items-center justify-center border-l border-[#dcdcdc]">
+            <span className="text-xs text-[#3d3d3d] text-center leading-tight">11 anderen Gruppen im Unternehmen</span>
+            <Filter className="w-4 h-4 text-[#656565] mt-1" />
           </div>
-          <div className="p-4 text-center">
-            <span className="text-xs text-gray-600">11 anderen Gruppen im Unternehmen</span>
+          <div className="px-4 py-3.5 flex flex-col items-center justify-center border-l border-[#dcdcdc]">
+            <span className="text-xs text-[#3d3d3d] text-center leading-tight">Historischen Vergleich (2021)</span>
+            <Filter className="w-4 h-4 text-[#656565] mt-1" />
           </div>
-          <div className="p-4 text-center">
-            <span className="text-xs text-gray-600">Historischen Vergleich (2021)</span>
+          <div className="px-4 py-3.5 flex flex-col items-center justify-center border-l border-[#dcdcdc]">
+            <span className="text-xs text-[#3d3d3d] text-center leading-tight">121 Schweizer Firmen</span>
+            <Filter className="w-4 h-4 text-[#656565] mt-1" />
           </div>
-          <div className="p-4 text-center">
-            <span className="text-xs text-gray-600">121 Schweizer Firmen</span>
+          <div className="px-4 py-3.5 flex flex-col items-center justify-center border-l border-[#dcdcdc]">
+            <span className="text-xs text-[#3d3d3d] text-center leading-tight">External benchmark 2</span>
+            <Filter className="w-4 h-4 text-[#656565] mt-1" />
           </div>
-          <div className="p-4 text-center">
-            <span className="text-xs text-gray-600">External benchmark 2</span>
-          </div>
-          <div className="p-4 text-center">
-            <span className="text-xs text-gray-600">External benchmark 3</span>
+          <div className="px-4 py-3.5 flex flex-col items-center justify-center border-l border-[#dcdcdc]">
+            <span className="text-xs text-[#3d3d3d] text-center leading-tight">External benchmark</span>
+            <Filter className="w-4 h-4 text-[#656565] mt-1" />
           </div>
         </div>
 
         {/* Table Rows */}
-        {mockInfluencingFactors.map((factor) => {
-          const Icon = factor.icon;
+        {mockCategories.map((category) => {
+          const Icon = category.icon;
+          const isOpen = openCategories.has(category.id);
+          
           return (
-            <div 
-              key={factor.id}
-              className="grid grid-cols-[305px_281px_87px_136px_136px_136px_136px_136px] gap-0 border-b border-gray-200 hover:bg-gray-50"
-            >
-              <div className="p-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-[#e0f0fe] rounded flex items-center justify-center text-[#015ea3]">
-                    <Icon className="w-4 h-4" />
+            <div key={category.id} className="border-b border-[#dcdcdc] last:border-b-0">
+              {/* Main Category Row */}
+              <Collapsible open={isOpen} onOpenChange={() => toggleCategory(category.id)}>
+                <div className="grid grid-cols-[305px_281px_87px_136px_136px_136px_136px_136px] gap-0">
+                  <CollapsibleTrigger asChild>
+                    <div className={cn(
+                      "px-4 py-4 flex items-center gap-2 cursor-pointer transition-colors sticky left-0 z-10 border-r border-[#dcdcdc]",
+                      isOpen ? "bg-white" : "bg-white hover:bg-[#fafafa]"
+                    )}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-[#DCFCE8] border border-[#BBF7D1]">
+                        <Icon className="w-5 h-5 text-[#166533]" />
+                      </div>
+                      <span className="text-base font-medium text-black">{category.name}</span>
+                      <ChevronDown className={cn(
+                        "w-4 h-4 text-[#656565] ml-auto transition-transform",
+                        isOpen && "rotate-180"
+                      )} />
+                    </div>
+                  </CollapsibleTrigger>
+                  
+                  <div className={cn(
+                    "px-4 py-4 flex items-center border-l border-[#dcdcdc] sticky left-[305px] z-10 border-r border-[#dcdcdc]",
+                    isOpen ? "bg-white" : "bg-white"
+                  )}>
+                    <BarChart distribution={category.distribution} compact />
                   </div>
-                  <span className="text-sm font-medium">{factor.name}</span>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                  
+                  <div className={cn(
+                    "px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc] sticky left-[586px] z-10 border-r border-[#dcdcdc]",
+                    isOpen ? "bg-white" : "bg-white"
+                  )}>
+                    <span className="text-base font-semibold text-black">{category.mean}</span>
+                  </div>
+                  
+                  <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                    <ChangeIndicator change={category.comparisons.companyGroups.change} />
+                  </div>
+                  
+                  <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                    <ChangeIndicator change={category.comparisons.historical.change} />
+                  </div>
+                  
+                  <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                    <ChangeIndicator change={category.comparisons.swissCompanies.change} />
+                  </div>
+                  
+                  <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                    <ChangeIndicator change={category.comparisons.external1.change} />
+                  </div>
+                  
+                  <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                    <ChangeIndicator change={category.comparisons.external2.change} />
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1 mt-2 ml-8">
-                  {factor.subItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-gray-600">
-                      <span>{item}</span>
-                      <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+
+                {/* Sub-items */}
+                <CollapsibleContent>
+                  {category.subItems.map((subItem, idx) => (
+                    <div 
+                      key={idx}
+                      className="grid grid-cols-[305px_281px_87px_136px_136px_136px_136px_136px] gap-0 border-t border-[#efefef] bg-white"
+                    >
+                      <div className="px-4 py-4 sticky left-0 z-10 bg-white border-r border-[#dcdcdc]">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-[#3d3d3d]">{subItem.name}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="px-4 py-4 flex items-center border-l border-[#dcdcdc] sticky left-[305px] z-10 bg-white border-r border-[#dcdcdc]">
+                        <BarChart distribution={subItem.distribution} />
+                      </div>
+                      
+                      <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc] sticky left-[586px] z-10 bg-white border-r border-[#dcdcdc]">
+                        <span className="text-base font-semibold text-black">{subItem.mean}</span>
+                      </div>
+                      
+                      <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                        <ChangeIndicator change={subItem.comparisons.companyGroups.change} />
+                      </div>
+                      
+                      <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                        <ChangeIndicator change={subItem.comparisons.historical.change} />
+                      </div>
+                      
+                      <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                        <ChangeIndicator change={subItem.comparisons.swissCompanies.change} />
+                      </div>
+                      
+                      <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                        <ChangeIndicator change={subItem.comparisons.external1.change} />
+                      </div>
+                      
+                      <div className="px-4 py-4 flex items-center justify-center border-l border-[#dcdcdc]">
+                        <ChangeIndicator change={subItem.comparisons.external2.change} />
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-              
-              <div className="p-4 flex items-center">
-                <BarChart distribution={factor.distribution} />
-              </div>
-              
-              <div className="p-4 flex items-center justify-center">
-                <span className="text-base font-medium">{factor.mean}</span>
-              </div>
-              
-              <div className="p-4 flex items-center justify-center">
-                <ChangeIndicator change={factor.comparisons.companyGroups.change.toString()} type="down" />
-              </div>
-              
-              <div className="p-4 flex items-center justify-center">
-                <ChangeIndicator change={factor.comparisons.historical.change.toString()} type="down" />
-              </div>
-              
-              <div className="p-4 flex items-center justify-center">
-                <ChangeIndicator change={factor.comparisons.swissCompanies.change.toString()} type="equal" />
-              </div>
-              
-              <div className="p-4 flex items-center justify-center">
-                <ChangeIndicator change={`+${factor.comparisons.external1.change}`} type="up" />
-              </div>
-              
-              <div className="p-4 flex items-center justify-center">
-                <ChangeIndicator change={`+${factor.comparisons.external2.change}`} type="up" />
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           );
         })}
@@ -911,7 +1016,7 @@ export const ResultsPage = memo(function ResultsPage() {
           <SectionWrapper>
             <div className="w-full">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold">Detailed Results</h2>
+                <h2 className="text-xl font-semibold">Target Values</h2>
                 <div className="relative">
                   <button className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                     <Calendar className="w-4 h-4" />
