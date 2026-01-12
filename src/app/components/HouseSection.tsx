@@ -1,6 +1,6 @@
 import React, { useState, memo, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react";
+import { Calendar, HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -134,54 +134,58 @@ const HouseCard = memo(function HouseCard({
   return (
     <div 
       onClick={handleClick}
-      className="bg-white rounded-[24px] border border-[#dcdcdc] p-6 flex gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
+      className="bg-white rounded-[24px] border border-[#dcdcdc] p-6 flex flex-col gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
     >
-      {badgeText && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="absolute -top-4 right-4 rounded-[10px] px-3 py-1.5 flex items-center gap-2 z-10 shadow-sm cursor-help" style={{ backgroundColor: badgeBgColor }}>
-              {badgeIcon || <TrendingUp className="w-5 h-5" style={{ color: badgeTextColor }} />}
-              <span className="text-base font-semibold" style={{ color: badgeTextColor }}>{badgeText}</span>
-            </div>
-          </TooltipTrigger>
-          {badgeTooltip && (
-            <TooltipContent>
-              <p>{badgeTooltip}</p>
-            </TooltipContent>
-          )}
-        </Tooltip>
-      )}
-      <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
-        {icon}
-      </div>
-      
-      <div className="flex flex-col gap-10 grow">
-        <div className="flex flex-col gap-0">
-          <h3 className="text-[20px] font-semibold text-[#292929]">{title}</h3>
-          <p className="text-[16px] text-[#525252]">{subtitle}</p>
+      {/* Header with badge */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex gap-6 flex-1">
+          <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
+            {icon}
+          </div>
+          
+          <div className="flex flex-col gap-1 flex-1">
+            <h3 className="text-[20px] font-semibold text-[#292929]">{title}</h3>
+            <p className="text-[16px] text-[#525252]">{subtitle}</p>
+          </div>
         </div>
         
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1">
-            {directionIcon}
-            <span className="text-base text-black">{influencingTitle}</span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="w-4 h-4 text-[#989898] cursor-help -mt-0.5" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Additional information about this area</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {factors.map((factor, i) => (
-              <div key={`${factor}-${i}`} className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2">
-                 {getFactorIcon(factor)}
-                 <span className="text-[#3d3d3d] text-sm">{factor}</span>
+        {badgeText && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="rounded-[10px] px-3 py-1.5 flex items-center gap-2 shadow-sm cursor-help shrink-0" style={{ backgroundColor: badgeBgColor }}>
+                {badgeIcon || <TrendingUp className="w-5 h-5" style={{ color: badgeTextColor }} />}
+                <span className="text-base font-semibold" style={{ color: badgeTextColor }}>{badgeText}</span>
               </div>
-            ))}
-          </div>
+            </TooltipTrigger>
+            {badgeTooltip && (
+              <TooltipContent>
+                <p>{badgeTooltip}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        )}
+      </div>
+      
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-1">
+          {directionIcon}
+          <span className="text-base text-black">{influencingTitle}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="w-4 h-4 text-[#989898] cursor-help -mt-0.5" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Additional information about this area</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {factors.map((factor, i) => (
+            <div key={`${factor}-${i}`} className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2">
+               {getFactorIcon(factor)}
+               <span className="text-[#3d3d3d] text-sm">{factor}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -353,43 +357,57 @@ function HouseSectionComponent() {
         </Select>
       </div>
 
-      {/* House Graphic & Cards */}
-      <div className="w-full flex flex-col items-center relative">
+      {/* Two Column Layout: House on Left, Fixed Banner on Right */}
+      <div className="w-full flex flex-col lg:flex-row gap-8 items-start relative">
+        {/* Left Column: House Graphic & Cards */}
+        <div className="flex-1 flex flex-col items-center relative w-full lg:w-auto">
         {/* Roof Graphic */}
         <div className="w-full h-[102px] relative">
            <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1040 102" fill="none" xmlns="http://www.w3.org/2000/svg">
-               <rect x="705" width="82" height="72" rx="8" fill="#DCDCDC"/>
-               <path d="M519.308 10.3637C519.766 10.2833 520.234 10.2833 520.692 10.3637L994.786 93.6168C999.601 94.4623 998.983 101.556 994.095 101.556H45.9055C41.0167 101.556 40.3985 94.4623 45.2137 93.6168L519.308 10.3637Z" fill="#EFEFEF"/>
+               <rect x="705" width="82" height="72" rx="8" fill="#B9E2FE"/>
+               <path d="M519.308 10.3637C519.766 10.2833 520.234 10.2833 520.692 10.3637L994.786 93.6168C999.601 94.4623 998.983 101.556 994.095 101.556H45.9055C41.0167 101.556 40.3985 94.4623 45.2137 93.6168L519.308 10.3637Z" fill="#F0F8FF"/>
            </svg>
         </div>
 
         {/* Cards Stack */}
-        <div className="w-full max-w-[976px] flex flex-col gap-6 relative mt-6">
-            {houseCardsData.map((card, index) => (
-              <HouseCard 
-                key={card.title}
-                title={card.title}
-                subtitle={card.subtitle}
-                influencingTitle={card.influencingTitle}
-                icon={card.icon}
-                iconBg={card.iconBg}
-                factors={card.factors}
-                badgeText={card.badgeText}
-                badgeBgColor={card.badgeBgColor}
-                badgeTextColor={card.badgeTextColor}
-                badgeIcon={card.badgeIcon}
-                badgeTooltip={card.badgeTooltip}
-                onClick={() => handleCardClick(card.title)}
-              />
-            ))}
-        </div>
-        
-        {/* Base Graphic */}
-        <div className="w-full max-w-[1040px] h-[81px] relative mt-8">
-          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1040 81" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="1040" height="22" rx="8" fill="#EFEFEF"/>
-            <rect y="34" width="1040" height="47" rx="8" fill="#FAFAFA"/>
-          </svg>
+        <div className="w-full max-w-[976px] flex flex-col gap-0 relative mt-0">
+            {houseCardsData.map((card, index) => {
+              // Determine background color based on card type
+              let cardBgColor = "bg-[#f0f8ff]"; // Default cyan/50
+              if (card.title === "Satisfaction") {
+                cardBgColor = "bg-[#e0f0fe]"; // cyan/100
+              } else if (card.title === "Resignation") {
+                cardBgColor = "bg-[#b9e2fe]"; // cyan/200
+              } else if (card.title === "Commitment") {
+                cardBgColor = "bg-[#f0f8ff]"; // cyan/50
+              }
+              
+              // Uniform padding for all cards
+              const paddingClass = "px-[47px] py-[20px]";
+              
+              // Add border radius to bottom corners for last card (Resignation)
+              const isLastCard = index === houseCardsData.length - 1;
+              const borderRadiusClass = isLastCard ? "rounded-b-[16px]" : "";
+              
+              return (
+                <div key={card.title} className={`${cardBgColor} ${paddingClass} ${borderRadiusClass} flex items-center justify-center`}>
+                  <HouseCard 
+                    title={card.title}
+                    subtitle={card.subtitle}
+                    influencingTitle={card.influencingTitle}
+                    icon={card.icon}
+                    iconBg={card.iconBg}
+                    factors={card.factors}
+                    badgeText={card.badgeText}
+                    badgeBgColor={card.badgeBgColor}
+                    badgeTextColor={card.badgeTextColor}
+                    badgeIcon={card.badgeIcon}
+                    badgeTooltip={card.badgeTooltip}
+                    onClick={() => handleCardClick(card.title)}
+                  />
+                </div>
+              );
+            })}
         </div>
         
         {/* CTA Button */}
@@ -403,6 +421,30 @@ function HouseSectionComponent() {
         
         {/* Bottom Fade/Gradient */}
         <div className="w-full max-w-[1040px] h-16 bg-gradient-to-t from-[#efefef] to-white mt-[-20px] -z-10 rounded-b-lg" />
+        </div>
+
+        {/* Right Column: Fixed Banner */}
+        <div className="w-full lg:w-[305px] shrink-0">
+          <div className="lg:sticky lg:top-8 bg-[#f0f8ff] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-3 h-6">
+              <div className="w-5 h-5 shrink-0 flex items-center justify-center">
+                <Lightbulb className="w-5 h-5 text-[#015ea3]" strokeWidth={2} />
+              </div>
+              <p className="text-base font-semibold text-[#065186] leading-[1.5]">
+                Analyse data
+              </p>
+            </div>
+            <p className="text-sm text-[#0b446f] leading-[1.5] tracking-[-0.14px] min-w-0">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.
+            </p>
+            <button 
+              className="bg-[#015ea3] flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] min-w-[80px] hover:bg-[#014a82] transition-colors"
+            >
+              <span className="text-sm text-white font-normal leading-[0]">Learn more</span>
+              <ArrowUpRight className="w-4 h-4 text-white shrink-0" strokeWidth={2} />
+            </button>
+          </div>
+        </div>
       </div>
     </SectionWrapper>
   );
