@@ -157,7 +157,7 @@ const HouseCard = memo(function HouseCard({
         </svg>
         <div className="relative z-10 p-6 flex flex-col gap-6 items-start justify-end" style={{ minHeight: '237px' }}>
           {/* Header with badge */}
-          <div className="flex items-start justify-between gap-4">
+          <div className="w-full flex items-start justify-between gap-4">
             <div className="flex gap-6 flex-1">
               <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
                 {icon}
@@ -186,7 +186,7 @@ const HouseCard = memo(function HouseCard({
             )}
           </div>
           
-          <div className="flex flex-col gap-3">
+          <div className="w-full flex flex-col gap-3">
             <div className="flex items-center gap-1">
               {directionIcon}
               <span className="text-base text-black">{influencingTitle}</span>
@@ -219,7 +219,7 @@ const HouseCard = memo(function HouseCard({
       className="bg-white rounded-[24px] border border-[#dcdcdc] p-6 flex flex-col gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
     >
       {/* Header with badge */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="w-full flex items-start justify-between gap-4">
         <div className="flex gap-6 flex-1">
           <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
             {icon}
@@ -248,7 +248,7 @@ const HouseCard = memo(function HouseCard({
         )}
       </div>
       
-      <div className="flex flex-col gap-3">
+      <div className="w-full flex flex-col gap-3">
         <div className="flex items-center gap-1">
           {directionIcon}
           <span className="text-base text-black">{influencingTitle}</span>
@@ -328,7 +328,7 @@ function HouseSectionComponent() {
     setSelectedComparison(value);
   }, []);
 
-  const handleCardClick = useCallback((cardTitle: string) => {
+  const handleCardClick = useCallback(() => {
     navigate("/results");
   }, [navigate]);
 
@@ -353,10 +353,10 @@ function HouseSectionComponent() {
       }
 
       let badgeIcon: React.ReactNode | undefined;
-      if (config.badgeIconType === "trendingDown") {
-        badgeIcon = <TrendingDown className="w-5 h-5" style={{ color: config.badgeTextColor }} />;
-      } else if (config.badgeIconType === "trendingUp") {
-        badgeIcon = <TrendingUp className="w-5 h-5" style={{ color: config.badgeTextColor }} />;
+      if ('badgeIconType' in config && config.badgeIconType === "trendingDown") {
+        badgeIcon = <TrendingDown className="w-5 h-5" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
+      } else if ('badgeIconType' in config && config.badgeIconType === "trendingUp") {
+        badgeIcon = <TrendingUp className="w-5 h-5" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
       }
 
       return {
@@ -366,11 +366,11 @@ function HouseSectionComponent() {
         icon,
         iconBg: config.iconBg,
         factors: config.factors,
-        badgeText: config.badgeText,
-        badgeBgColor: config.badgeBgColor,
-        badgeTextColor: config.badgeTextColor,
+        badgeText: 'badgeText' in config ? config.badgeText : undefined,
+        badgeBgColor: 'badgeBgColor' in config ? config.badgeBgColor : undefined,
+        badgeTextColor: 'badgeTextColor' in config ? config.badgeTextColor : undefined,
         badgeIcon,
-        badgeTooltip: config.badgeTooltip,
+        badgeTooltip: 'badgeTooltip' in config ? config.badgeTooltip : undefined,
       };
     });
   }, []);
@@ -489,7 +489,7 @@ function HouseSectionComponent() {
                     badgeTextColor={card.badgeTextColor}
                     badgeIcon={card.badgeIcon}
                     badgeTooltip={card.badgeTooltip}
-                    onClick={() => handleCardClick(card.title)}
+                    onClick={handleCardClick}
                   />
                 </div>
               );
