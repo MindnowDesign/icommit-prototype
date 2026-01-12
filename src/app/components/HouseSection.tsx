@@ -132,6 +132,87 @@ const HouseCard = memo(function HouseCard({
     return null;
   }, [influencingTitle]);
 
+  const isCommitment = title === "Commitment";
+
+  if (isCommitment) {
+    return (
+      <div 
+        onClick={handleClick}
+        className="w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
+      >
+        <svg 
+          width="100%" 
+          height="100%" 
+          viewBox="0 0 711 237" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+          className="absolute inset-0 w-full h-full"
+          preserveAspectRatio="none"
+        >
+          <path 
+            d="M344.138 0.862305C346.04 0.624459 347.963 0.620221 349.866 0.849609L685.812 41.3477C697.618 42.7708 706.5 52.788 706.5 64.6787V212.5C706.5 225.479 695.979 236 683 236H24C11.0213 236 0.5 225.479 0.5 212.5V64.584C0.5 52.733 9.3246 42.7363 21.084 41.2656L344.138 0.862305Z" 
+            fill="white" 
+            stroke="#DCDCDC"
+          />
+        </svg>
+        <div className="relative z-10 p-6 flex flex-col gap-6 items-start justify-end" style={{ minHeight: '237px' }}>
+          {/* Header with badge */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex gap-6 flex-1">
+              <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
+                {icon}
+              </div>
+              
+              <div className="flex flex-col gap-0 flex-1">
+                <h3 className="text-[20px] font-semibold text-[#292929]">{title}</h3>
+                <p className="text-[16px] text-[#525252]">{subtitle}</p>
+              </div>
+            </div>
+            
+            {badgeText && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-[10px] px-3 py-1.5 flex items-center gap-2 shadow-sm cursor-help shrink-0" style={{ backgroundColor: badgeBgColor }}>
+                    {badgeIcon || <TrendingUp className="w-5 h-5" style={{ color: badgeTextColor }} />}
+                    <span className="text-base font-semibold" style={{ color: badgeTextColor }}>{badgeText}</span>
+                  </div>
+                </TooltipTrigger>
+                {badgeTooltip && (
+                  <TooltipContent>
+                    <p>{badgeTooltip}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            )}
+          </div>
+          
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-1">
+              {directionIcon}
+              <span className="text-base text-black">{influencingTitle}</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="w-4 h-4 text-[#989898] cursor-help -mt-0.5" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Additional information about this area</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {factors.map((factor, i) => (
+                <div key={`${factor}-${i}`} className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2">
+                   {getFactorIcon(factor)}
+                   <span className="text-[#3d3d3d] text-sm">{factor}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       onClick={handleClick}
@@ -362,8 +443,8 @@ function HouseSectionComponent() {
       <div className="w-full flex flex-col lg:flex-row gap-8 items-start lg:items-stretch">
         {/* Left Column: House Graphic & Cards */}
         <div className="flex-1 flex flex-col items-center relative w-full lg:w-auto">
-        {/* Roof Graphic */}
-        <div className="w-full max-w-[1050px] h-[87px] relative -mx-4 md:-mx-6 lg:-mx-8">
+        {/* Roof Graphic - above first card, slightly wider */}
+        <div className="w-full max-w-[1100px] h-[87px] relative -mx-4 md:-mx-6 lg:-mx-8 mb-0">
            <img 
              src={TettoSvg} 
              alt="Roof" 
@@ -372,7 +453,7 @@ function HouseSectionComponent() {
         </div>
 
         {/* Cards Stack */}
-        <div className="w-full max-w-[940px] flex flex-col gap-0 relative mt-0">
+        <div className="w-full max-w-[1050px] flex flex-col gap-0 relative mt-0 -mx-4 md:-mx-6 lg:-mx-8">
             {houseCardsData.map((card, index) => {
               // Determine background color based on card type
               let cardBgColor = "bg-[#f0f8ff]"; // Default cyan/50
@@ -384,8 +465,11 @@ function HouseSectionComponent() {
                 cardBgColor = "bg-[#f0f8ff]"; // cyan/50
               }
               
-              // Uniform padding for all cards
-              const paddingClass = "px-[47px] py-[20px]";
+              // Padding: remove top padding for first card (Commitment), keep uniform for others
+              const isFirstCard = index === 0;
+              const paddingClass = isFirstCard 
+                ? "px-[47px] pb-[20px]" 
+                : "px-[47px] py-[20px]";
               
               // Add border radius to bottom corners for last card (Resignation)
               const isLastCard = index === houseCardsData.length - 1;
@@ -439,12 +523,12 @@ function HouseSectionComponent() {
             <p className="text-sm text-[#0b446f] leading-[1.5] tracking-[-0.14px] min-w-0">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.
             </p>
-            <button 
-              className="bg-[#015ea3] flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] min-w-[80px] hover:bg-[#014a82] transition-colors"
-            >
-              <span className="text-sm text-white font-normal leading-[0]">Learn more</span>
-              <ArrowUpRight className="w-4 h-4 text-white shrink-0" strokeWidth={2} />
-            </button>
+          <button 
+            className="bg-[#015ea3] flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] w-fit hover:bg-[#014a82] transition-colors"
+          >
+            <span className="text-sm text-white font-normal leading-[0]">Learn more</span>
+            <ArrowUpRight className="w-4 h-4 text-white shrink-0" strokeWidth={2} />
+          </button>
           </div>
         </div>
       </div>
