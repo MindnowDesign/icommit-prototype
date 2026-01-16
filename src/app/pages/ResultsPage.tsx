@@ -24,10 +24,9 @@ export default function ResultsPage() {
       <FixedToast
         phase="Phase 2"
         message="Analyse data"
-        actionText="Open results"
+        actionText="Results"
         onActionClick={() => {
-          console.log("Open results clicked");
-          // Add navigation or action logic here
+          // Already on results page
         }}
       />
     </div>

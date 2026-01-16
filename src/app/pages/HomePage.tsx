@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
 import { HeroSection } from "../components/HeroSection";
 import { ProcessTimeline } from "../components/ProcessTimeline";
@@ -9,6 +10,8 @@ import { FixedToast } from "../components/ui/fixed-toast";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-white w-full flex flex-col font-sans">
       <Header />
@@ -45,8 +48,7 @@ export default function HomePage() {
         message="Analyse data"
         actionText="Open results"
         onActionClick={() => {
-          console.log("Open results clicked");
-          // Add navigation or action logic here
+          navigate("/results");
         }}
       />
     </div>

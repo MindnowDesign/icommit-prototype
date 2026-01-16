@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { ArrowRight, X, MessageCircleQuestion } from "lucide-react";
+import { useState } from "react";
+import { useLocation } from "react-router-dom";
+import { ArrowRight, X, MessageCircleQuestion, ChevronRight } from "lucide-react";
 import { cn } from "./utils";
 import {
   AlertDialog,
@@ -59,6 +60,8 @@ export function FixedToast({
   visible: externalVisible = true,
   className,
 }: FixedToastProps) {
+  const location = useLocation();
+  const isResultsPage = location.pathname === "/results";
   const [internalVisible, setInternalVisible] = useState(externalVisible);
   const [isMorphing, setIsMorphing] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
@@ -136,9 +139,21 @@ export function FixedToast({
               </p>
             </div>
           )}
-          <p className="text-[18px] font-normal text-white leading-[1.5] whitespace-nowrap">
-            {message}
-          </p>
+          {isResultsPage ? (
+            <div className="flex items-center gap-1 shrink-0">
+              <p className="text-[18px] font-normal text-white leading-[1.5] whitespace-nowrap opacity-60">
+                {message}
+              </p>
+              <ChevronRight className="w-5 h-5 text-white shrink-0 opacity-60" strokeWidth={2} />
+              <p className="text-[18px] font-normal text-white leading-[1.5] whitespace-nowrap">
+                Results
+              </p>
+            </div>
+          ) : (
+            <p className="text-[18px] font-normal text-white leading-[1.5] whitespace-nowrap">
+              {message}
+            </p>
+          )}
         </div>
 
         {/* Separator - only show if there's an action */}
@@ -152,7 +167,7 @@ export function FixedToast({
               type="button"
             >
               <span className="text-[16px] font-normal text-white underline leading-[1.6] whitespace-nowrap">
-                {actionText}
+                {isResultsPage ? "Move to next phase" : actionText}
               </span>
               <ArrowRight className="w-5 h-5 text-white shrink-0" strokeWidth={2} />
             </button>

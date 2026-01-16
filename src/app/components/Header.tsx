@@ -44,34 +44,24 @@ function NavItem({ item }: { item: typeof NAV_ITEMS[number] }) {
 
 const MemoizedNavItem = memo(NavItem);
 
-const DESIGN_BANNER_KEY = "design-banner-dismissed";
-
 function DesignBanner() {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
-    // Check if banner should be shown for these specific pages
+    // Show banner only on these specific pages
     const shouldShow = ["/measures", "/fields", "/pulse"].includes(location.pathname);
-    
-    if (shouldShow) {
-      // Check if user has dismissed it
-      const dismissed = localStorage.getItem(DESIGN_BANNER_KEY);
-      setIsVisible(!dismissed);
-    } else {
-      setIsVisible(false);
-    }
+    setIsVisible(shouldShow);
   }, [location.pathname]);
 
   const handleClose = () => {
     setIsVisible(false);
-    localStorage.setItem(DESIGN_BANNER_KEY, "true");
   };
 
   if (!isVisible) return null;
 
   return (
-    <div className="w-full bg-red-200 text-red-900 py-2 flex items-center justify-center gap-4 relative">
+    <div className="w-full bg-red-400 text-white py-2 flex items-center justify-center gap-4 relative">
       <div className="w-full px-4 md:px-6 lg:px-8 max-w-[1312px] mx-auto flex items-center justify-center relative">
         <p className="text-base font-medium text-center">
           We are working on the new design for this pages, stay tuned for update

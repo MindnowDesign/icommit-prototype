@@ -5,6 +5,7 @@ import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Button } from "./ui/button";
 import TettoSvg from "../../assets/house/Tetto.svg";
+import RoofSvg from "../../assets/house/Roof.svg";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 
 // Custom Icons from assets - memoized
@@ -93,6 +94,7 @@ interface HouseCardProps {
   badgeIcon?: React.ReactNode;
   badgeTooltip?: string;
   onClick?: () => void;
+  isFirstCard?: boolean;
 }
 
 const HouseCard = memo(function HouseCard({ 
@@ -107,7 +109,8 @@ const HouseCard = memo(function HouseCard({
   badgeTextColor = "#0A6562", 
   badgeIcon, 
   badgeTooltip, 
-  onClick 
+  onClick,
+  isFirstCard = false
 }: HouseCardProps) {
   const handleClick = useCallback(() => {
     onClick?.();
@@ -126,10 +129,30 @@ const HouseCard = memo(function HouseCard({
     return null;
   }, [influencingTitle]);
 
+  const borderRadiusClass = isFirstCard 
+    ? "rounded-b-[24px] rounded-t-none" 
+    : "rounded-[24px]";
+  
+  const paddingClass = isFirstCard 
+    ? "p-6" 
+    : "p-6";
+  
+  const zIndexClass = isFirstCard 
+    ? "z-10 -mt-3" 
+    : "";
+  
+  const borderClass = isFirstCard 
+    ? "border border-[#dcdcdc] border-t-0" 
+    : "border border-[#dcdcdc]";
+  
+  const hoverClass = isFirstCard 
+    ? "" 
+    : "hover:-translate-y-0.5";
+
   return (
     <div 
       onClick={handleClick}
-      className="bg-white rounded-[24px] border border-[#dcdcdc] p-6 flex flex-col gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md"
+      className={cn("bg-white flex flex-col gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out", borderRadiusClass, paddingClass, zIndexClass, borderClass, hoverClass)}
     >
       {/* Header with badge */}
       <div className="w-full flex items-start justify-between gap-4">
@@ -315,15 +338,44 @@ function HouseSectionComponent() {
               // Padding: remove top padding for first card (Commitment), keep uniform for others
               const isFirstCard = index === 0;
               const paddingClass = isFirstCard 
-                ? "px-[47px] pb-[20px]" 
+                ? "px-[47px] pb-[20px] pt-0" 
                 : "px-[47px] py-[20px]";
               
               // Add border radius to bottom corners for last card (Resignation)
               const isLastCard = index === houseCardsData.length - 1;
               const borderRadiusClass = isLastCard ? "rounded-b-[16px]" : "";
               
+              if (isFirstCard) {
+                return (
+                  <div key={card.title} className={`${cardBgColor} ${paddingClass} ${borderRadiusClass} flex flex-col items-center justify-center gap-0 group`}>
+                    {/* Wrapper for image and card with hover effect */}
+                    <div className="w-full flex flex-col gap-0 transition-all duration-300 ease-out group-hover:-translate-y-0.5">
+                      <img 
+                        src={RoofSvg} 
+                        alt="Roof" 
+                        className="w-full h-auto block m-0 p-0 relative z-0"
+                      />
+                      <HouseCard 
+                        title={card.title}
+                        subtitle={card.subtitle}
+                        influencingTitle={card.influencingTitle}
+                        icon={card.icon}
+                        iconBg={card.iconBg}
+                        factors={card.factors}
+                        badgeText={card.badgeText}
+                        badgeBgColor={card.badgeBgColor}
+                        badgeTextColor={card.badgeTextColor}
+                        badgeIcon={card.badgeIcon}
+                        badgeTooltip={card.badgeTooltip}
+                        isFirstCard={isFirstCard}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+              
               return (
-                <div key={card.title} className={`${cardBgColor} ${paddingClass} ${borderRadiusClass} flex items-center justify-center`}>
+                <div key={card.title} className={`${cardBgColor} ${paddingClass} ${borderRadiusClass} flex flex-col items-center justify-center`}>
                   <HouseCard 
                     title={card.title}
                     subtitle={card.subtitle}
@@ -336,6 +388,7 @@ function HouseSectionComponent() {
                     badgeTextColor={card.badgeTextColor}
                     badgeIcon={card.badgeIcon}
                     badgeTooltip={card.badgeTooltip}
+                    isFirstCard={isFirstCard}
                   />
                 </div>
               );
