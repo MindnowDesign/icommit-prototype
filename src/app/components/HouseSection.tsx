@@ -196,7 +196,7 @@ const HouseCard = memo(function HouseCard({
         </div>
         <div className="flex flex-wrap gap-2">
           {factors.map((factor, i) => (
-            <div key={`${factor}-${i}`} className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2">
+            <div key={`${factor}-${i}`} className="bg-[#fafafa] hover:bg-[#e8e8e8] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2 transition-colors duration-200 ease-out">
                {getFactorIcon(factor)}
                <span className="text-[#3d3d3d] text-sm">{factor}</span>
             </div>
