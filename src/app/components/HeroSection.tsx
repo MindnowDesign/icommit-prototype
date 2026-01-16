@@ -24,7 +24,7 @@ export const HeroSection = memo(function HeroSection() {
         </p>
         <Lightbulb size={20} className="text-[#015ea3] shrink-0" strokeWidth={1.25} />
       </button>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         <h2 className="text-[32px] font-semibold text-black flex items-center gap-2">
           Welcome back
         </h2>
