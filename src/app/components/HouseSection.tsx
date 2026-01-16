@@ -1,16 +1,11 @@
-import React, { useState, memo, useMemo, useCallback } from "react";
-import { Calendar, HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb } from "lucide-react";
+import React, { memo, useMemo, useCallback } from "react";
+import { HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb, MessageCircleQuestion, Sprout, ThumbsUp } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Button } from "./ui/button";
 import TettoSvg from "../../assets/house/Tetto.svg";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+import CompassIcon from "../../assets/Icons/Compass-2.svg";
 
 // Custom Icons from assets - memoized
 const ArrowDownIcon = memo(() => (
@@ -43,7 +38,7 @@ const CommitmentIcon = memo(() => (
     strokeWidth={2} 
     className="w-6 h-6"
     style={{ display: 'block', flexShrink: 0 }}
-    color="#4A0505"
+    color="#656565"
   />
 ));
 CommitmentIcon.displayName = "CommitmentIcon";
@@ -54,7 +49,7 @@ const SatisfactionIcon = memo(() => (
     strokeWidth={2} 
     className="w-6 h-6"
     style={{ display: 'block', flexShrink: 0 }}
-    color="#052E14"
+    color="#656565"
   />
 ));
 SatisfactionIcon.displayName = "SatisfactionIcon";
@@ -131,111 +126,27 @@ const HouseCard = memo(function HouseCard({
     return null;
   }, [influencingTitle]);
 
-  const isCommitment = title === "Commitment";
-
-  if (isCommitment) {
-    return (
-      <div 
-        onClick={handleClick}
-        className="w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
-      >
-        <svg 
-          width="100%" 
-          height="100%" 
-          viewBox="0 0 711 237" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-          className="absolute inset-0 w-full h-full"
-          preserveAspectRatio="none"
-        >
-          <path 
-            d="M344.138 0.862305C346.04 0.624459 347.963 0.620221 349.866 0.849609L685.812 41.3477C697.618 42.7708 706.5 52.788 706.5 64.6787V212.5C706.5 225.479 695.979 236 683 236H24C11.0213 236 0.5 225.479 0.5 212.5V64.584C0.5 52.733 9.3246 42.7363 21.084 41.2656L344.138 0.862305Z" 
-            fill="white" 
-            stroke="#DCDCDC"
-          />
-        </svg>
-        <div className="relative z-10 p-6 flex flex-col gap-6 items-start justify-end" style={{ minHeight: '237px' }}>
-          {/* Header with badge */}
-          <div className="w-full flex items-start justify-between gap-4">
-            <div className="flex gap-6 flex-1">
-              <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
-                {icon}
-              </div>
-              
-              <div className="flex flex-col gap-0 flex-1">
-                <h3 className="text-[20px] font-semibold text-[#292929]">{title}</h3>
-                <p className="text-[16px] text-[#525252]">{subtitle}</p>
-              </div>
-            </div>
-            
-            {badgeText && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="rounded-[10px] px-3 py-1.5 flex items-center gap-2 shadow-sm cursor-help shrink-0" style={{ backgroundColor: badgeBgColor }}>
-                    {badgeIcon || <TrendingUp className="w-5 h-5" style={{ color: badgeTextColor }} />}
-                    <span className="text-base font-semibold" style={{ color: badgeTextColor }}>{badgeText}</span>
-                  </div>
-                </TooltipTrigger>
-                {badgeTooltip && (
-                  <TooltipContent>
-                    <p>{badgeTooltip}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            )}
-          </div>
-          
-          <div className="w-full flex flex-col gap-3">
-            <div className="flex items-center gap-1">
-              {directionIcon}
-              <span className="text-base text-black">{influencingTitle}</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="w-4 h-4 text-[#989898] cursor-help -mt-0.5" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Additional information about this area</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {factors.map((factor, i) => (
-                <div key={`${factor}-${i}`} className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2">
-                   {getFactorIcon(factor)}
-                   <span className="text-[#3d3d3d] text-sm">{factor}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div 
       onClick={handleClick}
-      className="bg-white rounded-[24px] border border-[#dcdcdc] p-6 flex flex-col gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg"
+      className="bg-white rounded-[24px] border border-[#dcdcdc] p-6 flex flex-col gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md"
     >
       {/* Header with badge */}
       <div className="w-full flex items-start justify-between gap-4">
-        <div className="flex gap-6 flex-1">
-          <div className={cn("w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
+        <div className="flex gap-3 flex-1 items-center">
+          <div className={cn("w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
             {icon}
           </div>
           
-          <div className="flex flex-col gap-0 flex-1">
-            <h3 className="text-[20px] font-semibold text-[#292929]">{title}</h3>
-            <p className="text-[16px] text-[#525252]">{subtitle}</p>
-          </div>
+          <h3 className="text-[20px] font-semibold text-[#292929] leading-none m-0">{title}</h3>
         </div>
         
         {badgeText && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="rounded-[10px] px-3 py-1.5 flex items-center gap-2 shadow-sm cursor-help shrink-0" style={{ backgroundColor: badgeBgColor }}>
-                {badgeIcon || <TrendingUp className="w-5 h-5" style={{ color: badgeTextColor }} />}
-                <span className="text-base font-semibold" style={{ color: badgeTextColor }}>{badgeText}</span>
+              <div className="rounded-[10px] px-3 h-10 flex items-center gap-2 cursor-help shrink-0" style={{ backgroundColor: badgeBgColor }}>
+                {badgeIcon || <TrendingUp className="w-6 h-6" style={{ color: badgeTextColor }} />}
+                <span className="text-[18px] font-semibold" style={{ color: badgeTextColor }}>{badgeText}</span>
               </div>
             </TooltipTrigger>
             {badgeTooltip && (
@@ -273,13 +184,6 @@ const HouseCard = memo(function HouseCard({
   );
 });
 
-// Comparison options data - extracted outside component
-const comparisonOptions = [
-  { id: "swiss-companies", label: "121 Swiss companies", displayValue: "121 Swiss companies" },
-  { id: "other-groups", label: "11 other groups in the company", displayValue: "11 other groups in the company" },
-  { id: "historical", label: "Historical comparison (2021)", displayValue: "Historical comparison (2021)" },
-  { id: "external-benchmark", label: "External benchmark 2", displayValue: "External benchmark 2" },
-] as const;
 
 // House card data configuration - extracted outside component (without JSX)
 const HOUSE_CARDS_CONFIG = [
@@ -288,7 +192,7 @@ const HOUSE_CARDS_CONFIG = [
     subtitle: "What can we achieve together?",
     influencingTitle: "Areas that are keeping Commitment low",
     iconType: "commitment" as const,
-    iconBg: "bg-[#FF9E9E]",
+    iconBg: "bg-[#efefef]",
     factors: ["Digitalization", "Work and leisure", "Kundenorientierung"] as const,
     badgeText: "Top weakness" as const,
     badgeBgColor: "#FEF0C3",
@@ -301,7 +205,7 @@ const HOUSE_CARDS_CONFIG = [
     subtitle: "What will I gain? Do I fit in here?",
     influencingTitle: "Areas that are keeping high Satisfaction",
     iconType: "satisfaction" as const,
-    iconBg: "bg-[#86EFAD]",
+    iconBg: "bg-[#efefef]",
     factors: ["Digitalization", "Work and leisure", "Kundenorientierung"] as const,
     badgeText: "Top strength" as const,
     badgeBgColor: "#DCFCE8",
@@ -320,11 +224,6 @@ const HOUSE_CARDS_CONFIG = [
 ] as const;
 
 function HouseSectionComponent() {
-  const [selectedComparison, setSelectedComparison] = useState("swiss-companies");
-
-  const handleComparisonChange = useCallback((value: string) => {
-    setSelectedComparison(value);
-  }, []);
 
   // Create house cards data with JSX elements inside the component
   const houseCardsData = useMemo(() => {
@@ -344,9 +243,9 @@ function HouseSectionComponent() {
 
       let badgeIcon: React.ReactNode | undefined;
       if ('badgeIconType' in config && config.badgeIconType === "trendingDown") {
-        badgeIcon = <TrendingDown className="w-5 h-5" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
+        badgeIcon = <Sprout className="w-6 h-6" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
       } else if ('badgeIconType' in config && config.badgeIconType === "trendingUp") {
-        badgeIcon = <TrendingUp className="w-5 h-5" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
+        badgeIcon = <ThumbsUp className="w-6 h-6" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
       }
 
       return {
@@ -368,65 +267,22 @@ function HouseSectionComponent() {
   return (
     <SectionWrapper className="flex flex-col items-center gap-8">
       {/* Header */}
-      <div className="w-full flex items-center justify-between">
-        <div className="flex flex-col items-start gap-3">
-          <div className="bg-[#b9e2fe] px-3 py-2 rounded-lg text-[#0b446f] text-sm">
-            Phase 2
-          </div>
-          <div className="flex items-start gap-2">
-            <h2 className="text-2xl font-semibold text-black tracking-tighter">Where's your team in the Commitment House?</h2>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="w-5 h-5 text-[#989898] cursor-help -mt-1" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Information about the Commitment House</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <span className="text-[18px] text-[#656565]">From your team's survey results, we suggest focusing on these key areas.</span>
+      <div className="w-full flex flex-col items-start gap-3">
+        <div className="bg-[#b9e2fe] px-3 py-2 rounded-lg text-[#0b446f] text-sm">
+          Phase 2
         </div>
-        <Select value={selectedComparison} onValueChange={handleComparisonChange}>
-          <SelectTrigger 
-            className={cn(
-              "bg-white border border-[#d8d8d8] rounded-[10px] px-3 py-1.5",
-              "hover:border-gray-400 transition-colors",
-              "h-auto min-h-[38px] w-auto",
-              "focus:ring-0 focus:ring-offset-0 focus:border-gray-400",
-              "shadow-none",
-              "[&_svg]:text-[#292929] [&_svg]:w-4 [&_svg]:h-4",
-              "justify-start gap-2"
-            )}
-          >
-            <Calendar className="w-4 h-4 text-[#292929] shrink-0" />
-            <span className="text-[#3b3b3b] text-base whitespace-nowrap">
-              Compared to <span className="font-bold">
-                <SelectValue placeholder="121 Swiss companies" />
-              </span>
-            </span>
-          </SelectTrigger>
-          <SelectContent 
-            className={cn(
-              "bg-white border border-[#d8d8d8] rounded-[10px]",
-              "shadow-lg w-auto p-1"
-            )}
-          >
-            {comparisonOptions.map((option) => (
-              <SelectItem
-                key={option.id}
-                value={option.id}
-                className={cn(
-                  "text-[#3b3b3b] text-base font-normal px-3 py-2 rounded-[6px]",
-                  "cursor-pointer hover:bg-[#fafafa]",
-                  "focus:bg-[#fafafa] focus:text-[#3b3b3b]",
-                  "data-[highlighted]:bg-[#fafafa]"
-                )}
-              >
-                {option.displayValue}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-start gap-2">
+          <h2 className="text-2xl font-semibold text-black tracking-tighter">Where's your team in the Commitment House?</h2>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="w-5 h-5 text-[#989898] cursor-help -mt-1" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Information about the Commitment House</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <span className="text-[18px] text-[#656565]">From your team's survey results, compared to 121 Schweizer Firmen.</span>
       </div>
 
       {/* Two Column Layout: House on Left, Fixed Banner on Right */}
@@ -487,38 +343,56 @@ function HouseSectionComponent() {
           </div>
         </div>
         
-        {/* CTA Button */}
-        <button 
-          className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] mt-6"
-        >
-          <span>See survey results</span>
-          <ArrowUpRight className="w-4 h-4" />
-        </button>
-        
         {/* Bottom Fade/Gradient */}
         <div className="w-full max-w-[1040px] h-16 bg-gradient-to-t from-[#efefef] to-white mt-[-20px] -z-10 rounded-b-lg" />
         </div>
 
         {/* Right Column: Fixed Banner - Wrapped in container that limits sticky area */}
-        <div className="relative w-full lg:w-[305px] shrink-0 lg:flex lg:flex-col">
-          <div className="lg:sticky lg:top-[170px] bg-[#f0f8ff] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-3">
-            <div className="flex items-center gap-3 h-6">
-              <div className="w-5 h-5 shrink-0 flex items-center justify-center">
-                <Lightbulb className="w-5 h-5 text-[#015ea3]" strokeWidth={2} />
+        <div className="relative w-full lg:w-[380px] shrink-0 lg:flex lg:flex-col">
+          <div className="lg:sticky lg:top-[170px] bg-[#f0f8ff] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-5 relative overflow-hidden group">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3 h-6">
+                <div className="w-5 h-5 shrink-0 flex items-center justify-center">
+                  <Lightbulb className="w-5 h-5 text-[#015ea3]" strokeWidth={2} />
+                </div>
+                <p className="text-base font-semibold text-[#065186] leading-[1.5]">
+                  Analyse data
+                </p>
               </div>
-              <p className="text-base font-semibold text-[#065186] leading-[1.5]">
-                Analyse data
+              <p className="text-sm text-[#0b446f] leading-[1.5] tracking-[-0.14px] min-w-0">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.
               </p>
             </div>
-            <p className="text-sm text-[#0b446f] leading-[1.5] tracking-[-0.14px] min-w-0">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.
-            </p>
-          <button 
-            className="bg-[#015ea3] flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] w-fit hover:bg-[#014a82] transition-colors"
+            
+            {/* Question Chips */}
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3].map((index) => (
+                <div 
+                  key={index}
+                  className="border border-dashed border-[#b9e2fe] rounded-[8px] px-3 py-2.5 flex items-center gap-2 bg-white/50"
+                >
+                  <MessageCircleQuestion className="w-4 h-4 text-[#015ea3] shrink-0" strokeWidth={2} />
+                  <span className="text-sm font-semibold text-[#0b446f] leading-[1.5]">
+                    Question title here, what should you do?
+                  </span>
+                </div>
+              ))}
+            </div>
+            
+          <Button 
+            className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] w-fit self-end text-base font-normal py-3 px-2"
           >
-            <span className="text-sm text-white font-normal leading-[0]">Learn more</span>
-            <ArrowUpRight className="w-4 h-4 text-white shrink-0" strokeWidth={2} />
-          </button>
+            <span className="font-normal leading-[0]">Open survey results</span>
+            <ArrowUpRight className="w-4 h-4 shrink-0" strokeWidth={2} />
+          </Button>
+          
+          {/* Compass icon in bottom left */}
+          <img 
+            src={CompassIcon} 
+            alt="Compass" 
+            className="absolute -bottom-8 -left-6 opacity-30 z-0 w-24 h-24 transition-transform duration-300 group-hover:rotate-[120deg]"
+            loading="lazy"
+          />
           </div>
         </div>
       </div>

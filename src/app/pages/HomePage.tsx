@@ -5,6 +5,7 @@ import { ProcessTimeline } from "../components/ProcessTimeline";
 import { HouseSection } from "../components/HouseSection";
 import { ActionCards } from "../components/ActionCards";
 import { SectionWrapper } from "../components/ui/SectionWrapper";
+import { FixedToast } from "../components/ui/fixed-toast";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 
 export default function HomePage() {
@@ -37,6 +38,17 @@ export default function HomePage() {
           <ActionCards />
         </div>
       </main>
+
+      {/* Fixed Toast/Bottom Bar with FAB */}
+      <FixedToast
+        phase="Phase 2"
+        message="Analyse data"
+        actionText="Open results"
+        onActionClick={() => {
+          console.log("Open results clicked");
+          // Add navigation or action logic here
+        }}
+      />
     </div>
   );
 }

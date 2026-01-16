@@ -50,19 +50,6 @@ const ProcessStep = memo(function ProcessStep({
       {/* Content */}
       <div className="flex flex-col gap-2">
         <h3 className={cn("font-semibold text-[#292929] text-base", isFuture && "opacity-50")}>{title}</h3>
-
-        {/* Button */}
-        <button 
-          disabled={variant === "future"}
-          className={cn(
-            "inline-flex items-center text-sm font-medium transition-colors w-fit underline decoration-1 underline-offset-4 cursor-pointer",
-            variant === "future" 
-              ? "text-[#9e9e9e] cursor-not-allowed opacity-60 decoration-[#9e9e9e]"
-              : "text-[#015ea3] hover:text-[#014a82] hover:opacity-80 decoration-[#015ea3] hover:decoration-[#014a82]"
-          )}
-        >
-          {buttonText}
-        </button>
       </div>
     </div>
   );

@@ -65,7 +65,7 @@ export const ResultsDetails = memo(function ResultsDetails() {
       </div>
 
       <button 
-        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
+        className="flex items-center justify-center gap-2 px-2 py-3 rounded-lg text-base font-normal transition-colors w-fit border bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
       >
         <span>See survey results</span>
         <ArrowUpRight className="w-4 h-4" />
