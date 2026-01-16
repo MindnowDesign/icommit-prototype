@@ -1,6 +1,6 @@
 import React, { useState, memo, useCallback } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 import { cn } from "./ui/utils";
 
 // Data structure for hierarchical teams
@@ -152,6 +152,9 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                       "bg-[#e0f0fe] hover:bg-[#d0e8fd]"
                     )}
                   >
+                    {isGroupSelected && (
+                      <Check className="w-4 h-4 text-[#030213] shrink-0" />
+                    )}
                     <span className="text-base font-bold text-black flex-1 min-w-0">{group.name}</span>
                     <div className="flex items-center gap-2 text-sm text-black shrink-0">
                       <span>{group.current} / {group.total}</span>
@@ -190,6 +193,9 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                             "hover:bg-[#f0f0f0]"
                           )}
                         >
+                          {isDeptSelected && (
+                            <Check className="w-4 h-4 text-[#030213] shrink-0" />
+                          )}
                           <span className={cn(
                             "text-sm text-black flex-1 min-w-0 truncate",
                             dept.isParent && "font-bold"
@@ -209,9 +215,6 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                               }}
                             />
                           </div>
-                          {isDeptSelected && (
-                            <div className="w-2 h-2 rounded-full bg-[#030213] shrink-0 ml-2" />
-                          )}
                         </div>
                         
                         {/* Divider after Geschäftsleitung */}
@@ -235,6 +238,9 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                                 "hover:bg-[#f0f0f0]"
                               )}
                             >
+                              {isChildSelected && (
+                                <Check className="w-4 h-4 text-[#030213] shrink-0" />
+                              )}
                               <span className="text-sm text-black flex-1 min-w-0 truncate">
                                 {child.name}
                               </span>
@@ -251,9 +257,6 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                                   }}
                                 />
                               </div>
-                              {isChildSelected && (
-                                <div className="w-2 h-2 rounded-full bg-[#030213] shrink-0 ml-2" />
-                              )}
                             </div>
                           );
                         })}
