@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
+import { FieldOfActionSelector } from "./FieldOfActionSelector";
 
 interface PhaseAccessCardProps {
   icon?: React.ReactNode;
@@ -79,6 +80,7 @@ interface ActionCardProps {
   };
   phaseNumber: string;
   onUnlock?: () => void;
+  useFieldSelector?: boolean;
 }
 
 const ActionSection = memo(function ActionSection({
@@ -93,7 +95,8 @@ const ActionSection = memo(function ActionSection({
   isLocked = false,
   accessCard,
   phaseNumber,
-  onUnlock
+  onUnlock,
+  useFieldSelector = false
 }: ActionCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -157,32 +160,55 @@ const ActionSection = memo(function ActionSection({
           isLocked && "blur-sm opacity-40 pointer-events-none"
         )}>
           {/* Left: Card */}
-          <div className="flex-1 w-full border border-[#dcdcdc] rounded-[12px] p-6 bg-white flex flex-col gap-12 h-fit">
-          <div className="w-16 h-16 bg-[#e0f0fe] rounded-xl flex items-center justify-center text-[#015ea3]">
-              {cardIcon}
-          </div>
+          <div className="flex-1 w-full border border-[#dcdcdc] rounded-[12px] p-6 bg-white flex flex-col gap-6 h-fit">
           
-          <div className="flex flex-col gap-1 max-w-xl">
-            <h3 className="text-lg font-semibold text-[#18181b]">{cardTitle}</h3>
-            <p className="text-base text-[#7c7c7c] leading-[1.5]">
-                {cardText}
-            </p>
-          </div>
-          
-          <div className="flex justify-end -mt-8">
-            <Button 
-              disabled={disabled}
-              className={cn(
-                "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-2",
-                disabled 
-                  ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
-                  : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
-              )}
-            >
-              <span>{buttonText}</span>
-              <ArrowDownToLine className="w-4 h-4" />
-            </Button>
-          </div>
+          {useFieldSelector ? (
+            <>
+              <FieldOfActionSelector />
+              
+              <div className="flex justify-end">
+                <Button 
+                  disabled={disabled}
+                  className={cn(
+                    "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-2",
+                    disabled 
+                      ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
+                      : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
+                  )}
+                >
+                  <span>{buttonText}</span>
+                  <ArrowDownToLine className="w-4 h-4" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-16 h-16 bg-[#e0f0fe] rounded-xl flex items-center justify-center text-[#015ea3]">
+                {cardIcon}
+              </div>
+              <div className="flex flex-col gap-1 max-w-xl">
+                <h3 className="text-lg font-semibold text-[#18181b]">{cardTitle}</h3>
+                <p className="text-base text-[#7c7c7c] leading-[1.5]">
+                    {cardText}
+                </p>
+              </div>
+              
+              <div className="flex justify-end -mt-8">
+                <Button 
+                  disabled={disabled}
+                  className={cn(
+                    "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-2",
+                    disabled 
+                      ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
+                      : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
+                  )}
+                >
+                  <span>{buttonText}</span>
+                  <ArrowDownToLine className="w-4 h-4" />
+                </Button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Right: Banner */}
@@ -266,10 +292,11 @@ const ACTION_CARDS_DATA = [
       </span>
     ),
     cardIcon: <MessageSquare className="w-8 h-8" />,
-    cardTitle: "Discuss where you can have the most impact with your team",
-    cardText: "Download all the documentation to confidently prepare a discussion with your team about the most important areas of action.",
+    cardTitle: "Select your fields of action",
+    cardText: "Search and select up to 3 areas where your team will focus efforts. These selections will guide your action planning.",
     buttonText: "Download documentation",
     isLocked: true,
+    useFieldSelector: true,
     accessCard: {
       title: "Access Phase 3",
       copy: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet.",
@@ -297,15 +324,19 @@ const ACTION_CARDS_DATA = [
   },
 ] as const;
 
-export const ActionCards = memo(function ActionCards() {
-  const [unlockedPhases, setUnlockedPhases] = useState<Set<string>>(new Set());
+interface ActionCardsProps {
+  initialUnlockedPhases?: string[];
+}
+
+export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [] }: ActionCardsProps) {
+  const [unlockedPhases, setUnlockedPhases] = useState<Set<string>>(new Set(initialUnlockedPhases));
 
   const handleUnlock = (phase: string) => {
     setUnlockedPhases(prev => new Set(prev).add(phase));
   };
 
   return (
-    <SectionWrapper className="flex flex-col gap-32">
+    <SectionWrapper id="phase-3-section" className="flex flex-col gap-32">
       {ACTION_CARDS_DATA.map((card, index) => {
         // Estrai il numero della fase dalla stringa "Phase 3" o "Phase 4"
         const phaseNumber = card.phase.replace("Phase ", "");
@@ -326,6 +357,7 @@ export const ActionCards = memo(function ActionCards() {
             accessCard={isLocked && card.accessCard ? card.accessCard : undefined}
             phaseNumber={phaseNumber}
             onUnlock={() => handleUnlock(card.phase)}
+            useFieldSelector={'useFieldSelector' in card ? card.useFieldSelector : false}
           />
         );
       })}

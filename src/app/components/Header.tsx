@@ -64,7 +64,7 @@ function DesignBanner() {
     <div className="w-full bg-red-400 text-white py-2 flex items-center justify-center gap-4 relative">
       <div className="w-full px-4 md:px-6 lg:px-8 max-w-[1312px] mx-auto flex items-center justify-center relative">
         <p className="text-base font-medium text-center">
-          We are working on the new design for this pages, stay tuned for update
+          A refreshed design for this page is coming soon.
         </p>
         <button
           onClick={handleClose}
