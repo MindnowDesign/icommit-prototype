@@ -55,60 +55,66 @@ const ProcessStep = memo(function ProcessStep({
   );
 });
 
-// Steps data - extracted outside component
-const PROCESS_STEPS = [
-  {
-    phase: "Phase 1",
-    title: "Onboarding starten",
-    description: "Get set up and begin your journey with icommit.",
-    buttonText: "Restart onboarding",
-    buttonIcon: <RotateCcw className="w-4 h-4" />,
-    variant: "default" as const,
-    buttonVariant: "secondary-outline" as const
-  },
-  {
-    phase: "Phase 2",
-    title: "Analyse data",
-    description: "View your survey results and key insights.",
-    buttonText: "Open results",
-    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-    variant: "active" as const
-  },
-  {
-    phase: "Phase 3",
-    title: "Define focus areas",
-    description: "Discover where to focus your next actions.",
-    buttonText: "Open fields",
-    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-    variant: "future" as const
-  },
-  {
-    phase: "Phase 4",
-    title: "Discuss with your team",
-    description: "Share and align on next steps together.",
-    buttonText: "Open proposals",
-    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-    variant: "future" as const
-  },
-  {
-    phase: "Phase 5",
-    title: "Set clear goals",
-    description: "Turn insights into actionable steps for your team.",
-    buttonText: "Open measures",
-    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-    variant: "future" as const
-  },
-  {
-    phase: "Phase 6",
-    title: "Check your team pulse",
-    description: "Check progress and measure improvements over time.",
-    buttonText: "Open pulse",
-    buttonIcon: <ArrowUpRight className="w-4 h-4" />,
-    variant: "future" as const
-  }
-] as const;
+interface ProcessTimelineProps {
+  currentPhase?: number; // 1-6, default is 2
+}
 
-export const ProcessTimeline = memo(function ProcessTimeline() {
+export const ProcessTimeline = memo(function ProcessTimeline({ currentPhase = 2 }: ProcessTimelineProps) {
+  // Calculate progress percentage - bar goes halfway to the current active phase
+  const progressPercentage = ((currentPhase - 0.5) / 6) * 100;
+  
+  // Generate steps based on current phase
+  const steps = [
+    {
+      phase: "Phase 1",
+      title: "Onboarding starten",
+      description: "Get set up and begin your journey with icommit.",
+      buttonText: "Restart onboarding",
+      buttonIcon: <RotateCcw className="w-4 h-4" />,
+      variant: (currentPhase > 1 ? "default" : "active") as const,
+      buttonVariant: "secondary-outline" as const
+    },
+    {
+      phase: "Phase 2",
+      title: "Analyse data",
+      description: "View your survey results and key insights.",
+      buttonText: "Open results",
+      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+      variant: (currentPhase > 2 ? "default" : currentPhase === 2 ? "active" : "future") as const
+    },
+    {
+      phase: "Phase 3",
+      title: "Define focus areas",
+      description: "Discover where to focus your next actions.",
+      buttonText: "Open fields",
+      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+      variant: (currentPhase > 3 ? "default" : currentPhase === 3 ? "active" : "future") as const
+    },
+    {
+      phase: "Phase 4",
+      title: "Discuss with your team",
+      description: "Share and align on next steps together.",
+      buttonText: "Open proposals",
+      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+      variant: (currentPhase > 4 ? "default" : currentPhase === 4 ? "active" : "future") as const
+    },
+    {
+      phase: "Phase 5",
+      title: "Set clear goals",
+      description: "Turn insights into actionable steps for your team.",
+      buttonText: "Open measures",
+      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+      variant: (currentPhase > 5 ? "default" : currentPhase === 5 ? "active" : "future") as const
+    },
+    {
+      phase: "Phase 6",
+      title: "Check your team pulse",
+      description: "Check progress and measure improvements over time.",
+      buttonText: "Open pulse",
+      buttonIcon: <ArrowUpRight className="w-4 h-4" />,
+      variant: (currentPhase === 6 ? "active" : "future") as const
+    }
+  ];
   return (
     <div className="w-full">
       {/* Header */}
@@ -128,12 +134,15 @@ export const ProcessTimeline = memo(function ProcessTimeline() {
       <div className="relative">
         {/* Progress Line */}
         <div className="absolute top-[23px] left-0 right-0 h-[6px] bg-[#efefef] rounded-full">
-          <div className="h-full bg-[#015ea3] rounded-l-full w-[25%]" />
+          <div 
+            className="h-full bg-[#015ea3] rounded-l-full transition-all duration-700 ease-out" 
+            style={{ width: `${progressPercentage}%` }}
+          />
         </div>
 
         {/* Steps Grid */}
         <div className="relative grid grid-cols-6 gap-8 pt-4">
-          {PROCESS_STEPS.map((step, index) => (
+          {steps.map((step, index) => (
             <ProcessStep 
               key={`${step.phase}-${index}`} 
               {...step} 

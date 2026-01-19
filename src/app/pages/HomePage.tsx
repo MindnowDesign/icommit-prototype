@@ -68,7 +68,7 @@ export default function HomePage() {
                   className="absolute -top-12 -right-12 opacity-30 z-0"
                   loading="lazy"
                 />
-                <ProcessTimeline />
+                <ProcessTimeline currentPhase={isPhase3Unlocked ? 3 : 2} />
               </div>
             </SectionWrapper>
           </div>
