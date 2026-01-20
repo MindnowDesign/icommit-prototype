@@ -326,13 +326,16 @@ const ACTION_CARDS_DATA = [
 
 interface ActionCardsProps {
   initialUnlockedPhases?: string[];
+  onPhaseUnlock?: (phase: string) => void;
 }
 
-export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [] }: ActionCardsProps) {
+export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [], onPhaseUnlock }: ActionCardsProps) {
   const [unlockedPhases, setUnlockedPhases] = useState<Set<string>>(new Set(initialUnlockedPhases));
 
   const handleUnlock = (phase: string) => {
     setUnlockedPhases(prev => new Set(prev).add(phase));
+    // Notifica l'HomePage quando viene sbloccata una fase
+    onPhaseUnlock?.(phase);
   };
 
   return (

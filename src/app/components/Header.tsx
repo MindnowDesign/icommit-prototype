@@ -8,8 +8,8 @@ import CompassIcon from "../../assets/Icons/Compass.svg";
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/", minWidth: "min-w-[170px]" },
   { icon: BarChart3, label: "Results", path: "/results", minWidth: "min-w-[123px]" },
-  { icon: Puzzle, label: "Measures", path: "/measures", minWidth: undefined },
   { icon: ScatterChart, label: "Fields of action", path: "/fields", minWidth: undefined },
+  { icon: Puzzle, label: "Measures", path: "/measures", minWidth: undefined },
   { icon: Gauge, label: "Pulse", path: "/pulse", minWidth: undefined },
 ] as const;
 

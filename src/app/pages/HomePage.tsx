@@ -26,6 +26,13 @@ export default function HomePage() {
       setIsPhase3Unlocked(true);
     }
   }, [state?.unlockPhase3]);
+
+  // Handle Phase unlock from ActionCards
+  const handlePhaseUnlock = (phase: string) => {
+    if (phase === "Phase 3") {
+      setIsPhase3Unlocked(true);
+    }
+  };
   
   // Scroll to Phase 3 section if coming from Results page
   useEffect(() => {
@@ -75,7 +82,10 @@ export default function HomePage() {
           
           <HouseSection />
           
-          <ActionCards initialUnlockedPhases={state?.unlockPhase3 ? ["Phase 3"] : []} />
+          <ActionCards 
+            initialUnlockedPhases={state?.unlockPhase3 ? ["Phase 3"] : []} 
+            onPhaseUnlock={handlePhaseUnlock}
+          />
         </div>
       </main>
 
