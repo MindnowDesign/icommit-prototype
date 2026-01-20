@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useCallback } from "react";
-import { HelpCircle, Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb, MessageCircleQuestion, Sprout, ThumbsUp } from "lucide-react";
+import { Rocket, Scale, Anchor, MousePointerClick, Sailboat, Milestone, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb, MessageCircleQuestion, Sprout, ThumbsUp } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -185,14 +185,6 @@ const HouseCard = memo(function HouseCard({
         <div className="flex items-center gap-1">
           {directionIcon}
           <span className="text-base text-black">{influencingTitle}</span>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <HelpCircle className="w-4 h-4 text-[#989898] cursor-help -mt-0.5" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Additional information about this area</p>
-            </TooltipContent>
-          </Tooltip>
         </div>
         <div className="flex flex-wrap gap-2">
           {factors.map((factor, i) => (
@@ -294,17 +286,7 @@ function HouseSectionComponent() {
         <div className="bg-[#b9e2fe] px-3 py-2 rounded-lg text-[#0b446f] text-sm">
           Phase 2
         </div>
-        <div className="flex items-start gap-2">
-          <h2 className="text-2xl font-semibold text-black tracking-tighter">Where's your team in the Commitment House?</h2>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <HelpCircle className="w-5 h-5 text-[#989898] cursor-help -mt-1" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Information about the Commitment House</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <h2 className="text-2xl font-semibold text-black tracking-tighter">Where's your team in the Commitment House?</h2>
         <span className="text-[18px] text-[#656565]">From your team's survey results, compared to 121 Schweizer Firmen.</span>
       </div>
 
