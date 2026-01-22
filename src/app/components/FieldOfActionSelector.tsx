@@ -1,30 +1,25 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { Search, X, MousePointerClick, Sailboat, Milestone, Users, Zap, Shield, Globe, Heart, TrendingUp, MessageSquare, Target, Lightbulb, BookOpen, Headphones, Briefcase, Clock, Award, Leaf, Handshake, BarChart3, Megaphone } from "lucide-react";
+import { Search, X, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound } from "lucide-react";
 import { cn } from "./ui/utils";
 
 // Available fields of action with their icons
 const AVAILABLE_FIELDS = [
-  { id: "digitalization", name: "Digitalization", icon: MousePointerClick },
+  { id: "job-content", name: "Job content", icon: Briefcase },
   { id: "work-leisure", name: "Work and leisure", icon: Sailboat },
-  { id: "kundenorientierung", name: "Kundenorientierung", icon: Milestone },
-  { id: "collaboration", name: "Collaboration", icon: Users },
-  { id: "innovation", name: "Innovation", icon: Zap },
-  { id: "security", name: "Security", icon: Shield },
-  { id: "sustainability", name: "Sustainability", icon: Leaf },
-  { id: "wellbeing", name: "Wellbeing", icon: Heart },
-  { id: "performance", name: "Performance", icon: TrendingUp },
-  { id: "communication", name: "Communication", icon: MessageSquare },
-  { id: "leadership", name: "Leadership", icon: Award },
-  { id: "learning", name: "Learning & Development", icon: BookOpen },
-  { id: "customer-service", name: "Customer Service", icon: Headphones },
-  { id: "project-management", name: "Project Management", icon: Briefcase },
-  { id: "time-management", name: "Time Management", icon: Clock },
-  { id: "goal-setting", name: "Goal Setting", icon: Target },
-  { id: "creativity", name: "Creativity", icon: Lightbulb },
-  { id: "analytics", name: "Data & Analytics", icon: BarChart3 },
-  { id: "partnerships", name: "Partnerships", icon: Handshake },
-  { id: "marketing", name: "Marketing", icon: Megaphone },
-  { id: "global-expansion", name: "Global Expansion", icon: Globe },
+  { id: "structures-procedures", name: "Structures and procedures", icon: Building2 },
+  { id: "workplace-tools", name: "Workplace / Tools", icon: Wrench },
+  { id: "collaboration", name: "Collaboration within the company", icon: Users },
+  { id: "dealing-changes", name: "Dealing with changes", icon: RefreshCw },
+  { id: "customer-orientation", name: "Customer orientation", icon: UserCheck },
+  { id: "company-strategy", name: "Company strategy", icon: Target },
+  { id: "involvement-employees", name: "Involvement of employees", icon: UserPlus },
+  { id: "immediate-superior", name: "Immediate superior", icon: User },
+  { id: "executive-management", name: "Executive management", icon: Crown },
+  { id: "employee-development", name: "Employee development", icon: GraduationCap },
+  { id: "objective-agreement", name: "Objective agreement", icon: FileCheck },
+  { id: "remuneration", name: "Remuneration", icon: Coins },
+  { id: "knowledge-sharing", name: "Knowledge sharing", icon: Share2 },
+  { id: "team", name: "Team", icon: UsersRound },
 ] as const;
 
 interface FieldOfActionSelectorProps {
@@ -34,7 +29,7 @@ interface FieldOfActionSelectorProps {
 }
 
 export function FieldOfActionSelector({ 
-  defaultSelected = ["digitalization", "work-leisure", "kundenorientierung"],
+  defaultSelected = ["job-content", "work-leisure", "team"],
   maxSelections = 3,
   onChange 
 }: FieldOfActionSelectorProps) {

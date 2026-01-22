@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useCallback } from "react";
-import { Rocket, Scale, Anchor, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb, MessageCircleQuestion, AlertTriangle, BicepsFlexed, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound } from "lucide-react";
+import { Rocket, Scale, Anchor, TrendingUp, ArrowUpRight, Lightbulb, MessageCircleQuestion, AlertTriangle, BicepsFlexed, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { useInView } from "./ui/useInView";
 import TettoSvg from "../../assets/house/Tetto.svg";
 import RoofSvg from "../../assets/house/Roof.svg";
+import RoofYellowSvg from "../../assets/house/Roof-Yellow.svg";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 
 // Custom Icons from assets - memoized
@@ -95,7 +96,7 @@ const getFactorIcon = (factor: string) => {
   return <IconComponent size={16} strokeWidth={2} className="w-4 h-4 text-[#656565]" />;
 };
 
-interface HouseCardProps {
+interface HouseCardBProps {
   title: string;
   subtitle: string;
   influencingTitle: string;
@@ -109,9 +110,10 @@ interface HouseCardProps {
   badgeTooltip?: string;
   onClick?: () => void;
   isFirstCard?: boolean;
+  isInsideRoofGroup?: boolean;
 }
 
-const HouseCard = memo(function HouseCard({ 
+const HouseCardB = memo(function HouseCardB({ 
   title, 
   subtitle, 
   influencingTitle, 
@@ -124,8 +126,9 @@ const HouseCard = memo(function HouseCard({
   badgeIcon, 
   badgeTooltip, 
   onClick,
-  isFirstCard = false
-}: HouseCardProps) {
+  isFirstCard = false,
+  isInsideRoofGroup = false
+}: HouseCardBProps) {
   const handleClick = useCallback(() => {
     onClick?.();
   }, [onClick]);
@@ -163,41 +166,64 @@ const HouseCard = memo(function HouseCard({
     ? "" 
     : "hover:-translate-y-0.5";
 
+  // Determine if this card has a badge for hover color effect
+  const hasBadge = !!badgeText;
+  
+  // Hover group class depends on whether we're inside the roof group
+  const hoverGroupClass = isInsideRoofGroup ? "group-hover/roofCard" : "group-hover/cardB";
+
   return (
     <div 
       onClick={handleClick}
-      className={cn("bg-white flex flex-col gap-6 w-full relative cursor-pointer transition-all duration-300 ease-out group/card", borderRadiusClass, paddingClass, zIndexClass, borderClass, hoverClass)}
+      className={cn(
+        "flex flex-col gap-6 w-full relative cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden",
+        isInsideRoofGroup ? "" : "group/cardB",
+        borderRadiusClass, paddingClass, zIndexClass, borderClass,
+        // Only apply scale if NOT inside roof group (roof group handles scale)
+        hasBadge && !isInsideRoofGroup ? "hover:scale-110 hover:shadow-2xl hover:z-20" : "",
+        !hasBadge && hoverClass
+      )}
+      style={{ 
+        backgroundColor: 'white',
+      }}
     >
-      {/* Header with badge */}
-      <div className="w-full flex items-start justify-between gap-4">
+      {/* Hover background overlay for color change */}
+      {hasBadge && (
+        <div 
+          className={cn(
+            "absolute inset-0 opacity-0 transition-opacity duration-300 -z-10",
+            isInsideRoofGroup ? "group-hover/roofCard:opacity-100" : "group-hover/cardB:opacity-100"
+          )}
+          style={{ backgroundColor: badgeBgColor }}
+        />
+      )}
+      
+      {/* Header with badge - Original style: badge inline in top right */}
+      <div className="w-full flex items-start justify-between gap-4 relative z-10">
         <div className="flex gap-3 flex-1 items-center">
-          <div className={cn("w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0", iconBg)}>
+          <div className={cn(
+            "w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0 transition-colors duration-500",
+            iconBg,
+            hasBadge && (isInsideRoofGroup ? "group-hover/roofCard:bg-white/60" : "group-hover/cardB:bg-white/60")
+          )}>
             {icon}
           </div>
           
-          <h3 className="text-[20px] font-semibold text-[#292929] leading-none m-0 pr-16">{title}</h3>
+          <h3 className="text-[20px] font-semibold text-[#292929] leading-none m-0">{title}</h3>
         </div>
         
         {badgeText && (
           <Tooltip>
             <TooltipTrigger asChild>
               <div 
-                className="absolute -right-0 top-4 h-12 flex items-center justify-start cursor-help transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden pr-5 pl-7 group-hover/card:h-14 group-hover/card:pr-6 group-hover/card:pl-8"
-                style={{ 
-                  backgroundColor: badgeBgColor,
-                  clipPath: 'polygon(16px 0%, 100% 0%, 100% 100%, 16px 100%, 0% 50%)',
-                  borderRadius: '0 4px 4px 0'
-                }}
+                className={cn(
+                  "rounded-[10px] px-3 h-10 flex items-center gap-2 cursor-help shrink-0 transition-colors duration-500",
+                  isInsideRoofGroup ? "group-hover/roofCard:bg-white/70" : "group-hover/cardB:bg-white/70"
+                )}
+                style={{ backgroundColor: badgeBgColor }}
               >
-                <div className="shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/card:scale-125">
-                  {badgeIcon || <TrendingUp className="w-6 h-6" style={{ color: badgeTextColor }} />}
-                </div>
-                <span 
-                  className="text-[18px] font-semibold whitespace-nowrap max-w-0 opacity-0 group-hover/card:max-w-[200px] group-hover/card:opacity-100 group-hover/card:ml-3 group-hover/card:text-[20px] transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]" 
-                  style={{ color: badgeTextColor }}
-                >
-                  {badgeText}
-                </span>
+                {badgeIcon || <TrendingUp className="w-6 h-6" style={{ color: badgeTextColor }} />}
+                <span className="text-[18px] font-semibold" style={{ color: badgeTextColor }}>{badgeText}</span>
               </div>
             </TooltipTrigger>
             {badgeTooltip && (
@@ -209,14 +235,27 @@ const HouseCard = memo(function HouseCard({
         )}
       </div>
       
-      <div className="w-full flex flex-col gap-3">
-        <div className="flex items-center gap-1">
-          {directionIcon}
+      <div className="w-full flex flex-col gap-3 relative z-10">
+        <div className="flex items-center gap-2">
           <span className="text-base text-black">{influencingTitle}</span>
+          {directionIcon}
         </div>
         <div className="flex flex-wrap gap-2">
           {factors.map((factor, i) => (
-            <div key={`${factor}-${i}`} className="bg-[#fafafa] hover:bg-[#e8e8e8] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-2 transition-colors duration-200 ease-out">
+            <div 
+              key={`${factor}-${i}`} 
+              className={cn(
+                "border rounded-[10px] px-2.5 py-1.5 flex items-center gap-2 transition-colors duration-500 ease-out",
+                hasBadge 
+                  ? cn(
+                      "bg-[#fafafa] border-[#efefef]",
+                      isInsideRoofGroup 
+                        ? "group-hover/roofCard:bg-white/70 group-hover/roofCard:border-white/50"
+                        : "group-hover/cardB:bg-white/70 group-hover/cardB:border-white/50"
+                    )
+                  : "bg-[#fafafa] hover:bg-[#e8e8e8] border-[#efefef]"
+              )}
+            >
                {getFactorIcon(factor)}
                <span className="text-[#3d3d3d] text-sm">{factor}</span>
             </div>
@@ -266,7 +305,7 @@ const HOUSE_CARDS_CONFIG = [
   },
 ] as const;
 
-function HouseSectionComponent() {
+function HouseSectionBComponent() {
   // Intersection observer for entrance animation
   const [sectionRef, isInView] = useInView<HTMLDivElement>({ threshold: 0.15, triggerOnce: true });
 
@@ -379,21 +418,32 @@ function HouseSectionComponent() {
                   <div 
                     key={card.title} 
                     className={cn(
-                      cardBgColor, paddingClass, borderRadiusClass,
-                      "flex flex-col items-center justify-center gap-0 group",
+                      cardBgColor, paddingClass, borderRadiusClass, 
+                      "flex flex-col items-center justify-center gap-0",
                       "transition-all duration-700 ease-out",
                       animationClass
                     )}
                     style={{ transitionDelay: `${animationDelay}ms` }}
                   >
-                    {/* Wrapper for image and card with hover effect */}
-                    <div className="w-full flex flex-col gap-0 transition-all duration-300 ease-out group-hover:-translate-y-0.5">
-                      <img 
-                        src={RoofSvg} 
-                        alt="Roof" 
-                        className="w-full h-auto block m-0 p-0 relative z-0"
-                      />
-                      <HouseCard 
+                    {/* Wrapper for image and card - scales together on hover */}
+                    <div className={cn(
+                      "w-full flex flex-col gap-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom group/roofCard",
+                      card.badgeBgColor ? "hover:scale-110 hover:z-20" : ""
+                    )}>
+                      {/* Roof with color swap on hover */}
+                      <div className="relative w-full">
+                        <img 
+                          src={RoofSvg} 
+                          alt="Roof" 
+                          className="w-full h-auto block m-0 p-0 relative z-0 transition-opacity duration-300 group-hover/roofCard:opacity-0"
+                        />
+                        <img 
+                          src={RoofYellowSvg} 
+                          alt="Roof Yellow" 
+                          className="w-full h-auto block m-0 p-0 absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover/roofCard:opacity-100"
+                        />
+                      </div>
+                      <HouseCardB 
                         title={card.title}
                         subtitle={card.subtitle}
                         influencingTitle={card.influencingTitle}
@@ -406,6 +456,7 @@ function HouseSectionComponent() {
                         badgeIcon={card.badgeIcon}
                         badgeTooltip={card.badgeTooltip}
                         isFirstCard={isFirstCard}
+                        isInsideRoofGroup={true}
                       />
                     </div>
                   </div>
@@ -416,14 +467,14 @@ function HouseSectionComponent() {
                 <div 
                   key={card.title} 
                   className={cn(
-                    cardBgColor, paddingClass, borderRadiusClass,
+                    cardBgColor, paddingClass, borderRadiusClass, 
                     "flex flex-col items-center justify-center",
                     "transition-all duration-700 ease-out",
                     animationClass
                   )}
                   style={{ transitionDelay: `${animationDelay}ms` }}
                 >
-                  <HouseCard 
+                  <HouseCardB 
                     title={card.title}
                     subtitle={card.subtitle}
                     influencingTitle={card.influencingTitle}
@@ -500,4 +551,4 @@ function HouseSectionComponent() {
   );
 }
 
-export const HouseSection = memo(HouseSectionComponent);
+export const HouseSectionB = memo(HouseSectionBComponent);

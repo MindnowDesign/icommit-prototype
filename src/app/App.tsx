@@ -6,6 +6,7 @@ import ResultsPage from "./pages/ResultsPage";
 import MeasuresPage from "./pages/MeasuresPage";
 import FieldsOfActionPage from "./pages/FieldsOfActionPage";
 import PulsePage from "./pages/PulsePage";
+import HousePage from "./pages/HousePage";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/measures" element={<MeasuresPage />} />
         <Route path="/fields" element={<FieldsOfActionPage />} />
         <Route path="/pulse" element={<PulsePage />} />
+        <Route path="/house" element={<HousePage />} />
       </Routes>
     </BrowserRouter>
   );
