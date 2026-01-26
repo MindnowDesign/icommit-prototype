@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Header } from "../components/Header";
+import { HeroSection } from "../components/HeroSection";
 import { SectionWrapper } from "../components/ui/SectionWrapper";
 import { FixedToast } from "../components/ui/fixed-toast";
 import ResultsImage from "../../assets/pages images/Results-page.png";
@@ -30,14 +31,18 @@ export default function ResultsPage() {
       <Header />
       
       <main className="w-full flex flex-col items-center pt-20">
-        <SectionWrapper>
-          <img 
-            src={ResultsImage} 
-            alt="Results" 
-            className="w-full h-auto"
-            loading="lazy"
-          />
-        </SectionWrapper>
+        <div className="w-full flex flex-col items-center gap-8 pb-20">
+          <HeroSection title="Survey results report" />
+          
+          <SectionWrapper>
+            <img 
+              src={ResultsImage} 
+              alt="Results" 
+              className="w-full h-auto"
+              loading="lazy"
+            />
+          </SectionWrapper>
+        </div>
       </main>
 
       {/* Fixed Toast/Bottom Bar with FAB */}
@@ -45,6 +50,7 @@ export default function ResultsPage() {
         phase="Phase 2"
         message="Analyse data"
         actionText="Results"
+        canGoBack={false}
         onActionClick={handleMoveToNextPhase}
       />
     </div>

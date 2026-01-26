@@ -25,6 +25,7 @@ export default function PulsePage() {
         phase="Phase 2"
         message="Analyse data"
         actionText="Open results"
+        canGoBack={false}
         onActionClick={() => {
           console.log("Open results clicked");
           // Add navigation or action logic here

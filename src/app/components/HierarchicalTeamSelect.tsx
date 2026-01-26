@@ -47,6 +47,88 @@ interface HierarchicalTeamSelectProps {
   className?: string;
 }
 
+// Reusable row component for consistent styling
+interface RowProps {
+  name: string;
+  current: number;
+  total: number;
+  percentage: number;
+  isSelected: boolean;
+  onClick: () => void;
+  variant: "company" | "category" | "item";
+  isBold?: boolean;
+}
+
+const Row = memo(function Row({
+  name,
+  current,
+  total,
+  percentage,
+  isSelected,
+  onClick,
+  variant,
+  isBold = false,
+}: RowProps) {
+  const baseStyles = "px-4 py-3 flex items-center gap-3 cursor-pointer transition-colors";
+  
+  // Background styles based on variant (when NOT selected)
+  const variantBgStyles = {
+    company: "bg-[#f5f5f5] hover:bg-[#ebebeb]",
+    category: "bg-[#f5f5f5] hover:bg-[#ebebeb]",
+    item: "bg-white hover:bg-[#f5f5f5]",
+  };
+
+  // Selected state: blue background
+  const bgStyles = isSelected
+    ? "bg-[#015ea3] hover:bg-[#014a82]"
+    : variantBgStyles[variant];
+
+  // Indentation for items
+  const indentStyles = variant === "item" ? "pl-10" : "";
+
+  return (
+    <div
+      onClick={onClick}
+      className={cn(baseStyles, bgStyles, indentStyles)}
+    >
+      {/* Name */}
+      <span
+        className={cn(
+          "text-sm truncate flex-1",
+          isSelected ? "text-white" : "text-[#292929]",
+          variant === "company" && "text-base font-bold",
+          isBold && "font-semibold"
+        )}
+      >
+        {name}
+      </span>
+
+      {/* Stats - fixed widths for vertical alignment */}
+      <span
+        className={cn(
+          "text-sm w-[60px] text-right tabular-nums",
+          isSelected ? "text-white/80" : "text-[#656565]"
+        )}
+      >
+        {current} / {total}
+      </span>
+      <span
+        className={cn(
+          "text-sm font-semibold w-[40px] text-right tabular-nums",
+          isSelected ? "text-white" : "text-[#292929]"
+        )}
+      >
+        {percentage}%
+      </span>
+
+      {/* Check icon - far right */}
+      <div className="w-6 flex items-center justify-center shrink-0">
+        {isSelected && <Check className="w-5 h-5 text-white" strokeWidth={2.5} />}
+      </div>
+    </div>
+  );
+});
+
 export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
   value,
   onValueChange,
@@ -54,7 +136,7 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
 }: HierarchicalTeamSelectProps) {
   const [open, setOpen] = useState(false);
 
-  // Find selected item
+  // Find selected item for display
   const selectedItem = React.useMemo(() => {
     for (const group of teamGroups) {
       if (group.id === value) {
@@ -69,22 +151,25 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
     return null;
   }, [value]);
 
-  // Organize departments: parents first, then their children
-  const organizedDepartments = React.useMemo(() => {
-    const parents: Department[] = [];
-    const children: Department[] = [];
-    
-    teamGroups[0]?.departments.forEach((dept) => {
-      if (dept.isParent) {
-        parents.push(dept);
-      } else if (dept.parentId) {
-        children.push(dept);
-      } else {
-        parents.push(dept);
-      }
+  // Organize departments into hierarchy
+  const hierarchy = React.useMemo(() => {
+    const result: Array<{
+      dept: Department;
+      children: Department[];
+    }> = [];
+
+    const group = teamGroups[0];
+    if (!group) return result;
+
+    // Find all parent-level departments (no parentId)
+    const topLevel = group.departments.filter((d) => !d.parentId);
+
+    topLevel.forEach((dept) => {
+      const children = group.departments.filter((d) => d.parentId === dept.id);
+      result.push({ dept, children });
     });
-    
-    return { parents, children };
+
+    return result;
   }, []);
 
   const handleSelect = useCallback(
@@ -100,14 +185,6 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
       ? selectedItem.item.name
       : `${selectedItem.group} - ${selectedItem.item.name}`
     : "Select team";
-
-  // Get progress bar color based on percentage (higher = greener)
-  const getProgressBarColor = (percentage: number) => {
-    if (percentage >= 80) return "#22c55e"; // Green for high values
-    if (percentage >= 60) return "#84cc16"; // Light green for medium-high
-    if (percentage >= 40) return "#eab308"; // Yellow for medium
-    return "#ef4444"; // Red for low values
-  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -125,148 +202,72 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
             className
           )}
         >
-          <span className="text-[#3b3b3b] text-lg font-normal truncate">{displayValue}</span>
+          <span className="text-[#3b3b3b] text-lg font-normal truncate">
+            {displayValue}
+          </span>
           <ChevronDown className="w-4 h-4 text-[#292929] shrink-0" />
         </button>
       </PopoverTrigger>
+
       <PopoverContent
         className={cn(
           "bg-white border border-[#d8d8d8] rounded-[10px]",
-          "shadow-lg w-[400px] p-0",
+          "shadow-lg w-[420px] p-0",
           "max-h-[500px] overflow-y-auto"
         )}
         align="start"
       >
         <div className="flex flex-col">
-          {teamGroups.map((group) => {
-            const isGroupSelected = value === group.id;
+          {teamGroups.map((group) => (
+            <div key={group.id} className="flex flex-col">
+              {/* Company header row */}
+              <Row
+                name={group.name}
+                current={group.current}
+                total={group.total}
+                percentage={group.percentage}
+                isSelected={value === group.id}
+                onClick={() => handleSelect(group.id)}
+                variant="company"
+              />
 
-            return (
-              <div key={group.id} className="border-b border-[#dcdcdc] last:border-b-0">
-                <div className="bg-white">
-                  {/* Summary Row - selectable, azzurrino */}
-                  <div
-                    onClick={() => handleSelect(group.id)}
-                    className={cn(
-                      "px-4 py-3 flex items-center gap-3 cursor-pointer transition-colors",
-                      "bg-[#e0f0fe] hover:bg-[#d0e8fd]"
-                    )}
-                  >
-                    {isGroupSelected && (
-                      <Check className="w-4 h-4 text-[#030213] shrink-0" />
-                    )}
-                    <span className="text-base font-bold text-black flex-1 min-w-0">{group.name}</span>
-                    <div className="flex items-center gap-2 text-sm text-black shrink-0">
-                      <span>{group.current} / {group.total}</span>
-                      <span className="font-semibold">{group.percentage}%</span>
-                    </div>
-                    <div className="max-w-[60px] h-2 bg-[#ececf0] rounded-full overflow-hidden shrink-0 flex-1">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ 
-                          width: `${group.percentage}%`,
-                          backgroundColor: getProgressBarColor(group.percentage)
-                        }}
-                      />
-                    </div>
-                  </div>
+              {/* Departments */}
+              {hierarchy.map(({ dept, children }, index) => (
+                <React.Fragment key={dept.id}>
+                  {/* Divider before category rows (except first item) */}
+                  {dept.isParent && index > 0 && (
+                    <div className="h-px bg-[#dcdcdc] my-2" />
+                  )}
 
-                  {/* Departments - organized with parents and children */}
-                  {organizedDepartments.parents.map((dept, parentIdx) => {
-                    const isDeptSelected = value === dept.id;
-                    const deptChildren = organizedDepartments.children.filter(
-                      (child) => child.parentId === dept.id
-                    );
-                    const isEven = parentIdx % 2 === 0;
-                    // Geschäftsleitung should have white background
-                    const isGeschaeftsleitung = dept.id === "geschaeftsleitung";
+                  {/* Department row - "category" for parents, "item" for regular */}
+                  <Row
+                    name={dept.name}
+                    current={dept.current}
+                    total={dept.total}
+                    percentage={dept.percentage}
+                    isSelected={value === dept.id}
+                    onClick={() => handleSelect(dept.id)}
+                    variant={dept.isParent ? "category" : "item"}
+                    isBold={dept.isParent}
+                  />
 
-                    return (
-                      <React.Fragment key={dept.id}>
-                        {/* Parent department (e.g., Administration) - less padding, gray background (white for Geschäftsleitung) */}
-                        <div
-                          onClick={() => handleSelect(dept.id)}
-                          className={cn(
-                            "px-3 py-3 flex items-center gap-3 cursor-pointer transition-colors",
-                            isGeschaeftsleitung ? "bg-white" : "bg-[#fafafa]",
-                            isDeptSelected && "bg-[#ececf0]",
-                            "hover:bg-[#f0f0f0]"
-                          )}
-                        >
-                          {isDeptSelected && (
-                            <Check className="w-4 h-4 text-[#030213] shrink-0" />
-                          )}
-                          <span className={cn(
-                            "text-sm text-black flex-1 min-w-0 truncate",
-                            dept.isParent && "font-bold"
-                          )}>
-                            {dept.name}
-                          </span>
-                          <div className="flex items-center gap-2 text-sm text-black shrink-0">
-                            <span>{dept.current} / {dept.total}</span>
-                            <span className="font-semibold">{dept.percentage}%</span>
-                          </div>
-                          <div className="max-w-[60px] h-2 bg-[#ececf0] rounded-full overflow-hidden shrink-0 flex-1">
-                            <div
-                              className="h-full rounded-full"
-                              style={{ 
-                                width: `${dept.percentage}%`,
-                                backgroundColor: getProgressBarColor(dept.percentage)
-                              }}
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Divider after Geschäftsleitung */}
-                        {isGeschaeftsleitung && (
-                          <div className="w-full h-px bg-[#dcdcdc]" />
-                        )}
-
-                        {/* Children departments - more padding, all white background */}
-                        {deptChildren.map((child) => {
-                          const isChildSelected = value === child.id;
-
-                          return (
-                            <div
-                              key={child.id}
-                              onClick={() => handleSelect(child.id)}
-                              className={cn(
-                                "px-4 py-3 flex items-center gap-3 cursor-pointer transition-colors",
-                                "pl-8", // More lateral padding for children
-                                "bg-white",
-                                isChildSelected && "bg-[#ececf0]",
-                                "hover:bg-[#f0f0f0]"
-                              )}
-                            >
-                              {isChildSelected && (
-                                <Check className="w-4 h-4 text-[#030213] shrink-0" />
-                              )}
-                              <span className="text-sm text-black flex-1 min-w-0 truncate">
-                                {child.name}
-                              </span>
-                              <div className="flex items-center gap-2 text-sm text-black shrink-0">
-                                <span>{child.current} / {child.total}</span>
-                                <span className="font-semibold">{child.percentage}%</span>
-                              </div>
-                              <div className="max-w-[60px] h-2 bg-[#ececf0] rounded-full overflow-hidden shrink-0 flex-1">
-                                <div
-                                  className="h-full rounded-full"
-                                  style={{ 
-                                    width: `${child.percentage}%`,
-                                    backgroundColor: getProgressBarColor(child.percentage)
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </React.Fragment>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+                  {/* Sub-departments */}
+                  {children.map((child) => (
+                    <Row
+                      key={child.id}
+                      name={child.name}
+                      current={child.current}
+                      total={child.total}
+                      percentage={child.percentage}
+                      isSelected={value === child.id}
+                      onClick={() => handleSelect(child.id)}
+                      variant="item"
+                    />
+                  ))}
+                </React.Fragment>
+              ))}
+            </div>
+          ))}
         </div>
       </PopoverContent>
     </Popover>

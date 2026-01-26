@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { ArrowRight, X, MessageCircleQuestion, ChevronRight } from "lucide-react";
+import { ArrowRight, X, Compass, ChevronRight, Undo2 } from "lucide-react";
 import { cn } from "./utils";
 import {
   AlertDialog,
@@ -35,6 +35,14 @@ export interface FixedToastProps {
    */
   onClose?: () => void;
   /**
+   * Callback when the user confirms going back to the previous phase
+   */
+  onGoBack?: () => void;
+  /**
+   * Whether the go back button should be shown (hidden on Phase 1)
+   */
+  canGoBack?: boolean;
+  /**
    * Whether the toast is visible
    */
   visible?: boolean;
@@ -57,6 +65,8 @@ export function FixedToast({
   actionText = "Open results",
   onActionClick,
   onClose,
+  onGoBack,
+  canGoBack = true,
   visible: externalVisible = true,
   className,
 }: FixedToastProps) {
@@ -65,6 +75,7 @@ export function FixedToast({
   const [internalVisible, setInternalVisible] = useState(externalVisible);
   const [isMorphing, setIsMorphing] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isGoBackDialogOpen, setIsGoBackDialogOpen] = useState(false);
   
   // Use internal state for morphing animation, but respect external visible prop as initial state
   const isVisible = internalVisible;
@@ -87,9 +98,18 @@ export function FixedToast({
     setInternalVisible(true);
   };
 
+  const handleGoBackClick = () => {
+    setIsGoBackDialogOpen(true);
+  };
+
+  const handleConfirmGoBack = () => {
+    setIsGoBackDialogOpen(false);
+    onGoBack?.();
+  };
+
   return (
     <>
-      {/* Confirmation Dialog */}
+      {/* Confirmation Dialog - Remove guided navigation */}
       <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
         <AlertDialogContent className="bg-white border border-[#dcdcdc] rounded-[24px] sm:max-w-2xl">
           <AlertDialogHeader>
@@ -114,6 +134,31 @@ export function FixedToast({
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Confirmation Dialog - Go back to previous phase */}
+      <AlertDialog open={isGoBackDialogOpen} onOpenChange={setIsGoBackDialogOpen}>
+        <AlertDialogContent className="bg-white border border-[#dcdcdc] rounded-[24px] sm:max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-semibold text-black tracking-tighter">
+              Go back to the previous phase?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[18px] text-[#656565] leading-[1.5] pt-2">
+              This will take you back to the previous phase. Your current progress will be saved, but some sections may become locked again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-row gap-3 sm:justify-end">
+            <AlertDialogCancel className="text-base font-normal">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmGoBack}
+              className="bg-[#0b446f] text-white hover:bg-[#0b446f]/90 rounded-[8px] text-base font-normal py-3 px-4"
+            >
+              Go back
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Toast/Bottom Bar */}
       <div
         className={cn(
@@ -130,6 +175,18 @@ export function FixedToast({
           className
         )}
       >
+        {/* Go back button */}
+        {canGoBack && (
+          <button
+            onClick={handleGoBackClick}
+            className="opacity-70 hover:opacity-100 transition-opacity shrink-0 mr-8 cursor-pointer"
+            type="button"
+            aria-label="Go back to previous phase"
+          >
+            <Undo2 className="w-5 h-5 text-white" strokeWidth={2} />
+          </button>
+        )}
+
         {/* Left section: Phase badge and message */}
         <div className="flex items-center gap-[10px] shrink-0">
           {phase && (
@@ -204,7 +261,7 @@ export function FixedToast({
         type="button"
         aria-label="Open notification"
       >
-        <MessageCircleQuestion 
+        <Compass 
           className="w-5 h-5 text-white" 
           strokeWidth={2} 
         />

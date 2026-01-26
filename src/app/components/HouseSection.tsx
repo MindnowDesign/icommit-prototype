@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useCallback } from "react";
-import { Rocket, Scale, Anchor, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb, MessageCircleQuestion, AlertTriangle, BicepsFlexed, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound } from "lucide-react";
+import { Rocket, Scale, Anchor, TrendingUp, TrendingDown, ArrowUpRight, Lightbulb, MessageCircleQuestion, AlertTriangle, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -32,6 +32,23 @@ const EqualIcon = memo(() => (
   </svg>
 ));
 EqualIcon.displayName = "EqualIcon";
+
+// Custom Muscle Icon
+const MuscleIcon = memo(({ color = "currentColor", className = "w-6 h-6" }: { color?: string; className?: string }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <g clipPath="url(#clip0_muscle)">
+      <path d="M17.625 14.25C18.8131 12.8243 20.573 12 22.4288 12H23.2969V21.75L22.3887 22.0867C20.2301 22.8871 17.9463 23.2969 15.6442 23.2969C13.2358 23.2969 10.8485 22.8484 8.60428 21.9745L4.6695 20.4422C3.11775 19.8379 1.86206 18.6535 1.16822 17.1397C0.861797 16.4711 0.703172 15.7443 0.703172 15.0089C0.703172 14.262 0.866766 13.5243 1.18237 12.8474L2.778 9.42581C4.39364 5.96133 6.94744 3.01866 10.15 0.931266C10.3784 0.782391 10.6452 0.703125 10.9178 0.703125H13.3749C13.9107 0.703125 14.3999 1.00758 14.6365 1.48823L15.75 3.75L13.125 6.375L10.125 4.875" stroke={color} strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M10.875 5.625L10.1979 6.30211C9.21825 7.28175 8.80697 8.69405 9.10753 10.0465C9.28303 10.8363 9.25856 11.6575 9.03628 12.4355C8.7683 13.3734 8.22422 14.209 7.47483 14.8335L6.375 15.75" stroke={color} strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M18.75 16.125L18.4061 15.5518C17.2236 13.5809 15.0937 12.375 12.7953 12.375C11.3095 12.375 9.86794 12.8807 8.70774 13.8088L7.0118 15.2193" stroke={color} strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+    </g>
+    <defs>
+      <clipPath id="clip0_muscle">
+        <rect width="24" height="24" fill="white" transform="matrix(-1 0 0 1 24 0)"/>
+      </clipPath>
+    </defs>
+  </svg>
+));
+MuscleIcon.displayName = "MuscleIcon";
 
 // Lucide Icons - all perfectly uniform: 24x24, centered, same styling
 const CommitmentIcon = memo(() => (
@@ -290,7 +307,7 @@ function HouseSectionComponent() {
       if ('badgeIconType' in config && config.badgeIconType === "trendingDown") {
         badgeIcon = <AlertTriangle className="w-6 h-6" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
       } else if ('badgeIconType' in config && config.badgeIconType === "trendingUp") {
-        badgeIcon = <BicepsFlexed className="w-6 h-6" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
+        badgeIcon = <MuscleIcon color={'badgeTextColor' in config ? config.badgeTextColor : undefined} className="w-6 h-6" />;
       }
 
       return {

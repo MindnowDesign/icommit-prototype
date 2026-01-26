@@ -1,4 +1,5 @@
-import React, { memo, useState } from "react";
+import React, { memo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MessageSquare, Target, ArrowDownToLine, Lightbulb, ArrowUpRight, MessageCircleQuestion, Unlock } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
@@ -80,6 +81,7 @@ interface ActionCardProps {
   };
   phaseNumber: string;
   onUnlock?: () => void;
+  onPhase4Unlock?: () => void;
   useFieldSelector?: boolean;
 }
 
@@ -96,8 +98,10 @@ const ActionSection = memo(function ActionSection({
   accessCard,
   phaseNumber,
   onUnlock,
+  onPhase4Unlock,
   useFieldSelector = false
 }: ActionCardProps) {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleAccessClick = () => {
@@ -163,24 +167,7 @@ const ActionSection = memo(function ActionSection({
           <div className="flex-1 w-full border border-[#dcdcdc] rounded-[12px] p-6 bg-white flex flex-col gap-6 h-fit">
           
           {useFieldSelector ? (
-            <>
-              <FieldOfActionSelector />
-              
-              <div className="flex justify-end">
-                <Button 
-                  disabled={disabled}
-                  className={cn(
-                    "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-2",
-                    disabled 
-                      ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
-                      : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
-                  )}
-                >
-                  <span>{buttonText}</span>
-                  <ArrowDownToLine className="w-4 h-4" />
-                </Button>
-              </div>
-            </>
+            <FieldOfActionSelector onPhase4Unlock={onPhase4Unlock} />
           ) : (
             <>
               <div className="w-16 h-16 bg-[#e0f0fe] rounded-xl flex items-center justify-center text-[#015ea3]">
@@ -193,11 +180,19 @@ const ActionSection = memo(function ActionSection({
                 </p>
               </div>
               
-              <div className="flex justify-end -mt-8">
+              <div className="flex justify-end gap-3 mt-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate("/measures")}
+                  className="w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-4 border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5]"
+                >
+                  <span>Open measures</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </Button>
                 <Button 
                   disabled={disabled}
                   className={cn(
-                    "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-2",
+                    "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-4",
                     disabled 
                       ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
                       : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
@@ -332,6 +327,12 @@ interface ActionCardsProps {
 export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [], onPhaseUnlock }: ActionCardsProps) {
   const [unlockedPhases, setUnlockedPhases] = useState<Set<string>>(new Set(initialUnlockedPhases));
 
+  // Sync internal state when initialUnlockedPhases changes (e.g., when going back to previous phase)
+  useEffect(() => {
+    setUnlockedPhases(new Set(initialUnlockedPhases));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(initialUnlockedPhases)]);
+
   const handleUnlock = (phase: string) => {
     setUnlockedPhases(prev => new Set(prev).add(phase));
     // Notifica l'HomePage quando viene sbloccata una fase
@@ -339,29 +340,32 @@ export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [
   };
 
   return (
-    <SectionWrapper id="phase-3-section" className="flex flex-col gap-32">
+    <SectionWrapper className="flex flex-col gap-32">
       {ACTION_CARDS_DATA.map((card, index) => {
         // Estrai il numero della fase dalla stringa "Phase 3" o "Phase 4"
         const phaseNumber = card.phase.replace("Phase ", "");
         const isUnlocked = unlockedPhases.has(card.phase);
         const isLocked = card.isLocked && !isUnlocked;
+        const sectionId = `phase-${phaseNumber}-section`;
         
         return (
-          <ActionSection 
-            key={`${card.phase}-${index}`}
-            phase={card.phase}
-            title={card.title}
-            description={card.description}
-            cardIcon={card.cardIcon}
-            cardTitle={card.cardTitle}
-            cardText={card.cardText}
-            buttonText={card.buttonText}
-            isLocked={isLocked}
-            accessCard={isLocked && card.accessCard ? card.accessCard : undefined}
-            phaseNumber={phaseNumber}
-            onUnlock={() => handleUnlock(card.phase)}
-            useFieldSelector={'useFieldSelector' in card ? card.useFieldSelector : false}
-          />
+          <div key={`${card.phase}-${index}`} id={sectionId}>
+            <ActionSection 
+              phase={card.phase}
+              title={card.title}
+              description={card.description}
+              cardIcon={card.cardIcon}
+              cardTitle={card.cardTitle}
+              cardText={card.cardText}
+              buttonText={card.buttonText}
+              isLocked={isLocked}
+              accessCard={isLocked && card.accessCard ? card.accessCard : undefined}
+              phaseNumber={phaseNumber}
+              onUnlock={() => handleUnlock(card.phase)}
+              onPhase4Unlock={() => handleUnlock("Phase 4")}
+              useFieldSelector={'useFieldSelector' in card ? card.useFieldSelector : false}
+            />
+          </div>
         );
       })}
     </SectionWrapper>
