@@ -132,7 +132,7 @@ const getFactorIcon = (factor: string) => {
 interface HouseCardBProps {
   title: string;
   subtitle: string;
-  influencingTitle: string;
+  trendingKeyword: string; // "above", "below", or "aligned with"
   icon: React.ReactNode;
   iconBg: string;
   factors: readonly string[];
@@ -142,6 +142,8 @@ interface HouseCardBProps {
   badgeTextColor?: string;
   badgeIcon?: React.ReactNode;
   badgeTooltip?: string;
+  chipBgColor?: string;
+  chipBorderColor?: string;
   onClick?: () => void;
   isFirstCard?: boolean;
   isInsideRoofGroup?: boolean;
@@ -150,7 +152,7 @@ interface HouseCardBProps {
 const HouseCardB = memo(function HouseCardB({ 
   title, 
   subtitle, 
-  influencingTitle, 
+  trendingKeyword, 
   icon, 
   iconBg, 
   factors, 
@@ -159,7 +161,9 @@ const HouseCardB = memo(function HouseCardB({
   badgeHoverBgColor,
   badgeTextColor = "#0A6562", 
   badgeIcon, 
-  badgeTooltip, 
+  badgeTooltip,
+  chipBgColor,
+  chipBorderColor,
   onClick,
   isFirstCard = false,
   isInsideRoofGroup = false
@@ -169,17 +173,17 @@ const HouseCardB = memo(function HouseCardB({
   }, [onClick]);
 
   const directionIcon = useMemo(() => {
-    if (influencingTitle.includes("keeping Commitment low")) {
+    if (trendingKeyword === "below") {
       return <ArrowDownIcon />;
     }
-    if (influencingTitle.includes("keeping high Satisfaction")) {
+    if (trendingKeyword === "above") {
       return <ArrowUpIcon />;
     }
-    if (influencingTitle.includes("can decrease Resignation")) {
+    if (trendingKeyword === "aligned with") {
       return <EqualIcon />;
     }
     return null;
-  }, [influencingTitle]);
+  }, [trendingKeyword]);
 
   const borderRadiusClass = isFirstCard 
     ? "rounded-b-[24px] rounded-t-none" 
@@ -277,30 +281,33 @@ const HouseCardB = memo(function HouseCardB({
       
       <div className="w-full flex flex-col gap-3 relative z-10">
         <div className="flex items-center gap-2">
-          <span className="text-base text-black">{influencingTitle}</span>
           {directionIcon}
+          <span className="text-base text-[#656565]">
+            {title} results are <span className="font-semibold text-black">{trendingKeyword}</span> the Swiss benchmark average (121 companies)
+          </span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {factors.map((factor, i) => (
-            <div 
-              key={`${factor}-${i}`} 
-              className={cn(
-                "border rounded-[10px] px-2.5 py-1.5 flex items-center gap-2 transition-colors duration-500 ease-out",
-                hasBadge 
-                  ? cn(
-                      "bg-[#fafafa] border-[#efefef]",
-                      isInsideRoofGroup 
-                        ? "group-hover/roofCard:bg-white/70 group-hover/roofCard:border-white/50"
-                        : "group-hover/cardB:bg-white/70 group-hover/cardB:border-white/50"
-                    )
-                  : "bg-[#fafafa] hover:bg-[#e8e8e8] border-[#efefef]"
-              )}
-            >
-               {getFactorIcon(factor)}
-               <span className="text-[#3d3d3d] text-sm">{factor}</span>
-            </div>
-          ))}
-        </div>
+        {factors.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {factors.map((factor, i) => (
+              <div 
+                key={`${factor}-${i}`} 
+                className={cn(
+                  "border rounded-[10px] px-2.5 py-1.5 flex items-center gap-2 transition-all duration-500 ease-out",
+                  isInsideRoofGroup 
+                    ? "group-hover/roofCard:brightness-[0.92]" 
+                    : "group-hover/cardB:brightness-[0.92]"
+                )}
+                style={{
+                  backgroundColor: chipBgColor || "#fafafa",
+                  borderColor: chipBorderColor || "#efefef",
+                }}
+              >
+                 {getFactorIcon(factor)}
+                 <span className="text-[#3d3d3d] text-sm">{factor}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -312,7 +319,7 @@ const HOUSE_CARDS_CONFIG = [
   {
     title: "Commitment",
     subtitle: "What can we achieve together?",
-    influencingTitle: "Areas that are keeping Commitment low",
+    influencingTitle: "below",
     iconType: "commitment" as const,
     iconBg: "bg-[#efefef]",
     factors: ["Job content", "Company strategy", "Involvement of employees"] as const,
@@ -320,13 +327,15 @@ const HOUSE_CARDS_CONFIG = [
     badgeBgColor: "#FEF0C3",
     badgeHoverBgColor: "#ECD68A", // Darker yellow for hover
     badgeTextColor: "#A17C07",
+    chipBgColor: "#FEF0C3",
+    chipBorderColor: "#ECD68A",
     badgeIconType: "trendingDown" as const,
     badgeTooltip: "Commitment is your team's weakest Target Value",
   },
   {
     title: "Satisfaction",
     subtitle: "What will I gain? Do I fit in here?",
-    influencingTitle: "Areas that are keeping high Satisfaction",
+    influencingTitle: "above",
     iconType: "satisfaction" as const,
     iconBg: "bg-[#efefef]",
     factors: ["Work and leisure", "Team", "Immediate superior"] as const,
@@ -334,16 +343,18 @@ const HOUSE_CARDS_CONFIG = [
     badgeBgColor: "#DCFCE8",
     badgeHoverBgColor: "#BBF7D0", // Darker green for hover
     badgeTextColor: "#15803C",
+    chipBgColor: "#DCFCE8",
+    chipBorderColor: "#BBF7D0",
     badgeIconType: "trendingUp" as const,
     badgeTooltip: "Satisfaction is your team's strongest Target Value",
   },
   {
     title: "Resignation",
     subtitle: "Why am I even here?",
-    influencingTitle: "Areas that can decrease Resignation levels",
+    influencingTitle: "aligned with",
     iconType: "resignation" as const,
     iconBg: "bg-[#efefef]",
-    factors: ["Employee development", "Executive management", "Remuneration"] as const,
+    factors: [] as const, // No factors for neutral cards
   },
 ] as const;
 
@@ -378,7 +389,7 @@ function HouseSectionBComponent() {
       return {
         title: config.title,
         subtitle: config.subtitle,
-        influencingTitle: config.influencingTitle,
+        trendingKeyword: config.influencingTitle,
         icon,
         iconBg: config.iconBg,
         factors: config.factors,
@@ -386,6 +397,8 @@ function HouseSectionBComponent() {
         badgeBgColor: 'badgeBgColor' in config ? config.badgeBgColor : undefined,
         badgeHoverBgColor: 'badgeHoverBgColor' in config ? config.badgeHoverBgColor : undefined,
         badgeTextColor: 'badgeTextColor' in config ? config.badgeTextColor : undefined,
+        chipBgColor: 'chipBgColor' in config ? config.chipBgColor : undefined,
+        chipBorderColor: 'chipBorderColor' in config ? config.chipBorderColor : undefined,
         badgeIcon,
         badgeTooltip: 'badgeTooltip' in config ? config.badgeTooltip : undefined,
       };
@@ -490,7 +503,7 @@ function HouseSectionBComponent() {
                       <HouseCardB 
                         title={card.title}
                         subtitle={card.subtitle}
-                        influencingTitle={card.influencingTitle}
+                        trendingKeyword={card.trendingKeyword}
                         icon={card.icon}
                         iconBg={card.iconBg}
                         factors={card.factors}
@@ -498,6 +511,8 @@ function HouseSectionBComponent() {
                         badgeBgColor={card.badgeBgColor}
                         badgeHoverBgColor={card.badgeHoverBgColor}
                         badgeTextColor={card.badgeTextColor}
+                        chipBgColor={card.chipBgColor}
+                        chipBorderColor={card.chipBorderColor}
                         badgeIcon={card.badgeIcon}
                         badgeTooltip={card.badgeTooltip}
                         isFirstCard={isFirstCard}
@@ -522,7 +537,7 @@ function HouseSectionBComponent() {
                   <HouseCardB 
                     title={card.title}
                     subtitle={card.subtitle}
-                    influencingTitle={card.influencingTitle}
+                    trendingKeyword={card.trendingKeyword}
                     icon={card.icon}
                     iconBg={card.iconBg}
                     factors={card.factors}
@@ -530,6 +545,8 @@ function HouseSectionBComponent() {
                     badgeBgColor={card.badgeBgColor}
                     badgeHoverBgColor={card.badgeHoverBgColor}
                     badgeTextColor={card.badgeTextColor}
+                    chipBgColor={card.chipBgColor}
+                    chipBorderColor={card.chipBorderColor}
                     badgeIcon={card.badgeIcon}
                     badgeTooltip={card.badgeTooltip}
                     isFirstCard={isFirstCard}
