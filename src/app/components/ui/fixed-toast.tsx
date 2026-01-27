@@ -117,7 +117,7 @@ export function FixedToast({
               Remove guided navigation?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[18px] text-[#656565] leading-[1.5] pt-2">
-              This will hide the guided navigation that helps you move through the different phases. You can turn it back on at any time from the settings.
+              This will hide the guided navigation that helps you move through the different phases. You can turn it back by clicking the icon at the bottom right of your screen.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-row gap-3 sm:justify-end">

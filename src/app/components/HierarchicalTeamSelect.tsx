@@ -181,9 +181,7 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
   );
 
   const displayValue = selectedItem
-    ? selectedItem.type === "group"
-      ? selectedItem.item.name
-      : `${selectedItem.group} - ${selectedItem.item.name}`
+    ? selectedItem.item.name
     : "Select team";
 
   return (
@@ -194,7 +192,7 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
           className={cn(
             "bg-white border border-[#d8d8d8] rounded-[10px] px-3 py-1.5",
             "hover:border-gray-400 transition-colors",
-            "h-auto min-h-[42px] w-[190px]",
+            "h-auto min-h-[42px] w-fit min-w-[90px]",
             "focus:ring-0 focus:ring-offset-0 focus:border-gray-400",
             "shadow-none",
             "flex items-center justify-between gap-2",
@@ -202,7 +200,7 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
             className
           )}
         >
-          <span className="text-[#3b3b3b] text-lg font-normal truncate">
+          <span className="text-[#3b3b3b] text-lg font-normal whitespace-nowrap">
             {displayValue}
           </span>
           <ChevronDown className="w-4 h-4 text-[#292929] shrink-0" />

@@ -219,7 +219,7 @@ const HouseCardB = memo(function HouseCardB({
         isInsideRoofGroup ? "" : "group/cardB",
         borderRadiusClass, paddingClass, zIndexClass, borderClass,
         // Only apply scale if NOT inside roof group (roof group handles scale)
-        hasBadge && !isInsideRoofGroup ? "hover:scale-110 hover:shadow-2xl hover:z-20" : "",
+        hasBadge && !isInsideRoofGroup ? "hover:scale-110 hover:z-20" : "",
         !hasBadge && hoverClass
       )}
       style={{ 
