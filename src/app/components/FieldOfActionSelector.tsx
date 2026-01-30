@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { Search, X, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound, ArrowRight, ArrowLeft, Download, MessageSquare, Lightbulb, CheckCircle2, AlertTriangle, FileText } from "lucide-react";
+import { Search, X, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound, ArrowRight, ArrowLeft, Download, MessageSquare, Lightbulb, CheckCircle2, AlertTriangle, FileText, Undo2 } from "lucide-react";
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { toast } from "sonner";
 
 // Custom Muscle Icon (same as in HouseSectionB)
@@ -44,18 +45,21 @@ const AVAILABLE_FIELDS = [
 const WEAKNESS_DEFAULT = ["job-content", "company-strategy", "involvement-employees"];
 const STRENGTH_DEFAULT = ["work-leisure", "team", "immediate-superior"];
 
-type FlowStep = "weakness" | "strength" | "confirmation";
+type FlowStep = "strength" | "weakness" | "confirmation" | "summary";
 
 interface FieldOfActionSelectorProps {
   onPhase4Unlock?: () => void;
 }
 
 export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorProps) {
-  const [currentStep, setCurrentStep] = useState<FlowStep>("weakness");
+  const [currentStep, setCurrentStep] = useState<FlowStep>("strength");
   const [weaknessSelected, setWeaknessSelected] = useState<Set<string>>(new Set(WEAKNESS_DEFAULT));
   const [strengthSelected, setStrengthSelected] = useState<Set<string>>(new Set(STRENGTH_DEFAULT));
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+  const [isPhase4Unlocked, setIsPhase4Unlocked] = useState(false);
+  const [hasDownloadedDocs, setHasDownloadedDocs] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -75,9 +79,11 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
     );
   }, [searchQuery, currentSelections]);
 
-  // Get selected fields
+  // Get selected fields - preserving selection order
   const selectedFields = useMemo(() => {
-    return AVAILABLE_FIELDS.filter(field => currentSelections.has(field.id));
+    return Array.from(currentSelections)
+      .map(id => AVAILABLE_FIELDS.find(field => field.id === id))
+      .filter((field): field is typeof AVAILABLE_FIELDS[number] => field !== undefined);
   }, [currentSelections]);
 
   // Handle field selection
@@ -152,61 +158,251 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
     setIsDropdownOpen(false);
   };
 
+  // Handle download documentation
+  const handleDownloadDocs = () => {
+    // Simulate download
+    console.log("Downloading documentation...", {
+      weakness: Array.from(weaknessSelected),
+      strength: Array.from(strengthSelected)
+    });
+    setHasDownloadedDocs(true);
+  };
+
   // Handle confirm and unlock Phase 4
   const handleConfirmUnlock = () => {
     onPhase4Unlock?.();
+    setIsPhase4Unlocked(true);
   };
+
+  // Get fields for summary dialog
+  const weaknessFieldsForDialog = AVAILABLE_FIELDS.filter(field => weaknessSelected.has(field.id));
+  const strengthFieldsForDialog = AVAILABLE_FIELDS.filter(field => strengthSelected.has(field.id));
 
   // Confirmation view
   if (currentStep === "confirmation") {
     return (
+      <>
+        <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
+          <DialogContent className="w-auto max-w-[90vw] min-w-fit rounded-[16px] p-8">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold text-[#292929] tracking-tight">
+                You selected these focus areas:
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="flex flex-col gap-6 mt-4">
+              {/* Relative weakness */}
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 bg-[#FEF0C3] border border-[#ECD68A] rounded-[10px] px-3 py-2 w-fit">
+                  <AlertTriangle className="w-5 h-5 text-[#A17C07]" />
+                  <span className="text-base font-semibold text-[#A17C07]">Relative weakness</span>
+                </div>
+                <div className="flex gap-2 flex-nowrap whitespace-nowrap">
+                  {weaknessFieldsForDialog.map((field) => {
+                    const Icon = field.icon;
+                    return (
+                      <div
+                        key={field.id}
+                        className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-1.5 shrink-0"
+                      >
+                        <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
+                        <span className="text-sm text-[#3d3d3d]">{field.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="w-full h-px bg-[#e0e0e0]" />
+
+              {/* Relative strength */}
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 bg-[#DCFCE8] border border-[#BBF7D0] rounded-[10px] px-3 py-2 w-fit">
+                  <MuscleIcon color="#15803C" className="w-5 h-5" />
+                  <span className="text-base font-semibold text-[#15803C]">Relative strength</span>
+                </div>
+                <div className="flex gap-2 flex-nowrap whitespace-nowrap">
+                  {strengthFieldsForDialog.map((field) => {
+                    const Icon = field.icon;
+                    return (
+                      <div
+                        key={field.id}
+                        className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-1.5 shrink-0"
+                      >
+                        <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
+                        <span className="text-sm text-[#3d3d3d]">{field.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-4">
+              <Button
+                onClick={() => setIsSummaryDialogOpen(false)}
+                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
+              >
+                Close dialog
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <div 
+          className="w-full flex flex-col items-center justify-center gap-10 py-12 min-h-[400px] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-700 ease-out"
+          style={{ animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
+        >
+          {/* Icons */}
+          <div className="flex items-center gap-4">
+            <div 
+              className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] -rotate-[8deg] translate-y-2 hover:scale-110 hover:-rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            >
+              <UsersRound className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
+            </div>
+            <div 
+              className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] hover:scale-110 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            >
+              <FileText className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
+            </div>
+            <div 
+              className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] rotate-[8deg] translate-y-2 hover:scale-110 hover:rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            >
+              <CheckCircle2 className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
+            </div>
+          </div>
+
+          {/* Title and description */}
+          <div className="flex flex-col items-center gap-3 text-center max-w-lg">
+            <h3 className="text-3xl font-semibold text-[#0b446f] tracking-tight">
+              {isPhase4Unlocked ? "Proceed to phase 4" : "Take it offline with your team"}
+            </h3>
+            <p className="text-base text-[#656565] leading-relaxed">
+              {isPhase4Unlocked 
+                ? "You've selected your focus areas and discussed them with your team. You can still edit them, view your summary or download the documentation again."
+                : "You've selected your focus areas. Download the documentation, discuss them with your team, validate them in practice, and come back to confirm or adjust before moving on."
+              }
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleEditFocusAreas}
+              className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+            >
+              Edit focus areas
+            </Button>
+            {isPhase4Unlocked ? (
+              <Button
+                onClick={() => setIsSummaryDialogOpen(true)}
+                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
+              >
+                View summary
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsSummaryDialogOpen(true)}
+                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+                >
+                  View summary
+                </Button>
+                <Button
+                  onClick={hasDownloadedDocs ? handleConfirmUnlock : handleDownloadDocs}
+                  className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
+                >
+                  {hasDownloadedDocs ? (
+                    "Unlock Phase 4"
+                  ) : (
+                    <>
+                      Download documentation
+                      <Download className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Summary view - shown after Phase 4 is unlocked
+  if (currentStep === "summary") {
+    const weaknessFields = AVAILABLE_FIELDS.filter(field => weaknessSelected.has(field.id));
+    const strengthFields = AVAILABLE_FIELDS.filter(field => strengthSelected.has(field.id));
+
+    return (
       <div 
-        className="w-full flex flex-col items-center justify-center gap-10 py-12 min-h-[400px] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-700 ease-out"
+        className="w-full flex flex-col items-start gap-6 py-4 animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-700 ease-out"
         style={{ animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
       >
-        {/* Icons */}
-        <div className="flex items-center gap-4">
-          <div 
-            className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] -rotate-[8deg] translate-y-2 hover:scale-110 hover:-rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-          >
-            <UsersRound className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
+        {/* Title */}
+        <h3 className="text-2xl font-semibold text-[#0b446f] tracking-tight">
+          You selected these focus areas
+        </h3>
+
+        {/* Focus areas sections */}
+        <div className="w-full flex flex-col gap-8">
+          {/* Relative weakness */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 rounded-full border-2 border-[#ECD68A]" />
+              <span className="text-base text-[#656565]">Relative weakness</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {weaknessFields.map((field) => {
+                const Icon = field.icon;
+                return (
+                  <div
+                    key={field.id}
+                    className="bg-[#FEF0C3] border border-[#ECD68A] rounded-[8px] px-2.5 py-1.5 flex items-center gap-1.5"
+                  >
+                    <Icon className="w-4 h-4 text-[#A17C07]" strokeWidth={2} />
+                    <span className="text-base font-medium text-[#A17C07]">{field.name}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div 
-            className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] hover:scale-110 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-          >
-            <FileText className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
-          </div>
-          <div 
-            className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] rotate-[8deg] translate-y-2 hover:scale-110 hover:rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-          >
-            <CheckCircle2 className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
+
+          {/* Relative strength */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 rounded-full border-2 border-[#BBF7D0]" />
+              <span className="text-base text-[#656565]">Relative strength</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {strengthFields.map((field) => {
+                const Icon = field.icon;
+                return (
+                  <div
+                    key={field.id}
+                    className="bg-[#DCFCE8] border border-[#BBF7D0] rounded-[8px] px-2.5 py-1.5 flex items-center gap-1.5"
+                  >
+                    <Icon className="w-4 h-4 text-[#15803C]" strokeWidth={2} />
+                    <span className="text-base font-medium text-[#15803C]">{field.name}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Title and description */}
-        <div className="flex flex-col items-center gap-3 text-center max-w-lg">
-          <h3 className="text-3xl font-semibold text-[#0b446f] tracking-tight">
-            Take it offline with your team
-          </h3>
-          <p className="text-base text-[#656565] leading-relaxed">
-            You've selected your focus areas. Discuss them with your team, validate them in practice, and come back to confirm or adjust before moving on.
-          </p>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex items-center gap-4">
+        {/* Edit button */}
+        <div className="w-full flex justify-end">
           <Button
             variant="outline"
             onClick={handleEditFocusAreas}
             className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
           >
-            Edit focus areas
-          </Button>
-          <Button
-            onClick={handleConfirmUnlock}
-            className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
-          >
-            Confirm to unlock Phase 4
+            Edit Focus area
+            <Undo2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
@@ -215,61 +411,33 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {/* Tabs Header */}
-      <div className="w-full flex gap-6 border-b border-[#e0e0e0]">
+      {/* Tabs Header - Button style with colors */}
+      <div className="w-full flex gap-3">
         <button
           type="button"
-          onClick={() => currentStep === "strength" && handleBackToWeakness()}
+          onClick={() => setCurrentStep("strength")}
           className={cn(
-            "py-3 px-1 text-base font-semibold transition-all flex items-center gap-2 relative",
+            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-[10px] border cursor-pointer",
+            currentStep === "strength"
+              ? "bg-[#DCFCE8] border-[#BBF7D0] text-[#15803C]"
+              : "bg-white border-[#dcdcdc] text-[#656565] hover:bg-[#f5f5f5]"
+          )}
+        >
+          <MuscleIcon color={currentStep === "strength" ? "#15803C" : "#656565"} className="w-5 h-5" />
+          Relative strength
+        </button>
+        <button
+          type="button"
+          onClick={() => setCurrentStep("weakness")}
+          className={cn(
+            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-[10px] border cursor-pointer",
             currentStep === "weakness"
-              ? "text-[#0b446f]"
-              : "text-[#656565] hover:text-[#292929]"
+              ? "bg-[#FEF0C3] border-[#ECD68A] text-[#A17C07]"
+              : "bg-white border-[#dcdcdc] text-[#656565] hover:bg-[#f5f5f5]"
           )}
         >
           <AlertTriangle className="w-5 h-5" />
           Relative weakness
-          {/* Active indicator line */}
-          <div 
-            className={cn(
-              "absolute bottom-0 left-0 right-0 h-[3px] bg-[#0b446f] rounded-t-full transition-all duration-500",
-              currentStep === "weakness" 
-                ? "opacity-100 scale-x-100" 
-                : "opacity-0 scale-x-0"
-            )}
-            style={{ transformOrigin: 'left', transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
-          />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (currentStep === "weakness") {
-              // Show toast warning - user must use the button below
-              toast.warning("Complete your selection first", {
-                description: "Please confirm your Relative weakness selection using the button below before proceeding.",
-                duration: 4000,
-              });
-            }
-          }}
-          className={cn(
-            "py-3 px-1 text-base font-semibold transition-all flex items-center gap-2 relative",
-            currentStep === "strength"
-              ? "text-[#0b446f]"
-              : "text-[#9e9e9e] cursor-not-allowed"
-          )}
-        >
-          <MuscleIcon color={currentStep === "strength" ? "#0b446f" : "#9e9e9e"} className="w-5 h-5" />
-          Relative strength
-          {/* Active indicator line */}
-          <div 
-            className={cn(
-              "absolute bottom-0 left-0 right-0 h-[3px] bg-[#0b446f] rounded-t-full transition-all duration-500",
-              currentStep === "strength" 
-                ? "opacity-100 scale-x-100" 
-                : "opacity-0 scale-x-0"
-            )}
-            style={{ transformOrigin: 'left', transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
-          />
         </button>
       </div>
 
@@ -304,34 +472,27 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                 {selectedFields.length > 0 ? (
                   selectedFields.map((field) => {
                     const Icon = field.icon;
-                    const bgColor = currentStep === "weakness" ? "bg-[#FEF0C3]" : "bg-[#DCFCE8]";
-                    const borderColor = currentStep === "weakness" ? "border-[#ECD68A]" : "border-[#BBF7D0]";
-                    const textColor = currentStep === "weakness" ? "text-[#A17C07]" : "text-[#15803C]";
-                    const hoverBg = currentStep === "weakness" ? "hover:bg-[#ECD68A]" : "hover:bg-[#BBF7D0]";
                     
                     return (
                       <div
                         key={field.id}
-                        className={cn(
-                          "border rounded-[10px] px-3.5 py-2.5 flex items-center gap-2 transition-all duration-200 ease-out",
-                          bgColor, borderColor, hoverBg
-                        )}
+                        className="border rounded-[10px] px-3.5 py-2.5 flex items-center gap-2 transition-all duration-200 ease-out bg-[#fafafa] border-[#efefef] hover:bg-[#e8e8e8]"
                       >
-                        <Icon className={cn("w-5 h-5", textColor)} strokeWidth={2} />
-                        <span className={cn("text-base font-medium", textColor)}>{field.name}</span>
+                        <Icon className="w-5 h-5 text-[#656565]" strokeWidth={2} />
+                        <span className="text-base font-medium text-[#3d3d3d]">{field.name}</span>
                         <button
                           onClick={() => handleRemove(field.id)}
-                          className={cn("ml-1 rounded-full p-0.5 transition-colors", hoverBg)}
+                          className="ml-1 rounded-full p-0.5 transition-colors hover:bg-[#dcdcdc] cursor-pointer"
                           aria-label={`Remove ${field.name}`}
                         >
-                          <X className={cn("w-4 h-4", textColor)} strokeWidth={2.5} />
+                          <X className="w-4 h-4 text-[#656565]" strokeWidth={2.5} />
                         </button>
                       </div>
                     );
                   })
                 ) : (
                   <div className="w-full flex items-center justify-center py-5 text-base text-[#989898] border-2 border-dashed border-[#e0e0e0] rounded-[10px]">
-                    No fields selected yet. Use the search below to add fields.
+                    No fields selected yet. Choose from the available factors below.
                   </div>
                 )}
               </div>
@@ -340,104 +501,31 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
             {/* Divider */}
             <div className="w-full h-px bg-[#e0e0e0]" />
 
-            {/* Search and Suggested Container */}
-            <div className="flex flex-col gap-6">
-              {/* Search Section */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#989898]" strokeWidth={2} />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setIsDropdownOpen(true);
-                  }}
-                  onFocus={() => setIsDropdownOpen(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                      setIsDropdownOpen(false);
-                      setSearchQuery("");
-                    }
-                  }}
-                  placeholder={currentSelections.size >= maxSelections ? `Maximum ${maxSelections} fields selected` : "Search for fields of action..."}
-                  disabled={currentSelections.size >= maxSelections}
-                  aria-label="Search for fields of action"
-                  aria-expanded={isDropdownOpen}
-                  role="combobox"
-                  aria-controls="field-dropdown"
-                  className={cn(
-                    "w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded-[12px] text-base",
-                    "placeholder:text-[#989898] text-[#292929]",
-                    "focus:outline-none focus:ring-2 focus:ring-[#015ea3]/20 focus:border-[#015ea3]",
-                    "transition-all duration-200",
-                    currentSelections.size >= maxSelections && "bg-[#fafafa] cursor-not-allowed"
-                  )}
-                />
-
-                {/* Dropdown */}
-                {isDropdownOpen && searchQuery && currentSelections.size < maxSelections && (
-                  <div
-                    ref={dropdownRef}
-                    id="field-dropdown"
-                    role="listbox"
-                    className="absolute z-20 w-full mt-2 bg-white border border-[#dcdcdc] rounded-[12px] shadow-lg max-h-[280px] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200"
-                  >
-                    {filteredFields.length > 0 ? (
-                      filteredFields.map((field) => {
-                        const Icon = field.icon;
-                        const isSelected = currentSelections.has(field.id);
-                        
-                        if (isSelected) return null;
-
-                        return (
-                          <button
-                            key={field.id}
-                            onClick={() => handleSelect(field.id)}
-                            role="option"
-                            aria-selected="false"
-                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f0f8ff] transition-colors duration-150 first:rounded-t-[12px] last:rounded-b-[12px] text-left border-b border-[#f0f0f0] last:border-b-0"
-                          >
-                            <Icon className="w-5 h-5 text-[#656565]" strokeWidth={2} />
-                            <span className="text-[#292929] text-base">{field.name}</span>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="px-4 py-6 text-center text-[#7c7c7c] text-sm">
-                        No fields found matching "{searchQuery}"
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Suggested Fields Section */}
-              <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-semibold text-[#18181b]">Suggested:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {AVAILABLE_FIELDS.filter(field => !currentSelections.has(field.id)).slice(0, 12).map((field) => {
-                    const Icon = field.icon;
-                    const isDisabled = currentSelections.size >= maxSelections;
-                    
-                    return (
-                      <button
-                        key={field.id}
-                        onClick={() => !isDisabled && handleSelect(field.id)}
-                        disabled={isDisabled}
-                        className={cn(
-                          "bg-[#fafafa] border border-[#efefef] rounded-[10px] px-3 py-2 flex items-center gap-2 transition-all duration-200 ease-out",
-                          isDisabled 
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:bg-[#e8e8e8] hover:border-[#dcdcdc] cursor-pointer"
-                        )}
-                      >
-                        <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
-                        <span className="text-[#3d3d3d] text-sm">{field.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* Available Fields Section */}
+            <div className="flex flex-col gap-4">
+              <h4 className="text-lg font-semibold text-[#18181b]">Available influencing factors:</h4>
+              <div className="flex flex-wrap gap-2">
+                {AVAILABLE_FIELDS.filter(field => !currentSelections.has(field.id)).map((field) => {
+                  const Icon = field.icon;
+                  const isDisabled = currentSelections.size >= maxSelections;
+                  
+                  return (
+                    <button
+                      key={field.id}
+                      onClick={() => !isDisabled && handleSelect(field.id)}
+                      disabled={isDisabled}
+                      className={cn(
+                        "bg-[#fafafa] border border-[#efefef] rounded-[10px] px-3 py-2 flex items-center gap-2 transition-all duration-200 ease-out",
+                        isDisabled 
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-[#e8e8e8] hover:border-[#dcdcdc] cursor-pointer"
+                      )}
+                    >
+                      <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
+                      <span className="text-[#3d3d3d] text-sm">{field.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -445,45 +533,19 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-3 pt-2">
-        {currentStep === "weakness" ? (
-          <Button
-            onClick={handleContinueToStrength}
-            disabled={weaknessSelected.size === 0}
-            className={cn(
-              "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-4",
-              weaknessSelected.size === 0
-                ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
-                : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
-            )}
-          >
-            <span>Continue to Relative strength</span>
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        ) : (
-          <>
-            <Button
-              variant="ghost"
-              onClick={handleBackToWeakness}
-              className="text-[#656565] hover:text-[#292929] hover:bg-[#f5f5f5] rounded-lg text-base font-normal py-3 px-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Relative weakness</span>
-            </Button>
-            <Button
-              onClick={handleDownloadAndContinue}
-              disabled={strengthSelected.size === 0}
-              className={cn(
-                "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-4",
-                strengthSelected.size === 0
-                  ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
-                  : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
-              )}
-            >
-              <span>Download documentation and continue</span>
-              <Download className="w-4 h-4" />
-            </Button>
-          </>
-        )}
+        <Button
+          onClick={() => currentStep === "strength" ? setCurrentStep("weakness") : setCurrentStep("confirmation")}
+          disabled={currentSelections.size === 0}
+          className={cn(
+            "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-4",
+            currentSelections.size === 0
+              ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
+              : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
+          )}
+        >
+          <span>{currentStep === "strength" ? "Move to relative weakness" : "Confirm areas of interest"}</span>
+          <ArrowRight className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   );

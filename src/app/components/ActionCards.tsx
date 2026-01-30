@@ -1,6 +1,6 @@
 import React, { memo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Target, ArrowDownToLine, Lightbulb, ArrowUpRight, MessageCircleQuestion, Unlock } from "lucide-react";
+import { MessageSquare, Target, ArrowDownToLine, Lightbulb, ArrowUpRight, MessageCircleQuestion, Unlock, Download, UsersRound, CheckCircle } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Button } from "./ui/button";
@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
+import IllustrationSvg from "../../assets/Illustration-01.svg";
 import { FieldOfActionSelector } from "./FieldOfActionSelector";
 
 interface PhaseAccessCardProps {
@@ -68,6 +69,7 @@ interface ActionCardProps {
   phase: string;
   title: string;
   description: React.ReactNode;
+  confirmedDescription?: React.ReactNode;
   cardIcon: React.ReactNode;
   cardTitle: string;
   cardText: string;
@@ -82,13 +84,16 @@ interface ActionCardProps {
   phaseNumber: string;
   onUnlock?: () => void;
   onPhase4Unlock?: () => void;
+  onPhase5Unlock?: () => void;
   useFieldSelector?: boolean;
+  usePhase5Style?: boolean;
 }
 
 const ActionSection = memo(function ActionSection({
   phase,
   title,
   description,
+  confirmedDescription,
   cardIcon,
   cardTitle,
   cardText,
@@ -99,10 +104,14 @@ const ActionSection = memo(function ActionSection({
   phaseNumber,
   onUnlock,
   onPhase4Unlock,
-  useFieldSelector = false
+  onPhase5Unlock,
+  useFieldSelector = false,
+  usePhase5Style = false
 }: ActionCardProps) {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPhase4Confirmed, setIsPhase4Confirmed] = useState(false);
+  const [hasDownloadedPhase4Docs, setHasDownloadedPhase4Docs] = useState(false);
 
   const handleAccessClick = () => {
     setIsDialogOpen(true);
@@ -114,6 +123,23 @@ const ActionSection = memo(function ActionSection({
       onUnlock();
     }
   };
+
+  const handlePhase4Unlock = () => {
+    setIsPhase4Confirmed(true);
+    onPhase4Unlock?.();
+  };
+
+  const handlePhase4Download = () => {
+    console.log("Downloading Phase 4 documentation...");
+    setHasDownloadedPhase4Docs(true);
+  };
+
+  const handlePhase5Unlock = () => {
+    onPhase5Unlock?.();
+  };
+
+  // Use confirmed description if Phase 4 is confirmed and we have one
+  const displayDescription = isPhase4Confirmed && confirmedDescription ? confirmedDescription : description;
 
   return (
     <>
@@ -153,7 +179,7 @@ const ActionSection = memo(function ActionSection({
         </div>
         <h2 className="text-2xl font-semibold text-black tracking-tighter">{title}</h2>
         <div className="text-[18px] text-[#656565]">
-            {description}
+            {displayDescription}
         </div>
       </div>
 
@@ -167,7 +193,117 @@ const ActionSection = memo(function ActionSection({
           <div className="flex-1 w-full border border-[#dcdcdc] rounded-[12px] p-6 bg-white flex flex-col gap-6 h-fit">
           
           {useFieldSelector ? (
-            <FieldOfActionSelector onPhase4Unlock={onPhase4Unlock} />
+            <FieldOfActionSelector onPhase4Unlock={handlePhase4Unlock} />
+          ) : usePhase5Style ? (
+            /* Phase 5 special layout - with illustration placeholder */
+            <div 
+              className="w-full flex flex-col items-center justify-center gap-10 py-12 min-h-[400px]"
+            >
+              {/* Illustration */}
+              <img 
+                src={IllustrationSvg} 
+                alt="Take it offline illustration" 
+                className="w-full max-w-[210px] h-auto"
+                loading="lazy"
+              />
+
+              {/* Title and description */}
+              <div className="flex flex-col items-center gap-3 text-center max-w-lg">
+                <h3 className="text-3xl font-semibold text-[#0b446f] tracking-tight">
+                  {cardTitle}
+                </h3>
+                <p className="text-base text-[#656565] leading-relaxed">
+                  {cardText}
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate("/pulse")}
+                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+                >
+                  Go to Pulse
+                </Button>
+                <Button 
+                  disabled={disabled}
+                  className={cn(
+                    "rounded-[8px] text-base font-normal py-3 px-4",
+                    disabled 
+                      ? "bg-[#9e9e9e] text-white cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
+                      : "bg-[#015ea3] text-white hover:bg-[#014a82]"
+                  )}
+                >
+                  Download documentation
+                  <ArrowDownToLine className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ) : phase === "Phase 4" ? (
+            /* Phase 4 special layout - similar to confirmation view */
+            <div 
+              className="w-full flex flex-col items-center justify-center gap-10 py-12 min-h-[400px]"
+            >
+              {/* Icons */}
+              <div className="flex items-center gap-4">
+                <div 
+                  className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] -rotate-[8deg] translate-y-2 hover:scale-110 hover:-rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                >
+                  <UsersRound className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
+                </div>
+                <div 
+                  className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] hover:scale-110 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                >
+                  <Target className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
+                </div>
+                <div 
+                  className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] rotate-[8deg] translate-y-2 hover:scale-110 hover:rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                >
+                  <CheckCircle className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
+                </div>
+              </div>
+
+              {/* Title and description */}
+              <div className="flex flex-col items-center gap-3 text-center max-w-lg">
+                <h3 className="text-3xl font-semibold text-[#0b446f] tracking-tight">
+                  {cardTitle}
+                </h3>
+                <p className="text-base text-[#656565] leading-relaxed">
+                  {cardText}
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate("/measures")}
+                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+                >
+                  Go to Measures
+                </Button>
+                <Button 
+                  disabled={disabled}
+                  onClick={hasDownloadedPhase4Docs ? handlePhase5Unlock : handlePhase4Download}
+                  className={cn(
+                    "rounded-[8px] text-base font-normal py-3 px-4",
+                    disabled 
+                      ? "bg-[#9e9e9e] text-white cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
+                      : "bg-[#015ea3] text-white hover:bg-[#014a82]"
+                  )}
+                >
+                  {hasDownloadedPhase4Docs ? (
+                    "Proceed to Phase 5"
+                  ) : (
+                    <>
+                      Download documentation
+                      <ArrowDownToLine className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           ) : (
             <>
               <div className="w-16 h-16 bg-[#e0f0fe] rounded-xl flex items-center justify-center text-[#015ea3]">
@@ -242,9 +378,9 @@ const ActionSection = memo(function ActionSection({
               className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] w-fit self-end text-base font-normal py-3 px-2"
             >
               <span className="font-normal leading-[0]">
-                {phase === "Phase 3" ? "Open fields of action" : "Open proposals"}
+                Download documentation
               </span>
-              <ArrowUpRight className="w-4 h-4 shrink-0" strokeWidth={2} />
+              <Download className="w-4 h-4 shrink-0" strokeWidth={2} />
             </Button>
             
             {/* Compass icon in bottom left */}
@@ -286,6 +422,11 @@ const ACTION_CARDS_DATA = [
         We suggest to pick a maximum of <span className="font-semibold text-[#525252]">2/3 areas</span> to focus on in <span className="font-semibold text-[#525252]">the next 6 month.</span>
       </span>
     ),
+    confirmedDescription: (
+      <span>
+        You've confirmed your <span className="font-semibold text-[#525252]">focus areas</span>. You can now proceed to <span className="font-semibold text-[#525252]">Phase 4</span> to define actionable steps.
+      </span>
+    ),
     cardIcon: <MessageSquare className="w-8 h-8" />,
     cardTitle: "Select your fields of action",
     cardText: "Search and select up to 3 areas where your team will focus efforts. These selections will guide your action planning.",
@@ -315,6 +456,26 @@ const ACTION_CARDS_DATA = [
       title: "Access Phase 4",
       copy: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet.",
       buttonText: "Access Phase 4",
+    }
+  },
+  {
+    phase: "Phase 5",
+    title: "Take it offline with your team",
+    description: (
+      <span>
+        You're all set! Now <span className="font-semibold text-[#525252]">stick to the plan</span> and work with your team to <span className="font-semibold text-[#525252]">improve engagement</span> step by step.
+      </span>
+    ),
+    cardIcon: <CheckCircle className="w-8 h-8" />,
+    cardTitle: "Take it offline with your team",
+    cardText: "Great job! You've completed the digital commitment journey. Now take the plan offline, work with your team to implement the measures, and come back to track your progress.",
+    buttonText: "Download final documentation",
+    isLocked: true,
+    usePhase5Style: true,
+    accessCard: {
+      title: "Access Phase 5",
+      copy: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet.",
+      buttonText: "Access Phase 5",
     }
   },
 ] as const;
@@ -354,6 +515,7 @@ export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [
               phase={card.phase}
               title={card.title}
               description={card.description}
+              confirmedDescription={'confirmedDescription' in card ? card.confirmedDescription : undefined}
               cardIcon={card.cardIcon}
               cardTitle={card.cardTitle}
               cardText={card.cardText}
@@ -363,7 +525,9 @@ export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [
               phaseNumber={phaseNumber}
               onUnlock={() => handleUnlock(card.phase)}
               onPhase4Unlock={() => handleUnlock("Phase 4")}
+              onPhase5Unlock={() => handleUnlock("Phase 5")}
               useFieldSelector={'useFieldSelector' in card ? card.useFieldSelector : false}
+              usePhase5Style={'usePhase5Style' in card ? card.usePhase5Style : false}
             />
           </div>
         );

@@ -172,19 +172,6 @@ const HouseCardB = memo(function HouseCardB({
     onClick?.();
   }, [onClick]);
 
-  const directionIcon = useMemo(() => {
-    if (trendingKeyword === "below") {
-      return <ArrowDownIcon />;
-    }
-    if (trendingKeyword === "above") {
-      return <ArrowUpIcon />;
-    }
-    if (trendingKeyword === "aligned with") {
-      return <EqualIcon />;
-    }
-    return null;
-  }, [trendingKeyword]);
-
   const borderRadiusClass = isFirstCard 
     ? "rounded-b-[24px] rounded-t-none" 
     : "rounded-[24px]";
@@ -281,9 +268,8 @@ const HouseCardB = memo(function HouseCardB({
       
       <div className="w-full flex flex-col gap-3 relative z-10">
         <div className="flex items-center gap-2">
-          {directionIcon}
           <span className="text-base text-[#656565]">
-            {title} results are <span className="font-semibold text-black">{trendingKeyword}</span> the Swiss benchmark average (121 companies)
+            {subtitle}
           </span>
         </div>
         {factors.length > 0 && (
@@ -318,7 +304,7 @@ const HouseCardB = memo(function HouseCardB({
 const HOUSE_CARDS_CONFIG = [
   {
     title: "Commitment",
-    subtitle: "What can we achieve together?",
+    subtitle: "Areas that are keeping Commitment low",
     influencingTitle: "below",
     iconType: "commitment" as const,
     iconBg: "bg-[#efefef]",
@@ -327,14 +313,12 @@ const HOUSE_CARDS_CONFIG = [
     badgeBgColor: "#FEF0C3",
     badgeHoverBgColor: "#ECD68A", // Darker yellow for hover
     badgeTextColor: "#A17C07",
-    chipBgColor: "#FEF0C3",
-    chipBorderColor: "#ECD68A",
     badgeIconType: "trendingDown" as const,
     badgeTooltip: "Commitment is your team's weakest Target Value",
   },
   {
     title: "Satisfaction",
-    subtitle: "What will I gain? Do I fit in here?",
+    subtitle: "Areas that are keeping high Satisfaction",
     influencingTitle: "above",
     iconType: "satisfaction" as const,
     iconBg: "bg-[#efefef]",
@@ -343,14 +327,12 @@ const HOUSE_CARDS_CONFIG = [
     badgeBgColor: "#DCFCE8",
     badgeHoverBgColor: "#BBF7D0", // Darker green for hover
     badgeTextColor: "#15803C",
-    chipBgColor: "#DCFCE8",
-    chipBorderColor: "#BBF7D0",
     badgeIconType: "trendingUp" as const,
     badgeTooltip: "Satisfaction is your team's strongest Target Value",
   },
   {
     title: "Resignation",
-    subtitle: "Why am I even here?",
+    subtitle: "No focus areas or influencing factors on this influencing factors",
     influencingTitle: "aligned with",
     iconType: "resignation" as const,
     iconBg: "bg-[#efefef]",
@@ -413,7 +395,7 @@ function HouseSectionBComponent() {
           Phase 2
         </div>
         <h2 className="text-2xl font-semibold text-black tracking-tighter">Where's your team in the Commitment House?</h2>
-        <span className="text-[18px] text-[#656565]">From your team's survey results, compared to 121 Schweizer Firmen.</span>
+        <span className="text-[18px] text-[#656565]">From your team's survey results, compared to 121 swiss companies.</span>
       </div>
 
       {/* Two Column Layout: House on Left, Fixed Banner on Right */}

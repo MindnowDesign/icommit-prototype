@@ -4,6 +4,7 @@ import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User, Info, X 
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import CompassIcon from "../../assets/Icons/Compass.svg";
+import iCommitLogo from "../../assets/logo/iCommit-logo.png";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/", minWidth: "min-w-[170px]" },
@@ -82,12 +83,9 @@ export const Header = memo(function Header() {
   return (
     <div className="w-full flex flex-col items-center bg-white shadow-sm z-50 sticky top-0">
       <DesignBanner />
-      <SectionWrapper className="flex items-center justify-between py-3">
+      <SectionWrapper className="flex items-center justify-between py-4">
         <div className="flex items-center gap-4">
-          <img src={CompassIcon} alt="Compass" className="w-[40px] h-[40px]" loading="lazy" />
-          <h1 className="text-[#525252] text-xl font-semibold tracking-tighter">
-            DIGITAL COMMITMENT TOOL
-          </h1>
+          <img src={iCommitLogo} alt="iCommit" className="h-[28px]" loading="lazy" />
         </div>
         <div className="flex items-center gap-3">
           <span className="text-[#525252] text-lg">user-email@gmail.ch</span>
