@@ -23,20 +23,29 @@ export interface TeamGroup {
   percentage: number;
 }
 
-// Mock data - Administration is a parent with other departments as children
+// Mock data - Hierarchical company structure
 const teamGroups: TeamGroup[] = [
   {
-    id: "unternehmen-a",
-    name: "Unternehmen A",
+    id: "company-name",
+    name: "Company Name",
     current: 196,
     total: 237,
     percentage: 83,
     departments: [
-      { id: "geschaeftsleitung", name: "Geschäftsleitung", current: 9, total: 11, percentage: 82 },
-      { id: "administration", name: "Administration", current: 64, total: 79, percentage: 81, isParent: true },
-      { id: "buchhaltung", name: "Buchhaltung", current: 11, total: 17, percentage: 65, parentId: "administration" },
-      { id: "human-resources", name: "Human Resources", current: 19, total: 23, percentage: 83, parentId: "administration" },
-      { id: "it", name: "IT", current: 15, total: 18, percentage: 83, parentId: "administration" },
+      // Management - standalone (white background exception)
+      { id: "management", name: "Management", current: 9, total: 11, percentage: 82 },
+      // Admin group with children
+      { id: "admin", name: "Admin", current: 64, total: 79, percentage: 82, isParent: true },
+      { id: "accounting", name: "Accounting", current: 9, total: 11, percentage: 82, parentId: "admin" },
+      { id: "hr", name: "HR", current: 9, total: 11, percentage: 82, parentId: "admin" },
+      { id: "it", name: "IT", current: 9, total: 11, percentage: 82, parentId: "admin" },
+      // Production group with children
+      { id: "production", name: "Production", current: 9, total: 11, percentage: 82, isParent: true },
+      { id: "prod-a", name: "Prod A", current: 9, total: 11, percentage: 82, parentId: "production" },
+      { id: "prod-b", name: "Prod B", current: 9, total: 11, percentage: 82, parentId: "production" },
+      { id: "prod-c", name: "Prod C", current: 9, total: 11, percentage: 82, parentId: "production" },
+      // Interns - standalone
+      { id: "interns", name: "Interns", current: 9, total: 11, percentage: 82 },
     ],
   },
 ];
@@ -55,7 +64,7 @@ interface RowProps {
   percentage: number;
   isSelected: boolean;
   onClick: () => void;
-  variant: "company" | "category" | "item";
+  variant: "company" | "category" | "department" | "item";
   isBold?: boolean;
 }
 
@@ -72,31 +81,44 @@ const Row = memo(function Row({
   const baseStyles = "px-4 py-3 flex items-center gap-3 cursor-pointer transition-colors";
   
   // Background styles based on variant (when NOT selected)
+  // company: header row (blue when selected)
+  // category: parent departments (gray background) - e.g., Admin, Production
+  // department: standalone first-level items (white for Management, gray for others like Interns)
+  // item: child departments (white background) - e.g., Accounting, HR, Prod A
   const variantBgStyles = {
-    company: "bg-[#f5f5f5] hover:bg-[#ebebeb]",
+    company: "bg-[#015ea3] hover:bg-[#014a82]", // Always blue for company header
     category: "bg-[#f5f5f5] hover:bg-[#ebebeb]",
+    department: name === "Management" ? "bg-white hover:bg-[#f5f5f5]" : "bg-[#f5f5f5] hover:bg-[#ebebeb]",
     item: "bg-white hover:bg-[#f5f5f5]",
   };
 
-  // Selected state: blue background
-  const bgStyles = isSelected
-    ? "bg-[#015ea3] hover:bg-[#014a82]"
-    : variantBgStyles[variant];
+  // Selected state: blue background (except company which is always blue)
+  const bgStyles = variant === "company" 
+    ? variantBgStyles.company
+    : isSelected
+      ? "bg-[#015ea3] hover:bg-[#014a82]"
+      : variantBgStyles[variant];
 
-  // Indentation for items
-  const indentStyles = variant === "item" ? "pl-10" : "";
+  // Indentation based on level
+  // category/department: one level indent (pl-8)
+  // item: two levels indent (pl-12)
+  const indentStyles = {
+    company: "",
+    category: "pl-8",
+    department: "pl-8",
+    item: "pl-12",
+  };
 
   return (
     <div
       onClick={onClick}
-      className={cn(baseStyles, bgStyles, indentStyles)}
+      className={cn(baseStyles, bgStyles, indentStyles[variant])}
     >
       {/* Name */}
       <span
         className={cn(
           "text-sm truncate flex-1",
-          isSelected ? "text-white" : "text-[#292929]",
-          variant === "company" && "text-base font-bold",
+          variant === "company" ? "text-white text-base font-bold" : isSelected ? "text-white" : "text-[#292929]",
           isBold && "font-semibold"
         )}
       >
@@ -107,7 +129,7 @@ const Row = memo(function Row({
       <span
         className={cn(
           "text-sm w-[60px] text-right tabular-nums",
-          isSelected ? "text-white/80" : "text-[#656565]"
+          variant === "company" ? "text-white/80" : isSelected ? "text-white/80" : "text-[#656565]"
         )}
       >
         {current} / {total}
@@ -115,7 +137,7 @@ const Row = memo(function Row({
       <span
         className={cn(
           "text-sm font-semibold w-[40px] text-right tabular-nums",
-          isSelected ? "text-white" : "text-[#292929]"
+          variant === "company" ? "text-white" : isSelected ? "text-white" : "text-[#292929]"
         )}
       >
         {percentage}%
@@ -123,7 +145,7 @@ const Row = memo(function Row({
 
       {/* Check icon - far right */}
       <div className="w-6 flex items-center justify-center shrink-0">
-        {isSelected && <Check className="w-5 h-5 text-white" strokeWidth={2.5} />}
+        {(isSelected || variant === "company") && <Check className={cn("w-5 h-5", variant === "company" || isSelected ? "text-white" : "text-transparent")} strokeWidth={2.5} />}
       </div>
     </div>
   );
@@ -232,12 +254,19 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
               {/* Departments */}
               {hierarchy.map(({ dept, children }, index) => (
                 <React.Fragment key={dept.id}>
-                  {/* Divider before category rows (except first item) */}
+                  {/* Divider before parent categories (except first item after Management) */}
                   {dept.isParent && index > 0 && (
-                    <div className="h-px bg-[#dcdcdc] my-2" />
+                    <div className="h-px bg-[#e0e8f0] mx-4 my-2" />
+                  )}
+                  
+                  {/* Divider before standalone items that come after a parent group */}
+                  {!dept.isParent && index > 0 && hierarchy[index - 1]?.children.length > 0 && (
+                    <div className="h-px bg-[#e0e8f0] mx-4 my-2" />
                   )}
 
-                  {/* Department row - "category" for parents, "item" for regular */}
+                  {/* Department row */}
+                  {/* - "category" for parents (Admin, Production) - gray, bold */}
+                  {/* - "department" for standalone items (Management, Interns) - bold except Management */}
                   <Row
                     name={dept.name}
                     current={dept.current}
@@ -245,11 +274,11 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                     percentage={dept.percentage}
                     isSelected={value === dept.id}
                     onClick={() => handleSelect(dept.id)}
-                    variant={dept.isParent ? "category" : "item"}
-                    isBold={dept.isParent}
+                    variant={dept.isParent ? "category" : "department"}
+                    isBold={dept.isParent || (dept.name !== "Management" && !dept.parentId)}
                   />
 
-                  {/* Sub-departments */}
+                  {/* Sub-departments (children) */}
                   {children.map((child) => (
                     <Row
                       key={child.id}
