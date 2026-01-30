@@ -14,6 +14,7 @@ import {
 } from "./ui/dialog";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 import IllustrationSvg from "../../assets/Illustration-01.svg";
+import Phase4Illustration from "../../assets/Illustration-02-Phase04.svg";
 import { FieldOfActionSelector } from "./FieldOfActionSelector";
 
 interface PhaseAccessCardProps {
@@ -56,7 +57,7 @@ const PhaseAccessCard = memo(function PhaseAccessCard({
         {/* Button */}
         <Button
           onClick={onButtonClick}
-          className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] w-fit text-base font-normal py-3 px-4"
+          className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full w-fit text-base font-normal py-3 px-4"
         >
           {buttonText}
         </Button>
@@ -163,7 +164,7 @@ const ActionSection = memo(function ActionSection({
             </Button>
             <Button
               onClick={handleConfirmAccess}
-              className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
+              className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
             >
               Access phase {phaseNumber}
             </Button>
@@ -222,14 +223,14 @@ const ActionSection = memo(function ActionSection({
                 <Button 
                   variant="outline"
                   onClick={() => navigate("/pulse")}
-                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
                 >
                   Go to Pulse
                 </Button>
                 <Button 
                   disabled={disabled}
                   className={cn(
-                    "rounded-[8px] text-base font-normal py-3 px-4",
+                    "rounded-full text-base font-normal py-3 px-4",
                     disabled 
                       ? "bg-[#9e9e9e] text-white cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
                       : "bg-[#015ea3] text-white hover:bg-[#014a82]"
@@ -245,24 +246,13 @@ const ActionSection = memo(function ActionSection({
             <div 
               className="w-full flex flex-col items-center justify-center gap-10 py-12 min-h-[400px]"
             >
-              {/* Icons */}
-              <div className="flex items-center gap-4">
-                <div 
-                  className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] -rotate-[8deg] translate-y-2 hover:scale-110 hover:-rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                >
-                  <UsersRound className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
-                </div>
-                <div 
-                  className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] hover:scale-110 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                >
-                  <Target className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
-                </div>
-                <div 
-                  className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] rotate-[8deg] translate-y-2 hover:scale-110 hover:rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                >
-                  <CheckCircle className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
-                </div>
-              </div>
+              {/* Illustration */}
+              <img 
+                src={Phase4Illustration} 
+                alt="Phase 4 illustration" 
+                className="w-full max-w-[210px] h-auto"
+                loading="lazy"
+              />
 
               {/* Title and description */}
               <div className="flex flex-col items-center gap-3 text-center max-w-lg">
@@ -279,7 +269,7 @@ const ActionSection = memo(function ActionSection({
                 <Button 
                   variant="outline"
                   onClick={() => navigate("/measures")}
-                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
                 >
                   Go to Measures
                 </Button>
@@ -287,7 +277,7 @@ const ActionSection = memo(function ActionSection({
                   disabled={disabled}
                   onClick={hasDownloadedPhase4Docs ? handlePhase5Unlock : handlePhase4Download}
                   className={cn(
-                    "rounded-[8px] text-base font-normal py-3 px-4",
+                    "rounded-full text-base font-normal py-3 px-4",
                     disabled 
                       ? "bg-[#9e9e9e] text-white cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
                       : "bg-[#015ea3] text-white hover:bg-[#014a82]"
@@ -344,13 +334,13 @@ const ActionSection = memo(function ActionSection({
 
         {/* Right: Banner */}
         <div className="relative w-full lg:w-[380px] shrink-0">
-          <div className="bg-[#f0f8ff] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-5 relative overflow-hidden group">
+          <div className="bg-[#e0f0fe] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-5 relative overflow-hidden group">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3 h-6">
                 <div className="w-5 h-5 shrink-0 flex items-center justify-center">
                   <Lightbulb className="w-5 h-5 text-[#015ea3]" strokeWidth={2} />
                 </div>
-                <p className="text-base font-semibold text-[#065186] leading-[1.5]">
+                <p className="text-base font-semibold text-[#0b446f] leading-[1.5]">
                   {phase === "Phase 3" ? "Define focus areas" : "Discuss with your team"}
                 </p>
               </div>
@@ -375,7 +365,7 @@ const ActionSection = memo(function ActionSection({
             </div>
             
             <Button 
-              className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] w-fit self-end text-base font-normal py-3 px-2"
+              className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full w-fit self-end text-base font-normal py-3 px-2"
             >
               <span className="font-normal leading-[0]">
                 Download documentation

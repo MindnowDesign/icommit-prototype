@@ -126,7 +126,7 @@ export function FixedToast({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmClose}
-              className="bg-destructive text-white hover:bg-destructive/90 rounded-[8px] text-base font-normal py-3 px-4"
+              className="bg-destructive text-white hover:bg-destructive/90 rounded-full text-base font-normal py-3 px-4"
             >
               Remove guide
             </AlertDialogAction>
@@ -151,7 +151,7 @@ export function FixedToast({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmGoBack}
-              className="bg-[#0b446f] text-white hover:bg-[#0b446f]/90 rounded-[8px] text-base font-normal py-3 px-4"
+              className="bg-[#0b446f] text-white hover:bg-[#0b446f]/90 rounded-full text-base font-normal py-3 px-4"
             >
               Go back
             </AlertDialogAction>

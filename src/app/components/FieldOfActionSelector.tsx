@@ -3,6 +3,7 @@ import { Search, X, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, Us
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import Phase3Illustration from "../../assets/Illustration-03-Phase03.svg";
 import { toast } from "sonner";
 
 // Custom Muscle Icon (same as in HouseSectionB)
@@ -193,7 +194,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
             <div className="flex flex-col gap-6 mt-4">
               {/* Relative weakness */}
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-[#FEF0C3] border border-[#ECD68A] rounded-[10px] px-3 py-2 w-fit">
+                <div className="flex items-center gap-2 bg-[#FEF0C3] border border-[#ECD68A] rounded-full px-3 py-2 w-fit">
                   <AlertTriangle className="w-5 h-5 text-[#A17C07]" />
                   <span className="text-base font-semibold text-[#A17C07]">Relative weakness</span>
                 </div>
@@ -203,7 +204,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                     return (
                       <div
                         key={field.id}
-                        className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-1.5 shrink-0"
+                        className="bg-[#fafafa] border border-[#efefef] rounded-full px-2.5 py-1.5 flex items-center gap-1.5 shrink-0"
                       >
                         <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
                         <span className="text-sm text-[#3d3d3d]">{field.name}</span>
@@ -218,7 +219,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
 
               {/* Relative strength */}
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-[#DCFCE8] border border-[#BBF7D0] rounded-[10px] px-3 py-2 w-fit">
+                <div className="flex items-center gap-2 bg-[#DCFCE8] border border-[#BBF7D0] rounded-full px-3 py-2 w-fit">
                   <MuscleIcon color="#15803C" className="w-5 h-5" />
                   <span className="text-base font-semibold text-[#15803C]">Relative strength</span>
                 </div>
@@ -228,7 +229,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                     return (
                       <div
                         key={field.id}
-                        className="bg-[#fafafa] border border-[#efefef] rounded-[10px] px-2.5 py-1.5 flex items-center gap-1.5 shrink-0"
+                        className="bg-[#fafafa] border border-[#efefef] rounded-full px-2.5 py-1.5 flex items-center gap-1.5 shrink-0"
                       >
                         <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
                         <span className="text-sm text-[#3d3d3d]">{field.name}</span>
@@ -242,7 +243,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
             <div className="flex justify-end mt-4">
               <Button
                 onClick={() => setIsSummaryDialogOpen(false)}
-                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
+                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
               >
                 Close dialog
               </Button>
@@ -254,24 +255,13 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
           className="w-full flex flex-col items-center justify-center gap-10 py-12 min-h-[400px] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-700 ease-out"
           style={{ animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
         >
-          {/* Icons */}
-          <div className="flex items-center gap-4">
-            <div 
-              className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] -rotate-[8deg] translate-y-2 hover:scale-110 hover:-rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-            >
-              <UsersRound className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
-            </div>
-            <div 
-              className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] hover:scale-110 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-            >
-              <FileText className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
-            </div>
-            <div 
-              className="w-16 h-16 bg-[#e0f0fe] rounded-[16px] flex items-center justify-center cursor-pointer hover:bg-[#b9e2fe] rotate-[8deg] translate-y-2 hover:scale-110 hover:rotate-[8deg] hover:translate-y-2 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-            >
-              <CheckCircle2 className="w-8 h-8 text-[#015ea3]" strokeWidth={2} />
-            </div>
-          </div>
+          {/* Illustration */}
+          <img 
+            src={Phase3Illustration} 
+            alt="Phase 3 illustration" 
+            className="w-full max-w-[210px] h-auto"
+            loading="lazy"
+          />
 
           {/* Title and description */}
           <div className="flex flex-col items-center gap-3 text-center max-w-lg">
@@ -291,14 +281,14 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
             <Button
               variant="outline"
               onClick={handleEditFocusAreas}
-              className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+              className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
             >
               Edit focus areas
             </Button>
             {isPhase4Unlocked ? (
               <Button
                 onClick={() => setIsSummaryDialogOpen(true)}
-                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
+                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
               >
                 View summary
               </Button>
@@ -307,13 +297,13 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                 <Button
                   variant="outline"
                   onClick={() => setIsSummaryDialogOpen(true)}
-                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
                 >
                   View summary
                 </Button>
                 <Button
                   onClick={hasDownloadedDocs ? handleConfirmUnlock : handleDownloadDocs}
-                  className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
+                  className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
                 >
                   {hasDownloadedDocs ? (
                     "Unlock Phase 4"
@@ -361,7 +351,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                 return (
                   <div
                     key={field.id}
-                    className="bg-[#FEF0C3] border border-[#ECD68A] rounded-[8px] px-2.5 py-1.5 flex items-center gap-1.5"
+                    className="bg-[#FEF0C3] border border-[#ECD68A] rounded-full px-2.5 py-1.5 flex items-center gap-1.5"
                   >
                     <Icon className="w-4 h-4 text-[#A17C07]" strokeWidth={2} />
                     <span className="text-base font-medium text-[#A17C07]">{field.name}</span>
@@ -383,7 +373,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                 return (
                   <div
                     key={field.id}
-                    className="bg-[#DCFCE8] border border-[#BBF7D0] rounded-[8px] px-2.5 py-1.5 flex items-center gap-1.5"
+                    className="bg-[#DCFCE8] border border-[#BBF7D0] rounded-full px-2.5 py-1.5 flex items-center gap-1.5"
                   >
                     <Icon className="w-4 h-4 text-[#15803C]" strokeWidth={2} />
                     <span className="text-base font-medium text-[#15803C]">{field.name}</span>
@@ -399,7 +389,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
           <Button
             variant="outline"
             onClick={handleEditFocusAreas}
-            className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+            className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
           >
             Edit Focus area
             <Undo2 className="w-4 h-4" />
@@ -417,7 +407,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
           type="button"
           onClick={() => setCurrentStep("strength")}
           className={cn(
-            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-[10px] border cursor-pointer",
+            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-full border cursor-pointer",
             currentStep === "strength"
               ? "bg-[#DCFCE8] border-[#BBF7D0] text-[#15803C]"
               : "bg-white border-[#dcdcdc] text-[#656565] hover:bg-[#f5f5f5]"
@@ -430,7 +420,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
           type="button"
           onClick={() => setCurrentStep("weakness")}
           className={cn(
-            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-[10px] border cursor-pointer",
+            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-full border cursor-pointer",
             currentStep === "weakness"
               ? "bg-[#FEF0C3] border-[#ECD68A] text-[#A17C07]"
               : "bg-white border-[#dcdcdc] text-[#656565] hover:bg-[#f5f5f5]"
@@ -476,7 +466,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                     return (
                       <div
                         key={field.id}
-                        className="border rounded-[10px] px-3.5 py-2.5 flex items-center gap-2 transition-all duration-200 ease-out bg-[#fafafa] border-[#efefef] hover:bg-[#e8e8e8]"
+                        className="border rounded-full px-3.5 py-2.5 flex items-center gap-2 transition-all duration-200 ease-out bg-[#fafafa] border-[#efefef] hover:bg-[#e8e8e8]"
                       >
                         <Icon className="w-5 h-5 text-[#656565]" strokeWidth={2} />
                         <span className="text-base font-medium text-[#3d3d3d]">{field.name}</span>
@@ -491,7 +481,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                     );
                   })
                 ) : (
-                  <div className="w-full flex items-center justify-center py-5 text-base text-[#989898] border-2 border-dashed border-[#e0e0e0] rounded-[10px]">
+                  <div className="w-full flex items-center justify-center py-5 text-base text-[#989898] border-2 border-dashed border-[#e0e0e0] rounded-[8px]">
                     No fields selected yet. Choose from the available factors below.
                   </div>
                 )}
@@ -515,7 +505,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                       onClick={() => !isDisabled && handleSelect(field.id)}
                       disabled={isDisabled}
                       className={cn(
-                        "bg-[#fafafa] border border-[#efefef] rounded-[10px] px-3 py-2 flex items-center gap-2 transition-all duration-200 ease-out",
+                        "bg-[#fafafa] border border-[#efefef] rounded-full px-3 py-2 flex items-center gap-2 transition-all duration-200 ease-out",
                         isDisabled 
                           ? "opacity-50 cursor-not-allowed"
                           : "hover:bg-[#e8e8e8] hover:border-[#dcdcdc] cursor-pointer"

@@ -278,7 +278,7 @@ const HouseCardB = memo(function HouseCardB({
               <div 
                 key={`${factor}-${i}`} 
                 className={cn(
-                  "border rounded-[10px] px-2.5 py-1.5 flex items-center gap-2 transition-all duration-500 ease-out",
+                  "border rounded-full px-3 py-1.5 flex items-center gap-2 transition-all duration-500 ease-out",
                   isInsideRoofGroup 
                     ? "group-hover/roofCard:brightness-[0.92]" 
                     : "group-hover/cardB:brightness-[0.92]"
@@ -545,13 +545,13 @@ function HouseSectionBComponent() {
 
         {/* Right Column: Fixed Banner - Wrapped in container that limits sticky area */}
         <div className="relative w-full lg:w-[380px] shrink-0 lg:flex lg:flex-col">
-          <div className="lg:sticky lg:top-[170px] bg-[#f0f8ff] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-5 relative overflow-hidden group">
+          <div className="lg:sticky lg:top-[170px] bg-[#e0f0fe] border border-[#b9e2fe] rounded-[8px] p-4 flex flex-col gap-5 relative overflow-hidden group">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3 h-6">
                 <div className="w-5 h-5 shrink-0 flex items-center justify-center">
                   <Lightbulb className="w-5 h-5 text-[#015ea3]" strokeWidth={2} />
                 </div>
-                <p className="text-base font-semibold text-[#065186] leading-[1.5]">
+                <p className="text-base font-semibold text-[#0b446f] leading-[1.5]">
                   Analyse data
                 </p>
               </div>
@@ -577,7 +577,7 @@ function HouseSectionBComponent() {
             
           <Button 
             onClick={() => navigate("/results")}
-            className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] w-fit self-end text-base font-normal py-3 px-2"
+            className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full w-fit self-end text-base font-normal py-3 px-2"
           >
             <span className="font-normal leading-[0]">Open survey results</span>
             <ArrowUpRight className="w-4 h-4 shrink-0" strokeWidth={2} />

@@ -30,8 +30,8 @@ function NavItem({ item }: { item: typeof NAV_ITEMS[number] }) {
       className={cn(
         "px-6 py-3 flex items-center gap-2 justify-center cursor-pointer transition-colors",
         isActive 
-          ? "bg-[#ededed] text-[#015EA3] hover:bg-[#e0e0e0]" 
-          : "bg-transparent text-white hover:bg-[#014a8a]",
+          ? "bg-[#ededed] text-[#015ea3] hover:bg-[#e0e0e0]" 
+          : "bg-transparent text-white hover:bg-[#014a82]",
         item.minWidth
       )}
     >
@@ -89,13 +89,13 @@ export const Header = memo(function Header() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-[#525252] text-lg">user-email@gmail.ch</span>
-          <div className="w-8 h-8 bg-[#015EA3] rounded-2xl flex items-center justify-center text-white">
+          <div className="w-8 h-8 bg-[#015ea3] rounded-2xl flex items-center justify-center text-white">
             <User className="w-5 h-5" />
           </div>
         </div>
       </SectionWrapper>
 
-      <div className="w-full bg-[#015EA3]">
+      <div className="w-full bg-[#015ea3]">
         <div className="w-full px-4 md:px-6 lg:px-8 max-w-[1312px] mx-auto flex items-center justify-between overflow-x-auto no-scrollbar gap-0">
           <div className="flex">
             {NAV_ITEMS.map((item) => (

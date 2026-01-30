@@ -5,7 +5,7 @@ import {
   DialogContent,
 } from "./dialog";
 import { Button } from "./button";
-import HearthImage from "../../../assets/Hearth.png";
+import HearthImage from "../../../assets/Hearth.svg";
 
 interface PhaseUnlockDialogProps {
   open: boolean;
@@ -42,7 +42,7 @@ export function PhaseUnlockDialog({
               duration={5000}
               particleCount={150}
               width={800}
-              colors={["#015EA3", "#b9e2fe", "#FEF0C3", "#DCFCE8", "#0b446f", "#15803C", "#A17C07"]}
+              colors={["#015ea3", "#b9e2fe", "#FEF0C3", "#DCFCE8", "#0b446f", "#15803C", "#A17C07"]}
             />
           </div>
         )}
@@ -70,13 +70,13 @@ export function PhaseUnlockDialog({
           <Button
             variant="outline"
             onClick={handleClose}
-            className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-[8px] text-base font-normal py-3 px-4"
+            className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
           >
             Close dialog
           </Button>
           <Button
             onClick={handleContinue}
-            className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-[8px] text-base font-normal py-3 px-4"
+            className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
           >
             Continue to Phase {nextPhase}
           </Button>
