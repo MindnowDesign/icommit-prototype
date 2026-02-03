@@ -58,10 +58,10 @@ export function PhaseUnlockDialog({
         {/* Title and Description */}
         <div className="flex flex-col items-center gap-2">
           <h2 className="text-2xl font-semibold text-[#0b446f] tracking-tight">
-            You can now move to Phase {nextPhase}
+            Ready to proceed
           </h2>
           <p className="text-base text-[#656565] leading-relaxed max-w-sm">
-            This phase is now complete. You can move on to the next step or return later to review or make changes (where possible).
+            You've completed this step. You can continue to the next phase now, or come back later to review and make changes where available.
           </p>
         </div>
 

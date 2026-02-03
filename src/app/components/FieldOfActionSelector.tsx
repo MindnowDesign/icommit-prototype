@@ -306,7 +306,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
                   className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
                 >
                   {hasDownloadedDocs ? (
-                    "Unlock Phase 4"
+                    "Confirm choices and proceed"
                   ) : (
                     <>
                       Download documentation
