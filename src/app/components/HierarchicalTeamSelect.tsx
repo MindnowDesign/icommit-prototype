@@ -81,23 +81,21 @@ const Row = memo(function Row({
   const baseStyles = "px-4 py-3 flex items-center gap-3 cursor-pointer transition-colors";
   
   // Background styles based on variant (when NOT selected)
-  // company: header row (blue when selected)
+  // company: header row (blue when selected, gray when not)
   // category: parent departments (gray background) - e.g., Admin, Production
   // department: standalone first-level items (white for Management, gray for others like Interns)
   // item: child departments (white background) - e.g., Accounting, HR, Prod A
   const variantBgStyles = {
-    company: "bg-[#015ea3] hover:bg-[#014a82]", // Always blue for company header
+    company: "bg-[#f5f5f5] hover:bg-[#ebebeb]",
     category: "bg-[#f5f5f5] hover:bg-[#ebebeb]",
     department: name === "Management" ? "bg-white hover:bg-[#f5f5f5]" : "bg-[#f5f5f5] hover:bg-[#ebebeb]",
     item: "bg-white hover:bg-[#f5f5f5]",
   };
 
-  // Selected state: blue background (except company which is always blue)
-  const bgStyles = variant === "company" 
-    ? variantBgStyles.company
-    : isSelected
-      ? "bg-[#015ea3] hover:bg-[#014a82]"
-      : variantBgStyles[variant];
+  // Selected state: blue background for all variants
+  const bgStyles = isSelected
+    ? "bg-[#015ea3] hover:bg-[#014a82]"
+    : variantBgStyles[variant];
 
   // Indentation based on level
   // category/department: one level indent (pl-8)
@@ -118,7 +116,8 @@ const Row = memo(function Row({
       <span
         className={cn(
           "text-sm truncate flex-1",
-          variant === "company" ? "text-white text-base font-bold" : isSelected ? "text-white" : "text-[#292929]",
+          isSelected ? "text-white" : "text-[#292929]",
+          variant === "company" && "text-base font-bold",
           isBold && "font-semibold"
         )}
       >
@@ -129,7 +128,7 @@ const Row = memo(function Row({
       <span
         className={cn(
           "text-sm w-[60px] text-right tabular-nums",
-          variant === "company" ? "text-white/80" : isSelected ? "text-white/80" : "text-[#656565]"
+          isSelected ? "text-white/80" : "text-[#656565]"
         )}
       >
         {current} / {total}
@@ -137,7 +136,7 @@ const Row = memo(function Row({
       <span
         className={cn(
           "text-sm font-semibold w-[40px] text-right tabular-nums",
-          variant === "company" ? "text-white" : isSelected ? "text-white" : "text-[#292929]"
+          isSelected ? "text-white" : "text-[#292929]"
         )}
       >
         {percentage}%
@@ -145,7 +144,7 @@ const Row = memo(function Row({
 
       {/* Check icon - far right */}
       <div className="w-6 flex items-center justify-center shrink-0">
-        {(isSelected || variant === "company") && <Check className={cn("w-5 h-5", variant === "company" || isSelected ? "text-white" : "text-transparent")} strokeWidth={2.5} />}
+        {isSelected && <Check className="w-5 h-5 text-white" strokeWidth={2.5} />}
       </div>
     </div>
   );

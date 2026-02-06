@@ -242,8 +242,9 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
 
             <div className="flex justify-end mt-4">
               <Button
+                size="big"
                 onClick={() => setIsSummaryDialogOpen(false)}
-                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
+                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal"
               >
                 Close dialog
               </Button>
@@ -276,45 +277,81 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
             </p>
           </div>
 
+          {/* Selected focus areas */}
+          <div className="flex flex-col gap-3 items-center w-full">
+            {/* Relative weakness row */}
+            <div className="flex items-center gap-6 justify-center">
+              <div className="flex items-center gap-1.5 bg-[#FEF0C3] border border-[#ECD68A] rounded-full px-3 py-1.5 shrink-0">
+                <AlertTriangle className="w-4 h-4 text-[#A17C07]" />
+                <span className="text-sm font-semibold text-[#A17C07] whitespace-nowrap">Relative weakness</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {AVAILABLE_FIELDS.filter(f => weaknessSelected.has(f.id)).map(field => {
+                  const Icon = field.icon;
+                  return (
+                    <div key={field.id} className="flex items-center gap-1.5 border border-[#dcdcdc] rounded-full px-3 py-1.5 bg-white shrink-0">
+                      <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
+                      <span className="text-sm text-[#292929] whitespace-nowrap">{field.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Relative strength row */}
+            <div className="flex items-center gap-6 justify-center">
+              <div className="flex items-center gap-1.5 bg-[#DCFCE8] border border-[#BBF7D0] rounded-full px-3 py-1.5 shrink-0">
+                <MuscleIcon color="#15803C" className="w-4 h-4" />
+                <span className="text-sm font-semibold text-[#15803C] whitespace-nowrap">Relative strength</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {AVAILABLE_FIELDS.filter(f => strengthSelected.has(f.id)).map(field => {
+                  const Icon = field.icon;
+                  return (
+                    <div key={field.id} className="flex items-center gap-1.5 border border-[#dcdcdc] rounded-full px-3 py-1.5 bg-white shrink-0">
+                      <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
+                      <span className="text-sm text-[#292929] whitespace-nowrap">{field.name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           {/* Buttons */}
           <div className="flex items-center gap-2">
+            {isPhase4Unlocked ? (
+              <Button
+                size="big"
+                onClick={handleEditFocusAreas}
+                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal"
+              >
+                Edit focus areas
+              </Button>
+            ) : (
+            <>
             <Button
               variant="outline"
+              size="big"
               onClick={handleEditFocusAreas}
-              className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
+              className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] font-normal"
             >
               Edit focus areas
             </Button>
-            {isPhase4Unlocked ? (
-              <Button
-                onClick={() => setIsSummaryDialogOpen(true)}
-                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
-              >
-                View summary
-              </Button>
-            ) : (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsSummaryDialogOpen(true)}
-                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
-                >
-                  View summary
-                </Button>
-                <Button
-                  onClick={hasDownloadedDocs ? handleConfirmUnlock : handleDownloadDocs}
-                  className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
-                >
-                  {hasDownloadedDocs ? (
-                    "Confirm choices and proceed"
-                  ) : (
-                    <>
-                      Download documentation
-                      <Download className="w-4 h-4" />
-                    </>
-                  )}
-                </Button>
-              </>
+            <Button
+              size="big"
+              onClick={hasDownloadedDocs ? handleConfirmUnlock : handleDownloadDocs}
+              className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal"
+            >
+              {hasDownloadedDocs ? (
+                "Confirm choices and proceed"
+              ) : (
+                <>
+                  Download documentation
+                  <Download className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+            </>
             )}
           </div>
         </div>
@@ -388,8 +425,9 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
         <div className="w-full flex justify-end">
           <Button
             variant="outline"
+            size="big"
             onClick={handleEditFocusAreas}
-            className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
+            className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] font-normal"
           >
             Edit Focus area
             <Undo2 className="w-4 h-4" />
@@ -407,7 +445,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
           type="button"
           onClick={() => setCurrentStep("strength")}
           className={cn(
-            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-full border cursor-pointer",
+            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-[8px] border cursor-pointer",
             currentStep === "strength"
               ? "bg-[#DCFCE8] border-[#BBF7D0] text-[#15803C]"
               : "bg-white border-[#dcdcdc] text-[#656565] hover:bg-[#f5f5f5]"
@@ -420,7 +458,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
           type="button"
           onClick={() => setCurrentStep("weakness")}
           className={cn(
-            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-full border cursor-pointer",
+            "py-2.5 px-4 text-base font-semibold transition-all flex items-center gap-2 rounded-[8px] border cursor-pointer",
             currentStep === "weakness"
               ? "bg-[#FEF0C3] border-[#ECD68A] text-[#A17C07]"
               : "bg-white border-[#dcdcdc] text-[#656565] hover:bg-[#f5f5f5]"

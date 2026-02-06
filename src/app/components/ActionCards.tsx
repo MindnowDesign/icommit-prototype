@@ -15,6 +15,7 @@ import {
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 import IllustrationSvg from "../../assets/Illustration-01.svg";
 import Phase4Illustration from "../../assets/Illustration-02-Phase04.svg";
+import Phase6Illustration from "../../assets/Illustration-Phase06.svg";
 import { FieldOfActionSelector } from "./FieldOfActionSelector";
 
 interface PhaseAccessCardProps {
@@ -56,8 +57,9 @@ const PhaseAccessCard = memo(function PhaseAccessCard({
         
         {/* Button */}
         <Button
+          size="big"
           onClick={onButtonClick}
-          className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full w-fit text-base font-normal py-3 px-4"
+          className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] w-fit font-normal"
         >
           {buttonText}
         </Button>
@@ -86,8 +88,10 @@ interface ActionCardProps {
   onUnlock?: () => void;
   onPhase4Unlock?: () => void;
   onPhase5Unlock?: () => void;
+  onPhase6Unlock?: () => void;
   useFieldSelector?: boolean;
   usePhase5Style?: boolean;
+  usePhase6Style?: boolean;
 }
 
 const ActionSection = memo(function ActionSection({
@@ -106,13 +110,16 @@ const ActionSection = memo(function ActionSection({
   onUnlock,
   onPhase4Unlock,
   onPhase5Unlock,
+  onPhase6Unlock,
   useFieldSelector = false,
-  usePhase5Style = false
+  usePhase5Style = false,
+  usePhase6Style = false
 }: ActionCardProps) {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPhase4Confirmed, setIsPhase4Confirmed] = useState(false);
   const [hasDownloadedPhase4Docs, setHasDownloadedPhase4Docs] = useState(false);
+  const [isPhase6Confirmed, setIsPhase6Confirmed] = useState(false);
 
   const handleAccessClick = () => {
     setIsDialogOpen(true);
@@ -139,6 +146,11 @@ const ActionSection = memo(function ActionSection({
     onPhase5Unlock?.();
   };
 
+  const handlePhase6Unlock = () => {
+    setIsPhase6Confirmed(true);
+    onPhase6Unlock?.();
+  };
+
   // Use confirmed description if Phase 4 is confirmed and we have one
   const displayDescription = isPhase4Confirmed && confirmedDescription ? confirmedDescription : description;
 
@@ -163,8 +175,9 @@ const ActionSection = memo(function ActionSection({
               Cancel
             </Button>
             <Button
+              size="big"
               onClick={handleConfirmAccess}
-              className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
+              className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal"
             >
               Access phase {phaseNumber}
             </Button>
@@ -195,6 +208,46 @@ const ActionSection = memo(function ActionSection({
           
           {useFieldSelector ? (
             <FieldOfActionSelector onPhase4Unlock={handlePhase4Unlock} />
+          ) : usePhase6Style ? (
+            /* Phase 6 layout */
+            <div 
+              className="w-full flex flex-col items-center justify-center gap-10 py-12 min-h-[400px]"
+            >
+              {/* Illustration */}
+              <img 
+                src={Phase6Illustration} 
+                alt="Phase 6 illustration" 
+                className="w-full max-w-[210px] h-auto"
+                loading="lazy"
+              />
+
+              {/* Title and description */}
+              <div className="flex flex-col items-center gap-3 text-center max-w-lg">
+                <h3 className="text-3xl font-semibold text-[#0b446f] tracking-tight">
+                  {cardTitle}
+                </h3>
+                <p className="text-base text-[#656565] leading-relaxed">
+                  {cardText}
+                </p>
+              </div>
+
+              {/* Button */}
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="big"
+                  disabled={disabled}
+                  onClick={() => navigate("/pulse")}
+                  className={cn(
+                    "font-normal",
+                    disabled 
+                      ? "bg-[#9e9e9e] text-white cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
+                      : "bg-[#015ea3] text-white hover:bg-[#014a82]"
+                  )}
+                >
+                  Go to Pulse
+                </Button>
+              </div>
+            </div>
           ) : usePhase5Style ? (
             /* Phase 5 special layout - with illustration placeholder */
             <div 
@@ -220,25 +273,39 @@ const ActionSection = memo(function ActionSection({
 
               {/* Buttons */}
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={() => navigate("/pulse")}
-                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
-                >
-                  Go to Pulse
-                </Button>
-                <Button 
-                  disabled={disabled}
-                  className={cn(
-                    "rounded-full text-base font-normal py-3 px-4",
-                    disabled 
-                      ? "bg-[#9e9e9e] text-white cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
-                      : "bg-[#015ea3] text-white hover:bg-[#014a82]"
-                  )}
-                >
-                  Download documentation
-                  <ArrowDownToLine className="w-4 h-4" />
-                </Button>
+                {isPhase6Confirmed ? (
+                  <Button 
+                    size="big"
+                    onClick={() => navigate("/measures")}
+                    className="bg-[#015ea3] text-white hover:bg-[#014a82] font-normal"
+                  >
+                    Go to measures tool
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline"
+                      size="big"
+                      onClick={() => navigate("/measures")}
+                      className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] font-normal"
+                    >
+                      Go to measures tool
+                    </Button>
+                    <Button 
+                      size="big"
+                      disabled={disabled}
+                      onClick={handlePhase6Unlock}
+                      className={cn(
+                        "font-normal",
+                        disabled 
+                          ? "bg-[#9e9e9e] text-white cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
+                          : "bg-[#015ea3] text-white hover:bg-[#014a82]"
+                      )}
+                    >
+                      Proceed to Phase 6
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           ) : phase === "Phase 4" ? (
@@ -264,27 +331,21 @@ const ActionSection = memo(function ActionSection({
                 </p>
               </div>
 
-              {/* Buttons */}
+              {/* Button */}
               <div className="flex items-center gap-2">
                 <Button 
-                  variant="outline"
-                  onClick={() => navigate("/measures")}
-                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
-                >
-                  Go to Measures
-                </Button>
-                <Button 
+                  size="big"
                   disabled={disabled}
-                  onClick={hasDownloadedPhase4Docs ? handlePhase5Unlock : handlePhase4Download}
+                  onClick={hasDownloadedPhase4Docs ? () => navigate("/measures") : handlePhase4Download}
                   className={cn(
-                    "rounded-full text-base font-normal py-3 px-4",
+                    "font-normal",
                     disabled 
                       ? "bg-[#9e9e9e] text-white cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
                       : "bg-[#015ea3] text-white hover:bg-[#014a82]"
                   )}
                 >
                   {hasDownloadedPhase4Docs ? (
-                    "Proceed to Phase 5"
+                    "Go to Measures"
                   ) : (
                     <>
                       Download documentation
@@ -341,7 +402,7 @@ const ActionSection = memo(function ActionSection({
                   <Lightbulb className="w-5 h-5 text-[#015ea3]" strokeWidth={2} />
                 </div>
                 <p className="text-base font-semibold text-[#0b446f] leading-[1.5]">
-                  {phase === "Phase 3" ? "Define focus areas" : "Discuss with your team"}
+                  {phase === "Phase 3" ? "Define focus areas" : phase === "Phase 4" ? "Discuss with your team" : phase === "Phase 5" ? "Implementation progress" : "Pulse check"}
                 </p>
               </div>
               <p className="text-sm text-[#0b446f] leading-[1.5] tracking-[-0.14px] min-w-0">
@@ -409,7 +470,7 @@ const ACTION_CARDS_DATA = [
     title: "Define the areas of action you want to focus on",
     description: (
       <span>
-        We suggest to pick a maximum of <span className="font-semibold text-[#525252]">2/3 areas</span> to focus on in <span className="font-semibold text-[#525252]">the next 6 month.</span>
+        Pick a maximum of <span className="font-semibold text-[#525252]">3 areas</span> to focus on in <span className="font-semibold text-[#525252]">the next 6 months</span> for both strengths and weakness.
       </span>
     ),
     confirmedDescription: (
@@ -450,15 +511,15 @@ const ACTION_CARDS_DATA = [
   },
   {
     phase: "Phase 5",
-    title: "Take it offline with your team",
+    title: "Measures defined, ready to move forward",
     description: (
       <span>
-        You're all set! Now <span className="font-semibold text-[#525252]">stick to the plan</span> and work with your team to <span className="font-semibold text-[#525252]">improve engagement</span> step by step.
+        Your focus areas are set. <span className="font-semibold text-[#525252]">Align</span> with your team and get ready to move <span className="font-semibold text-[#525252]">forward</span>.
       </span>
     ),
     cardIcon: <CheckCircle className="w-8 h-8" />,
-    cardTitle: "Take it offline with your team",
-    cardText: "Great job! You've completed the digital commitment journey. Now take the plan offline, work with your team to implement the measures, and come back to track your progress.",
+    cardTitle: "Congratulations, you've defined your measures",
+    cardText: "You've identified the right measures to work on with your team. Now it's time to put them into action, keep the momentum going, and monitor progress over time.",
     buttonText: "Download final documentation",
     isLocked: true,
     usePhase5Style: true,
@@ -466,6 +527,26 @@ const ACTION_CARDS_DATA = [
       title: "Access Phase 5",
       copy: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet.",
       buttonText: "Access Phase 5",
+    }
+  },
+  {
+    phase: "Phase 6",
+    title: "Track the impact of your measures",
+    description: (
+      <span>
+        Monitor how your actions <span className="font-semibold text-[#525252]">evolve</span> over time and understand their <span className="font-semibold text-[#525252]">real impact</span> on your team.
+      </span>
+    ),
+    cardIcon: <CheckCircle className="w-8 h-8" />,
+    cardTitle: "Check your measures impact",
+    cardText: "Follow the progress of your measures, spot early signals, and adjust where needed to stay on track and sustain results.",
+    buttonText: "Go to Pulse",
+    isLocked: true,
+    usePhase6Style: true,
+    accessCard: {
+      title: "Access Phase 6",
+      copy: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet.",
+      buttonText: "Access Phase 6",
     }
   },
 ] as const;
@@ -516,8 +597,10 @@ export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [
               onUnlock={() => handleUnlock(card.phase)}
               onPhase4Unlock={() => handleUnlock("Phase 4")}
               onPhase5Unlock={() => handleUnlock("Phase 5")}
+              onPhase6Unlock={() => handleUnlock("Phase 6")}
               useFieldSelector={'useFieldSelector' in card ? card.useFieldSelector : false}
               usePhase5Style={'usePhase5Style' in card ? card.usePhase5Style : false}
+              usePhase6Style={'usePhase6Style' in card ? card.usePhase6Style : false}
             />
           </div>
         );

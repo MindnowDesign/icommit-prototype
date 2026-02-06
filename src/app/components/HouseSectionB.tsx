@@ -243,7 +243,7 @@ const HouseCardB = memo(function HouseCardB({
             <TooltipTrigger asChild>
               <div 
                 className={cn(
-                  "rounded-[10px] px-3 h-10 flex items-center gap-2 cursor-help shrink-0 transition-colors duration-500",
+                  "pl-5 pr-3 h-10 flex items-center gap-2 cursor-help shrink-0 transition-colors duration-500",
                   badgeHoverBgColor && (isInsideRoofGroup 
                     ? "group-hover/roofCard:!bg-[var(--badge-hover-bg)]" 
                     : "group-hover/cardB:!bg-[var(--badge-hover-bg)]")
@@ -251,6 +251,8 @@ const HouseCardB = memo(function HouseCardB({
                 style={{ 
                   backgroundColor: badgeBgColor,
                   '--badge-hover-bg': badgeHoverBgColor || badgeBgColor,
+                  clipPath: 'polygon(12px 0%, 100% 0%, 100% 100%, 12px 100%, 0% 50%)',
+                  borderRadius: '0 10px 10px 0',
                 } as React.CSSProperties}
               >
                 {badgeIcon || <TrendingUp className="w-6 h-6" style={{ color: badgeTextColor }} />}

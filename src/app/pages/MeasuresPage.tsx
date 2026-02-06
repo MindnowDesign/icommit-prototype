@@ -1,10 +1,13 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
 import { SectionWrapper } from "../components/ui/SectionWrapper";
 import { FixedToast } from "../components/ui/fixed-toast";
 import MeasuresImage from "../../assets/pages images/Measures-page.jpg";
 
 export default function MeasuresPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-white w-full flex flex-col font-sans">
       <Header />
@@ -22,13 +25,15 @@ export default function MeasuresPage() {
 
       {/* Fixed Toast/Bottom Bar with FAB */}
       <FixedToast
-        phase="Phase 2"
-        message="Analyse data"
-        actionText="Open results"
-        canGoBack={false}
+        phase="Phase 4"
+        message="Discuss with your team"
+        actionText="Proceed to Phase 5"
+        canGoBack={true}
+        onGoBack={() => {
+          navigate("/");
+        }}
         onActionClick={() => {
-          console.log("Open results clicked");
-          // Add navigation or action logic here
+          navigate("/", { state: { unlockPhase5: true } });
         }}
       />
     </div>

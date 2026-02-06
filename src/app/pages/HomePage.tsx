@@ -13,6 +13,7 @@ import CompassIcon from "../../assets/Icons/Compass-2.svg";
 interface LocationState {
   unlockPhase3?: boolean;
   scrollToPhase3?: boolean;
+  unlockPhase5?: boolean;
 }
 
 export default function HomePage() {
@@ -22,6 +23,8 @@ export default function HomePage() {
   const [isPhase3Unlocked, setIsPhase3Unlocked] = useState(false);
   const [isPhase4Unlocked, setIsPhase4Unlocked] = useState(false);
   const [isPhase5Unlocked, setIsPhase5Unlocked] = useState(false);
+  const [isPhase6Unlocked, setIsPhase6Unlocked] = useState(false);
+  const [hasDownloadedPhase4Docs, setHasDownloadedPhase4Docs] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [pendingPhaseUnlock, setPendingPhaseUnlock] = useState<number | null>(null);
   
@@ -50,6 +53,23 @@ export default function HomePage() {
       window.history.replaceState({}, document.title);
     }
   }, [state?.unlockPhase3, state?.scrollToPhase3, isPhase3Unlocked]);
+
+  // Handle Phase 5 unlock from Measures page navigation state
+  useEffect(() => {
+    if (state?.unlockPhase5 && !isPhase5Unlocked) {
+      // Ensure Phase 3 and 4 are unlocked first
+      setIsPhase3Unlocked(true);
+      setIsPhase4Unlocked(true);
+      setHasDownloadedPhase4Docs(true);
+      
+      // Show celebration dialog for Phase 5
+      setPendingPhaseUnlock(5);
+      setUnlockDialogOpen(true);
+      
+      // Clear navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [state?.unlockPhase5, isPhase5Unlocked]);
 
   // Handle Phase unlock from ActionCards - shows celebration dialog
   const handlePhaseUnlock = (phase: string) => {
@@ -98,6 +118,22 @@ export default function HomePage() {
         }
       }, 100);
     }
+    if (phaseNumber === 6) {
+      setIsPhase6Unlocked(true);
+      // Scroll to Phase 6 section
+      setTimeout(() => {
+        const phase6Section = document.getElementById("phase-6-section");
+        if (phase6Section) {
+          const elementPosition = phase6Section.getBoundingClientRect().top + window.scrollY;
+          const offsetPosition = elementPosition - 180;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+        }
+      }, 100);
+    }
     setPendingPhaseUnlock(null);
   };
 
@@ -107,16 +143,18 @@ export default function HomePage() {
     if (isPhase3Unlocked) phases.push("Phase 3");
     if (isPhase4Unlocked) phases.push("Phase 4");
     if (isPhase5Unlocked) phases.push("Phase 5");
+    if (isPhase6Unlocked) phases.push("Phase 6");
     return phases;
-  }, [isPhase3Unlocked, isPhase4Unlocked, isPhase5Unlocked]);
+  }, [isPhase3Unlocked, isPhase4Unlocked, isPhase5Unlocked, isPhase6Unlocked]);
 
   // Get current phase for timeline and toast
   const currentPhase = useMemo(() => {
+    if (isPhase6Unlocked) return 6;
     if (isPhase5Unlocked) return 5;
     if (isPhase4Unlocked) return 4;
     if (isPhase3Unlocked) return 3;
     return 2;
-  }, [isPhase3Unlocked, isPhase4Unlocked, isPhase5Unlocked]);
+  }, [isPhase3Unlocked, isPhase4Unlocked, isPhase5Unlocked, isPhase6Unlocked]);
   
 
   return (
@@ -168,29 +206,43 @@ export default function HomePage() {
       <FixedToast
         phase={`Phase ${currentPhase}`}
         message={
-          currentPhase === 5
-            ? "Set clear goals"
-            : currentPhase === 4 
-              ? "Discuss with your team" 
-              : currentPhase === 3 
-                ? "Define focus areas" 
-                : "Analyse data"
+          currentPhase === 6
+            ? "Pulse check"
+            : currentPhase === 5
+              ? "Implementation progress"
+              : currentPhase === 4 
+                ? "Discuss with your team" 
+                : currentPhase === 3 
+                  ? "Define focus areas" 
+                  : "Analyse data"
         }
         actionText={
-          currentPhase === 5
-            ? "Download documentation"
-            : currentPhase === 4 
-              ? "Download documentation" 
-              : currentPhase === 3 
-                ? "Go to section" 
-                : "Open results"
+          currentPhase === 6
+            ? "Go to Pulse"
+            : currentPhase === 5
+              ? "Proceed to Phase 6"
+              : currentPhase === 4 
+                ? (hasDownloadedPhase4Docs ? "Go to Measures" : "Download documentation")
+                : currentPhase === 3 
+                  ? "Go to section" 
+                  : "Open results"
         }
-        canGoBack={currentPhase > 2} // Can go back if we're on Phase 3, 4 or 5
+        canGoBack={currentPhase > 2}
         onGoBack={() => {
-          if (currentPhase === 5) {
+          if (currentPhase === 6) {
+            // Go back to Phase 5
+            setIsPhase6Unlocked(false);
+            setTimeout(() => {
+              const phase5Section = document.getElementById("phase-5-section");
+              if (phase5Section) {
+                const elementPosition = phase5Section.getBoundingClientRect().top + window.scrollY;
+                const offsetPosition = elementPosition - 180;
+                window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+              }
+            }, 100);
+          } else if (currentPhase === 5) {
             // Go back to Phase 4
             setIsPhase5Unlocked(false);
-            // Scroll to Phase 4 section
             setTimeout(() => {
               const phase4Section = document.getElementById("phase-4-section");
               if (phase4Section) {
@@ -218,10 +270,21 @@ export default function HomePage() {
           }
         }}
         onActionClick={() => {
-          if (currentPhase === 5) {
-            console.log("Download Phase 5 documentation clicked");
+          if (currentPhase === 6) {
+            navigate("/pulse");
+          } else if (currentPhase === 5) {
+            // Trigger Phase 6 unlock dialog
+            setPendingPhaseUnlock(6);
+            setUnlockDialogOpen(true);
           } else if (currentPhase === 4) {
-            console.log("Download documentation clicked");
+            if (hasDownloadedPhase4Docs) {
+              // Navigate to Measures page
+              navigate("/measures");
+            } else {
+              // Download documentation
+              console.log("Downloading Phase 4 documentation...");
+              setHasDownloadedPhase4Docs(true);
+            }
           } else if (currentPhase === 3) {
             // Scroll to Phase 3 section to interact with FieldOfActionSelector
             const phase3Section = document.getElementById("phase-3-section");

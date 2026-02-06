@@ -69,14 +69,16 @@ export function PhaseUnlockDialog({
         <div className="flex items-center gap-3 w-full justify-center mt-2">
           <Button
             variant="outline"
+            size="big"
             onClick={handleClose}
-            className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] rounded-full text-base font-normal py-3 px-4"
+            className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] font-normal"
           >
             Close dialog
           </Button>
           <Button
+            size="big"
             onClick={handleContinue}
-            className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full text-base font-normal py-3 px-4"
+            className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal"
           >
             Continue to Phase {nextPhase}
           </Button>

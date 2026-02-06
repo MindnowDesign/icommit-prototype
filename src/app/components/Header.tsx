@@ -6,15 +6,16 @@ import { SectionWrapper } from "./ui/SectionWrapper";
 import CompassIcon from "../../assets/Icons/Compass.svg";
 import iCommitLogo from "../../assets/logo/iCommit-logo.png";
 
-const NAV_ITEMS = [
+const NAV_ITEMS_LEFT = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/", minWidth: "min-w-[170px]" },
   { icon: BarChart3, label: "Results", path: "/results", minWidth: "min-w-[123px]" },
-  { icon: ScatterChart, label: "Fields of action", path: "/fields", minWidth: undefined },
   { icon: Puzzle, label: "Measures", path: "/measures", minWidth: undefined },
   { icon: Gauge, label: "Pulse", path: "/pulse", minWidth: undefined },
 ] as const;
 
-function NavItem({ item }: { item: typeof NAV_ITEMS[number] }) {
+const NAV_ITEM_RIGHT = { icon: ScatterChart, label: "Further analysis", path: "/fields", minWidth: undefined } as const;
+
+function NavItem({ item }: { item: typeof NAV_ITEMS_LEFT[number] | typeof NAV_ITEM_RIGHT }) {
   const location = useLocation();
   const navigate = useNavigate();
   const Icon = item.icon;
@@ -98,12 +99,15 @@ export const Header = memo(function Header() {
       <div className="w-full bg-[#015ea3]">
         <div className="w-full px-4 md:px-6 lg:px-8 max-w-[1312px] mx-auto flex items-center justify-between overflow-x-auto no-scrollbar gap-0">
           <div className="flex">
-            {NAV_ITEMS.map((item) => (
+            {NAV_ITEMS_LEFT.map((item) => (
               <MemoizedNavItem key={item.label} item={item} />
             ))}
           </div>
-          <div className="px-3 py-3 flex items-center justify-center">
-            <Info className="w-6 h-6 text-white cursor-pointer" />
+          <div className="flex items-center">
+            <MemoizedNavItem item={NAV_ITEM_RIGHT} />
+            <div className="px-3 py-3 flex items-center justify-center">
+              <Info className="w-6 h-6 text-white cursor-pointer" />
+            </div>
           </div>
         </div>
       </div>

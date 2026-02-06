@@ -84,7 +84,7 @@ export const ProcessTimeline = memo(function ProcessTimeline({ currentPhase = 2 
     },
     {
       phase: "Phase 3",
-      title: "Define focus areas",
+      title: "Your focus areas",
       description: "Discover where to focus your next actions.",
       buttonText: "Open fields",
       buttonIcon: <ArrowUpRight className="w-4 h-4" />,
@@ -92,7 +92,7 @@ export const ProcessTimeline = memo(function ProcessTimeline({ currentPhase = 2 
     },
     {
       phase: "Phase 4",
-      title: "Discuss with your team",
+      title: "Your measures",
       description: "Share and align on next steps together.",
       buttonText: "Open proposals",
       buttonIcon: <ArrowUpRight className="w-4 h-4" />,
@@ -100,7 +100,7 @@ export const ProcessTimeline = memo(function ProcessTimeline({ currentPhase = 2 
     },
     {
       phase: "Phase 5",
-      title: "Set clear goals",
+      title: "Implementation progress",
       description: "Turn insights into actionable steps for your team.",
       buttonText: "Open measures",
       buttonIcon: <ArrowUpRight className="w-4 h-4" />,
@@ -108,7 +108,7 @@ export const ProcessTimeline = memo(function ProcessTimeline({ currentPhase = 2 
     },
     {
       phase: "Phase 6",
-      title: "Check your team pulse",
+      title: "Pulse check",
       description: "Check progress and measure improvements over time.",
       buttonText: "Open pulse",
       buttonIcon: <ArrowUpRight className="w-4 h-4" />,
