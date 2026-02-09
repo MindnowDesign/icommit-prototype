@@ -211,9 +211,9 @@ export default function HomePage() {
             : currentPhase === 5
               ? "Implementation progress"
               : currentPhase === 4 
-                ? "Discuss with your team" 
+                ? "Your measures" 
                 : currentPhase === 3 
-                  ? "Define focus areas" 
+                  ? "Your focus areas" 
                   : "Analyse data"
         }
         actionText={

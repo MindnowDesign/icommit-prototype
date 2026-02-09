@@ -429,9 +429,13 @@ const ActionSection = memo(function ActionSection({
               className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full w-fit self-end text-base font-normal py-3 px-2"
             >
               <span className="font-normal leading-[0]">
-                Download documentation
+                {phase === "Phase 5" ? "Go to measures tool" : phase === "Phase 6" ? "Go to Pulse" : "Download documentation"}
               </span>
-              <Download className="w-4 h-4 shrink-0" strokeWidth={2} />
+              {phase === "Phase 5" || phase === "Phase 6" ? (
+                <ArrowUpRight className="w-4 h-4 shrink-0" strokeWidth={2} />
+              ) : (
+                <Download className="w-4 h-4 shrink-0" strokeWidth={2} />
+              )}
             </Button>
             
             {/* Compass icon in bottom left */}
@@ -467,7 +471,7 @@ const ActionSection = memo(function ActionSection({
 const ACTION_CARDS_DATA = [
   {
     phase: "Phase 3",
-    title: "Define the areas of action you want to focus on",
+    title: "Your areas of action",
     description: (
       <span>
         Pick a maximum of <span className="font-semibold text-[#525252]">3 areas</span> to focus on in <span className="font-semibold text-[#525252]">the next 6 months</span> for both strengths and weakness.
