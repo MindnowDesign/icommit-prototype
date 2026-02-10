@@ -331,12 +331,20 @@ const ActionSection = memo(function ActionSection({
                 </p>
               </div>
 
-              {/* Button */}
+              {/* Buttons */}
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline"
+                  size="big"
+                  onClick={() => navigate("/measures")}
+                  className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] font-normal"
+                >
+                  Go to Measures
+                </Button>
                 <Button 
                   size="big"
                   disabled={disabled}
-                  onClick={hasDownloadedPhase4Docs ? () => navigate("/measures") : handlePhase4Download}
+                  onClick={hasDownloadedPhase4Docs ? handlePhase5Unlock : handlePhase4Download}
                   className={cn(
                     "font-normal",
                     disabled 
@@ -345,7 +353,7 @@ const ActionSection = memo(function ActionSection({
                   )}
                 >
                   {hasDownloadedPhase4Docs ? (
-                    "Go to Measures"
+                    "Proceed to Phase 5"
                   ) : (
                     <>
                       Download documentation
