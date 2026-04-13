@@ -7,6 +7,7 @@ import MeasuresPage from "./pages/MeasuresPage";
 import FieldsOfActionPage from "./pages/FieldsOfActionPage";
 import PulsePage from "./pages/PulsePage";
 import HousePage from "./pages/HousePage";
+import LoginPage from "./pages/LoginPage";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/fields" element={<FieldsOfActionPage />} />
         <Route path="/pulse" element={<PulsePage />} />
         <Route path="/house" element={<HousePage />} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </BrowserRouter>
   );
