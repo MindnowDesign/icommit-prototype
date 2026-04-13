@@ -162,17 +162,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted flex items-center justify-center p-4 md:p-8 lg:p-12">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4 md:p-8 lg:p-10 xl:p-12 2xl:p-14">
       <div
         className={cn(
-          "w-full max-w-[1320px] flex flex-col lg:flex-row items-stretch",
-          "gap-6 lg:gap-10",
+          "flex w-full max-w-full flex-col items-stretch lg:flex-row",
+          "gap-6 lg:gap-8 xl:gap-10",
+          /* Wider on large viewports so both columns scale up (still capped for readability) */
+          "lg:max-w-[min(100%,1480px)] xl:max-w-[min(100%,1680px)] 2xl:max-w-[min(100%,min(1880px,92vw))]",
         )}
       >
         {/* Form column — own card, separated from illustration */}
         <div
           className={cn(
-            "flex min-h-[min(90vh,800px)] flex-col lg:min-h-[min(88vh,820px)]",
+            "flex min-h-[min(90vh,800px)] flex-col lg:min-h-[min(88vh,820px)] xl:min-h-[min(88vh,860px)] 2xl:min-h-[min(88vh,900px)]",
             "lg:flex-1 lg:basis-0 lg:min-w-0",
             "gap-8 rounded-[2rem] md:rounded-[2.5rem]",
             "border border-border/60 bg-card shadow-sm",
@@ -192,7 +194,7 @@ export default function LoginPage() {
           </Link>
 
           <div className="flex min-h-0 flex-1 flex-col justify-center">
-            <div className="mx-auto w-full max-w-[480px] space-y-7">
+            <div className="mx-auto w-full max-w-[480px] space-y-7 xl:max-w-[520px] 2xl:max-w-[560px]">
               <div className="space-y-2 text-center">
                 <h1 className="text-[1.6875rem] font-semibold leading-snug tracking-tight text-foreground md:text-[1.75rem] md:leading-9">
                   {t.title}
@@ -334,11 +336,16 @@ export default function LoginPage() {
             "lg:flex-1 lg:basis-0 lg:min-w-0",
             "rounded-[2rem] md:rounded-[2.5rem] border border-[#0a3d61]/50",
             "bg-[#0b446f] px-10 py-14 lg:px-14 lg:py-16",
-            "min-h-[min(90vh,800px)] lg:min-h-[min(88vh,820px)]",
+            "min-h-[min(90vh,800px)] lg:min-h-[min(88vh,820px)] xl:min-h-[min(88vh,860px)] 2xl:min-h-[min(88vh,900px)]",
             "shadow-sm",
           )}
         >
-          <LoginIllustrationParallax src={loginIllustration} alt="" maxOffset={10} />
+          <LoginIllustrationParallax
+            src={loginIllustration}
+            alt=""
+            maxOffset={10}
+            imgClassName="xl:max-h-[min(80vh,680px)] 2xl:max-h-[min(82vh,720px)]"
+          />
         </div>
       </div>
     </div>
