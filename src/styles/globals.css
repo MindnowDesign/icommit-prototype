@@ -16,4 +16,14 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: "Bricolage Grotesque", sans-serif;
   }
+
+  /* Suppress browser focus outline on Radix tablist/tab primitives;
+     focus is communicated via active tab highlight instead. */
+  [role="tablist"],
+  [role="tab"],
+  [data-slot="tabs-list"],
+  [data-slot="tabs-trigger"] {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }

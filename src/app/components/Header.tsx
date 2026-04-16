@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User, Info, X } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
-import CompassIcon from "../../assets/Icons/Compass.svg";
 import iCommitLogo from "../../assets/logo/iCommit-logo.png";
 
 const NAV_ITEMS_LEFT = [
@@ -106,7 +105,7 @@ export const Header = memo(function Header() {
           <div className="flex items-center">
             <MemoizedNavItem item={NAV_ITEM_RIGHT} />
             <div className="px-3 py-3 flex items-center justify-center">
-              <Info className="w-6 h-6 text-white cursor-pointer" />
+              <Info className="w-6 h-6 text-white cursor-pointer" aria-hidden />
             </div>
           </div>
         </div>

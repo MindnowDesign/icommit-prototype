@@ -1,79 +1,82 @@
 import React from "react";
-import { Diamond, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
+import { getActionPortfolioCopy } from "../../i18n/actionPortfolioCopy";
+import { useLocale } from "../../i18n/LocaleContext";
+import {
+  HAUS_STRENGTH_COLOR,
+  HAUS_WEAKNESS_COLOR,
+  HausStrengthMuscleIcon,
+  HausWeaknessAlertIcon,
+} from "../icons/HausRelativeIcons";
+import { Separator } from "../ui/separator";
 import { cn } from "../ui/utils";
 
-type BenchmarkLegendProps = {
+const STAR_GOLD = "#FAC215";
+
+/** Inner legend blocks (used in sidebar card and in-chart overlay). */
+export function BenchmarkLegendContent({ className }: { className?: string }) {
+  const { locale } = useLocale();
+  const t = getActionPortfolioCopy(locale);
+
+  return (
+    <div className={cn("flex flex-col gap-3.5 text-[#525252]", className)}>
+      <div className="min-w-0">
+        <p className="mb-2 text-[15px] font-medium text-[#0b446f]">{t.legendVsBenchmark}</p>
+        <div className="w-full">
+          <div
+            className="h-3.5 w-full rounded-full bg-gradient-to-r from-[#ef4444] via-[#eab308] to-[#22c55e]"
+            aria-hidden
+          />
+          <div className="mt-1.5 flex justify-between text-[14px] leading-none text-[#525252]">
+            <span>{t.legendWorse}</span>
+            <span className="text-xs text-[#94a3b8]">{t.legendAvg}</span>
+            <span>{t.legendBetter}</span>
+          </div>
+        </div>
+      </div>
+
+      <Separator className="bg-[#e0f0fe]" />
+
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <div className="flex items-center gap-2">
+          <Star className="size-[17px] shrink-0" fill={STAR_GOLD} stroke="#fff" strokeWidth={1.5} aria-hidden />
+          <span className="text-[15px] leading-snug">{t.legendPhase3}</span>
+        </div>
+      </div>
+
+      <Separator className="bg-[#e0f0fe]" />
+
+      <div className="min-w-0">
+        <p className="text-[15px] font-medium text-[#0b446f]">{t.legendHaus}</p>
+        <div className="mt-2 flex flex-col gap-2 text-[#525252]">
+          <div className="flex items-center gap-2">
+            <HausStrengthMuscleIcon size={16} color={HAUS_STRENGTH_COLOR} />
+            <span className="text-[15px] leading-snug">{t.legendHausStrength}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <HausWeaknessAlertIcon size={16} color={HAUS_WEAKNESS_COLOR} />
+            <span className="text-[15px] leading-snug">{t.legendHausWeakness}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type LegendProps = {
   className?: string;
 };
 
-export function BenchmarkLegend({ className }: BenchmarkLegendProps) {
+export function BenchmarkLegend({ className }: LegendProps) {
   return (
     <div
       className={cn(
-        "flex w-52 shrink-0 flex-col gap-4 rounded-[16px] border border-[#b9e2fe] bg-white p-4",
+        "flex w-52 shrink-0 flex-col rounded-2xl border border-[#b9e2fe] bg-white p-3",
         className,
       )}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#0b446f]">
-        Legend
-      </p>
-
-      <div className="flex flex-col gap-2">
-        <p className="text-xs font-medium text-[#0b446f]">Point fill (benchmark)</p>
-        <div className="flex gap-3">
-          <div
-            className="h-28 w-3 shrink-0 rounded-full bg-gradient-to-b from-[#22c55e] via-[#eab308] to-[#ef4444]"
-            aria-hidden
-          />
-          <div className="flex h-28 flex-col justify-between py-0.5 text-xs leading-tight text-[#525252]">
-            <span>Better vs benchmark</span>
-            <span className="text-center text-[10px] text-[#656565]">0</span>
-            <span>Worse vs benchmark</span>
-          </div>
-        </div>
-        <p className="text-xs leading-snug text-[#656565]">
-          Same order as the chart: higher on the plot means greener fill (sample data).
-        </p>
-      </div>
-
-      <div className="border-t border-[#e0f0fe] pt-3">
-        <p className="mb-2 text-xs font-medium text-[#0b446f]">Ring</p>
-        <ul className="space-y-2 text-xs leading-snug text-[#525252]">
-          <li className="flex gap-2">
-            <span
-              className="mt-0.5 size-3 shrink-0 rounded-full border-[2.5px] border-[#16a34a] bg-transparent"
-              aria-hidden
-            />
-            <span>
-              <span className="font-medium text-[#16a34a]">Green</span> ring: relative strength
-              (Commitment Haus)
-            </span>
-          </li>
-          <li className="flex gap-2">
-            <span
-              className="mt-0.5 size-3 shrink-0 rounded-full border-[2.5px] border-[#dc2626] bg-transparent"
-              aria-hidden
-            />
-            <span>
-              <span className="font-medium text-[#dc2626]">Red</span> ring: relative weakness
-            </span>
-          </li>
-        </ul>
-      </div>
-
-      <div className="border-t border-[#e0f0fe] pt-3">
-        <p className="mb-2 text-xs font-medium text-[#0b446f]">Markers</p>
-        <div className="flex items-start gap-2 text-xs leading-snug text-[#525252]">
-          <span className="flex shrink-0 gap-1 pt-0.5 text-[#0b446f]" aria-hidden>
-            <Star className="size-4" strokeWidth={2} fill="white" />
-            <Diamond className="size-4" strokeWidth={2} fill="white" />
-          </span>
-          <span>
-            Star or diamond: topics you marked as action areas in Phase 3.
-          </span>
-        </div>
-      </div>
+      <BenchmarkLegendContent />
     </div>
   );
 }

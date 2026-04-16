@@ -54,14 +54,13 @@ interface HierarchicalTeamSelectProps {
   value?: string;
   onValueChange?: (value: string) => void;
   className?: string;
+  /** Empty-state label on the trigger (e.g. translated). Defaults to “Select team”. */
+  placeholder?: string;
 }
 
 // Reusable row component for consistent styling
 interface RowProps {
   name: string;
-  current: number;
-  total: number;
-  percentage: number;
   isSelected: boolean;
   onClick: () => void;
   variant: "company" | "category" | "department" | "item";
@@ -70,9 +69,6 @@ interface RowProps {
 
 const Row = memo(function Row({
   name,
-  current,
-  total,
-  percentage,
   isSelected,
   onClick,
   variant,
@@ -115,31 +111,13 @@ const Row = memo(function Row({
       {/* Name */}
       <span
         className={cn(
-          "text-sm truncate flex-1",
+          "text-sm whitespace-nowrap min-w-0",
           isSelected ? "text-white" : "text-[#292929]",
           variant === "company" && "text-base font-bold",
           isBold && "font-semibold"
         )}
       >
         {name}
-      </span>
-
-      {/* Stats - fixed widths for vertical alignment */}
-      <span
-        className={cn(
-          "text-sm w-[60px] text-right tabular-nums",
-          isSelected ? "text-white/80" : "text-[#656565]"
-        )}
-      >
-        {current} / {total}
-      </span>
-      <span
-        className={cn(
-          "text-sm font-semibold w-[40px] text-right tabular-nums",
-          isSelected ? "text-white" : "text-[#292929]"
-        )}
-      >
-        {percentage}%
       </span>
 
       {/* Check icon - far right */}
@@ -154,6 +132,7 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
   value,
   onValueChange,
   className,
+  placeholder = "Select team",
 }: HierarchicalTeamSelectProps) {
   const [open, setOpen] = useState(false);
 
@@ -201,9 +180,7 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
     [onValueChange]
   );
 
-  const displayValue = selectedItem
-    ? selectedItem.item.name
-    : "Select team";
+  const displayValue = selectedItem ? selectedItem.item.name : placeholder;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -214,7 +191,7 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
             "bg-white border border-[#d8d8d8] rounded-[10px] px-3 py-1.5",
             "hover:border-gray-400 transition-colors",
             "h-auto min-h-[42px] w-fit min-w-[90px]",
-            "focus:ring-0 focus:ring-offset-0 focus:border-gray-400",
+            "outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-gray-400 focus-visible:outline-none focus-visible:ring-0",
             "shadow-none",
             "flex items-center justify-between gap-2",
             "text-left",
@@ -231,20 +208,17 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
       <PopoverContent
         className={cn(
           "bg-white border border-[#d8d8d8] rounded-[10px]",
-          "shadow-lg w-[420px] p-0",
+          "shadow-lg w-max max-w-[calc(100vw-1.5rem)] p-0",
           "max-h-[500px] overflow-y-auto"
         )}
         align="start"
       >
-        <div className="flex flex-col">
+        <div className="flex flex-col w-max max-w-full">
           {teamGroups.map((group) => (
             <div key={group.id} className="flex flex-col">
               {/* Company header row */}
               <Row
                 name={group.name}
-                current={group.current}
-                total={group.total}
-                percentage={group.percentage}
                 isSelected={value === group.id}
                 onClick={() => handleSelect(group.id)}
                 variant="company"
@@ -268,9 +242,6 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                   {/* - "department" for standalone items (Management, Interns) - bold except Management */}
                   <Row
                     name={dept.name}
-                    current={dept.current}
-                    total={dept.total}
-                    percentage={dept.percentage}
                     isSelected={value === dept.id}
                     onClick={() => handleSelect(dept.id)}
                     variant={dept.isParent ? "category" : "department"}
@@ -282,9 +253,6 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                     <Row
                       key={child.id}
                       name={child.name}
-                      current={child.current}
-                      total={child.total}
-                      percentage={child.percentage}
                       isSelected={value === child.id}
                       onClick={() => handleSelect(child.id)}
                       variant="item"
