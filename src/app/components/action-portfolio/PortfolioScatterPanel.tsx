@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   Briefcase,
   Building2,
@@ -209,10 +209,35 @@ type DotProps = Readonly<{
   /** Driven by parent `hoveredPointId` so reorder/remount does not drop hover scale. */
   isActive: boolean;
   onHoverChange?: (id: string | null) => void;
+  /**
+   * Second Scatter clone (hover on top): mounts already “active”, so Motion would skip 1→1.16.
+   * Defer the target scale one frame so the same easing as `isActive` flips is visible.
+   */
+  emphasizeEntrance?: boolean;
 }>;
 
-function Dot({ cx = 0, cy = 0, payload, isActive, onHoverChange }: DotProps) {
+function Dot({
+  cx = 0,
+  cy = 0,
+  payload,
+  isActive,
+  onHoverChange,
+  emphasizeEntrance = false,
+}: DotProps) {
   if (!payload) return null;
+
+  const reduceMotion = useReducedMotion();
+  const [entranceReady, setEntranceReady] = useState(!emphasizeEntrance);
+
+  useEffect(() => {
+    if (!emphasizeEntrance) return;
+    if (reduceMotion === true) {
+      setEntranceReady(true);
+      return;
+    }
+    const id = requestAnimationFrame(() => setEntranceReady(true));
+    return () => cancelAnimationFrame(id);
+  }, [emphasizeEntrance, reduceMotion]);
 
   const fill = deviationFillColor(payload.y);
   const hr = payload.hausRelative;
@@ -223,6 +248,15 @@ function Dot({ cx = 0, cy = 0, payload, isActive, onHoverChange }: DotProps) {
   const notifyEnter = () => onHoverChange?.(payload.id);
   const notifyLeave = () => onHoverChange?.(null);
 
+  const scale =
+    emphasizeEntrance && reduceMotion !== true
+      ? entranceReady
+        ? 1.16
+        : 1
+      : isActive
+        ? 1.16
+        : 1;
+
   return (
     <g transform={`translate(${cx},${cy})`}>
       <MotionG
@@ -232,7 +266,7 @@ function Dot({ cx = 0, cy = 0, payload, isActive, onHoverChange }: DotProps) {
           pointerEvents: "none",
         }}
         initial={{ scale: 1 }}
-        animate={{ scale: isActive ? 1.16 : 1 }}
+        animate={{ scale }}
         transition={{
           type: "tween",
           duration: DOT_HOVER_DURATION_S,
@@ -349,24 +383,37 @@ export function PortfolioScatterPanel({
     };
   }, []);
 
-  /** Draw order: hovered point last so its dot + label sit above all others (SVG paint order). */
-  const chartDataOrdered = useMemo(() => {
-    if (!hoveredPointId) return chartData;
-    const i = chartData.findIndex((p) => p.id === hoveredPointId);
-    if (i < 0) return chartData;
-    const next = [...chartData];
-    const [hit] = next.splice(i, 1);
-    next.push(hit);
-    return next;
+  /**
+   * Do NOT reorder `chartData` on hover: Recharts Scatter keys each symbol as
+   * `symbol-${cx}-${cy}-${size}-${index}` — changing index remounts the node and breaks
+   * hover scale / Motion. Order stays fixed for stable keys and consistent easing.
+   */
+  /** Single hovered row — second Scatter draws it on top without reordering base `chartData` (stable Recharts keys). */
+  const elevatedData = useMemo(() => {
+    if (!hoveredPointId) return [];
+    const hit = chartData.find((p) => p.id === hoveredPointId);
+    return hit ? [hit] : [];
   }, [chartData, hoveredPointId]);
 
-  const dotRenderer = useCallback(
+  const baseDotRenderer = useCallback(
     (p: { cx?: number; cy?: number; payload?: ChartPoint }) => {
       const point = p.payload;
+      if (!point) return null;
+      if (hoveredPointId === point.id) {
+        return (
+          <g
+            key={point.id}
+            transform={`translate(${p.cx ?? 0},${p.cy ?? 0})`}
+            aria-hidden
+            style={{ pointerEvents: "none" }}
+          />
+        );
+      }
       return (
         <Dot
+          key={point.id}
           {...p}
-          isActive={point ? hoveredPointId === point.id : false}
+          isActive={false}
           onHoverChange={handleDotHoverChange}
         />
       );
@@ -374,9 +421,26 @@ export function PortfolioScatterPanel({
     [handleDotHoverChange, hoveredPointId],
   );
 
+  const overlayDotRenderer = useCallback(
+    (p: { cx?: number; cy?: number; payload?: ChartPoint }) => {
+      const point = p.payload;
+      if (!point) return null;
+      return (
+        <Dot
+          key={`ov-${point.id}`}
+          {...p}
+          isActive
+          emphasizeEntrance
+          onHoverChange={handleDotHoverChange}
+        />
+      );
+    },
+    [handleDotHoverChange],
+  );
+
   const labelRenderer = useMemo(
-    () => makeLabelRenderer(showAllLabels, chartDataOrdered),
-    [showAllLabels, chartDataOrdered],
+    () => makeLabelRenderer(showAllLabels, chartData),
+    [showAllLabels, chartData],
   );
 
   return (
@@ -506,13 +570,22 @@ export function PortfolioScatterPanel({
             />
             <Scatter
               name="actions"
-              data={chartDataOrdered}
+              data={chartData}
               fill="transparent"
-              shape={dotRenderer}
+              shape={baseDotRenderer}
               isAnimationActive={false}
             >
               <LabelList dataKey="displayLabel" position="bottom" content={labelRenderer} />
             </Scatter>
+            {elevatedData.length > 0 ? (
+              <Scatter
+                name="actions-focus"
+                data={elevatedData}
+                fill="transparent"
+                shape={overlayDotRenderer}
+                isAnimationActive={false}
+              />
+            ) : null}
             <Customized
               component={(chartProps: { xAxisMap?: Record<string, XAxisMapEntry> }) => (
                 <XAxisPoleLabels
