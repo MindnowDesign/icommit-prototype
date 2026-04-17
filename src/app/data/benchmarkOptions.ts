@@ -8,18 +8,18 @@ export const BENCHMARK_OPTIONS: readonly {
 }[] = [
   {
     id: "industry",
-    label: "Industry benchmark",
-    description: "Aggregated reference companies in your sector (sample).",
+    label: "External benchmark",
+    description: "Comparison with aggregated reference companies in your sector (sample).",
   },
   {
     id: "internal",
-    label: "Internal norm group",
-    description: "Comparison to your organisation’s historical norm (sample).",
+    label: "Internal benchmark",
+    description: "Comparison with your organisation’s internal reference (sample).",
   },
   {
     id: "dach",
-    label: "DACH regional sample",
-    description: "Regional benchmark pool for DACH (sample).",
+    label: "Historical comparison",
+    description: "Trend or period comparison against historical reference (sample).",
   },
 ];
 

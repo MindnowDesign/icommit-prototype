@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
   Briefcase,
   Building2,
   Coins,
+  Cpu,
   Crown,
   FileCheck,
   GraduationCap,
@@ -17,10 +18,13 @@ import {
   Users,
   UsersRound,
   Wrench,
+  Zap,
 } from "lucide-react";
 import {
   CartesianGrid,
+  Customized,
   LabelList,
+  Text as RechartsText,
   ReferenceLine,
   ResponsiveContainer,
   Scatter,
@@ -54,6 +58,8 @@ const FIELD_ICONS: Record<string, React.ComponentType<{ className?: string; stro
   "workplace-tools":        Wrench,
   "collaboration":          Users,
   "dealing-changes":        RefreshCw,
+  "digitalization":         Cpu,
+  "agility":                Zap,
   "customer-orientation":   UserCheck,
   "company-strategy":       Target,
   "involvement-employees":  UserPlus,
@@ -94,10 +100,68 @@ function toChartData(points: ActionPortfolioPoint[], locale: AppLocale): ChartPo
 }
 
 const DOT_R = 18;
+/** Phase-3 / starred points — slightly larger */
+const DOT_R_SMALL = 15;
 const HAUS_ICON_SIZE = 17;
+/** Keep in sync with `XAxis` `label.offset` — used to align pole captions with the axis title. */
+const X_AXIS_TITLE_LABEL_OFFSET = -10;
 
 function truncate(s: string): string {
   return s.length <= LABEL_MAX ? s : `${s.slice(0, LABEL_MAX - 1)}…`;
+}
+
+/** Same Y as Recharts XAxis `label` with `position: "insideBottom"` (see Label getAttrs). */
+function xAxisTitleBaselineY(axis: { y: number; height: number }): number {
+  const offset = X_AXIS_TITLE_LABEL_OFFSET;
+  const verticalSign = axis.height >= 0 ? 1 : -1;
+  const verticalOffset = verticalSign * offset;
+  return axis.y + axis.height - verticalOffset;
+}
+
+type XAxisMapEntry = { x: number; y: number; width: number; height: number };
+
+function XAxisPoleLabels({
+  xAxisMap,
+  poleLow,
+  poleHigh,
+}: {
+  xAxisMap?: Record<string, XAxisMapEntry>;
+  poleLow: string;
+  poleHigh: string;
+}) {
+  if (!xAxisMap) return null;
+  const firstId = Object.keys(xAxisMap)[0];
+  if (!firstId) return null;
+  const ax = xAxisMap[firstId];
+  if (!ax) return null;
+  const textY = xAxisTitleBaselineY(ax);
+  const pad = 4;
+  return (
+    <g className="recharts-xaxis-pole-labels" aria-hidden>
+      <RechartsText
+        x={ax.x + pad}
+        y={textY}
+        textAnchor="start"
+        verticalAnchor="end"
+        fill="#64748b"
+        fontSize={11}
+        fontFamily='"Source Sans Pro", sans-serif'
+      >
+        {poleLow}
+      </RechartsText>
+      <RechartsText
+        x={ax.x + ax.width - pad}
+        y={textY}
+        textAnchor="end"
+        verticalAnchor="end"
+        fill="#64748b"
+        fontSize={11}
+        fontFamily='"Source Sans Pro", sans-serif'
+      >
+        {poleHigh}
+      </RechartsText>
+    </g>
+  );
 }
 
 /* ── HausTooltipBadge ───────────────────────────────────────────────────── */
@@ -133,21 +197,30 @@ type DotProps = Readonly<{
   cx?: number;
   cy?: number;
   payload?: ChartPoint;
+  onHoverChange?: (id: string | null) => void;
 }>;
 
-function Dot({ cx = 0, cy = 0, payload }: DotProps) {
+function Dot({ cx = 0, cy = 0, payload, onHoverChange }: DotProps) {
   const [hovered, setHovered] = useState(false);
   if (!payload) return null;
 
   const fill = deviationFillColor(payload.y);
   const hr = payload.hausRelative;
-  const iconSize = HAUS_ICON_SIZE;
+  const starred = payload.isUserAction;
+  const r = starred ? DOT_R : DOT_R_SMALL;
+  const iconSize = starred ? HAUS_ICON_SIZE : Math.round((HAUS_ICON_SIZE * DOT_R_SMALL) / DOT_R);
 
   return (
     <g
       transform={`translate(${cx},${cy})`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => {
+        setHovered(true);
+        onHoverChange?.(payload.id);
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        onHoverChange?.(null);
+      }}
     >
       <g
         style={{
@@ -157,7 +230,12 @@ function Dot({ cx = 0, cy = 0, payload }: DotProps) {
           transition: "transform 240ms cubic-bezier(0.22, 2.8, 0.36, 1)",
         }}
       >
-        <circle r={DOT_R} fill={fill} stroke="none" />
+        <circle
+          r={r}
+          fill={fill}
+          stroke="#ffffff"
+          strokeWidth={starred ? 2.5 : 2}
+        />
         {hr && (
           <g
             transform={`translate(${-iconSize / 2}, ${-iconSize / 2})`}
@@ -198,10 +276,11 @@ function makeLabelRenderer(showAll: boolean, data: ChartPoint[]) {
   return function LabelRenderer({ cx = 0, cy = 0, payload, index }: LabelProps) {
     const p = payload ?? (typeof index === "number" ? data[index] : undefined);
     if (!p || (!showAll && !p.isUserAction)) return null;
+    const labelR = p.isUserAction ? DOT_R : DOT_R_SMALL;
     return (
       <text
         x={cx}
-        y={cy + DOT_R + 15}
+        y={cy + labelR + 15}
         textAnchor="middle"
         fill="#334155"
         fontSize={13}
@@ -231,21 +310,58 @@ export function PortfolioScatterPanel({
   const t = getActionPortfolioCopy(locale);
   const chartData = useMemo(() => toChartData(data, locale), [data, locale]);
 
+  const [hoveredPointId, setHoveredPointId] = useState<string | null>(null);
+  const hoverClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDotHoverChange = useCallback((id: string | null) => {
+    if (hoverClearTimerRef.current) {
+      clearTimeout(hoverClearTimerRef.current);
+      hoverClearTimerRef.current = null;
+    }
+    if (id) {
+      setHoveredPointId(id);
+    } else {
+      hoverClearTimerRef.current = setTimeout(() => {
+        setHoveredPointId(null);
+        hoverClearTimerRef.current = null;
+      }, 120);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hoverClearTimerRef.current) clearTimeout(hoverClearTimerRef.current);
+    };
+  }, []);
+
+  /** Draw order: hovered point last so its dot + label sit above all others (SVG paint order). */
+  const chartDataOrdered = useMemo(() => {
+    if (!hoveredPointId) return chartData;
+    const i = chartData.findIndex((p) => p.id === hoveredPointId);
+    if (i < 0) return chartData;
+    const next = [...chartData];
+    const [hit] = next.splice(i, 1);
+    next.push(hit);
+    return next;
+  }, [chartData, hoveredPointId]);
+
   const dotRenderer = useCallback(
-    (p: { cx?: number; cy?: number; payload?: ChartPoint }) => <Dot {...p} />,
-    [],
+    (p: { cx?: number; cy?: number; payload?: ChartPoint }) => (
+      <Dot {...p} onHoverChange={handleDotHoverChange} />
+    ),
+    [handleDotHoverChange],
   );
 
   const labelRenderer = useMemo(
-    () => makeLabelRenderer(showAllLabels, chartData),
-    [showAllLabels, chartData],
+    () => makeLabelRenderer(showAllLabels, chartDataOrdered),
+    [showAllLabels, chartDataOrdered],
   );
 
   return (
     <div className={cn("w-full", className)}>
       <div className="relative h-[min(440px,56vh)] min-h-[320px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ top: 24, right: 16, bottom: 44, left: 16 }}>
+          <ScatterChart margin={{ top: 24, right: 16, bottom: 48, left: 16 }}>
             <CartesianGrid strokeDasharray="4 3" stroke="#e0f0fe" />
             <XAxis
               type="number"
@@ -259,7 +375,7 @@ export function PortfolioScatterPanel({
               label={{
                 value: t.chartInfluenceAxis,
                 position: "insideBottom",
-                offset: -10,
+                offset: X_AXIS_TITLE_LABEL_OFFSET,
                 fill: "#64748b",
                 fontSize: 13,
               }}
@@ -368,13 +484,22 @@ export function PortfolioScatterPanel({
             />
             <Scatter
               name="actions"
-              data={chartData}
+              data={chartDataOrdered}
               fill="transparent"
               shape={dotRenderer}
               isAnimationActive={false}
             >
               <LabelList dataKey="displayLabel" position="bottom" content={labelRenderer} />
             </Scatter>
+            <Customized
+              component={(chartProps: { xAxisMap?: Record<string, XAxisMapEntry> }) => (
+                <XAxisPoleLabels
+                  xAxisMap={chartProps.xAxisMap}
+                  poleLow={t.chartXAxisPoleLow}
+                  poleHigh={t.chartXAxisPoleHigh}
+                />
+              )}
+            />
           </ScatterChart>
         </ResponsiveContainer>
         <ChartLegendOverlay />
