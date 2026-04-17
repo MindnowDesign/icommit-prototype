@@ -289,7 +289,7 @@ function Dot({
           </g>
         )}
         {payload.isUserAction && (
-          <g transform="translate(17,-17)" aria-hidden>
+          <g transform="translate(16,-16)" aria-hidden>
             <g transform="translate(-11,-11)">
               <Star
                 width={22}
