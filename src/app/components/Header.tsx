@@ -1,6 +1,6 @@
-import React, { memo, useState, useEffect } from "react";
+import React, { memo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User, Info, X } from "lucide-react";
+import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User, Info } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import iCommitLogo from "../../assets/logo/iCommit-logo.png";
@@ -45,44 +45,9 @@ function NavItem({ item }: { item: typeof NAV_ITEMS_LEFT[number] | typeof NAV_IT
 
 const MemoizedNavItem = memo(NavItem);
 
-function DesignBanner() {
-  const [isVisible, setIsVisible] = useState(true);
-  const location = useLocation();
-
-  useEffect(() => {
-    // Show banner only on these specific pages
-    const shouldShow = ["/measures", "/fields", "/pulse"].includes(location.pathname);
-    setIsVisible(shouldShow);
-  }, [location.pathname]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-  };
-
-  if (!isVisible) return null;
-
-  return (
-    <div className="w-full bg-red-400 text-white py-2 flex items-center justify-center gap-4 relative">
-      <div className="w-full px-4 md:px-6 lg:px-8 max-w-[1312px] mx-auto flex items-center justify-center relative">
-        <p className="text-base font-medium text-center">
-          A refreshed design for this page is coming soon.
-        </p>
-        <button
-          onClick={handleClose}
-          className="absolute right-4 md:right-6 lg:right-8 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" strokeWidth={2} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export const Header = memo(function Header() {
   return (
     <div className="w-full flex flex-col items-center bg-white shadow-sm z-50 sticky top-0">
-      <DesignBanner />
       <SectionWrapper className="flex items-center justify-between py-4">
         <div className="flex items-center gap-4">
           <img src={iCommitLogo} alt="iCommit" className="h-[28px]" loading="lazy" />

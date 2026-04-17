@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { motion } from "motion/react";
 import {
   Briefcase,
   Building2,
@@ -102,7 +103,15 @@ function toChartData(points: ActionPortfolioPoint[], locale: AppLocale): ChartPo
 const DOT_R = 18;
 /** Phase-3 / starred points — slightly larger */
 const DOT_R_SMALL = 15;
+/** Extra invisible hit area (px) — easier hover, esp. next to overlapping dots */
+const DOT_HIT_SLOP = 10;
 const HAUS_ICON_SIZE = 17;
+
+/** Bouncy hover scale (same feel as previous CSS cubic-bezier). */
+const DOT_HOVER_EASE = [0.22, 2.8, 0.36, 1] as const;
+const DOT_HOVER_DURATION_S = 0.24;
+
+const MotionG = motion.g;
 /** Keep in sync with `XAxis` `label.offset` — used to align pole captions with the axis title. */
 const X_AXIS_TITLE_LABEL_OFFSET = -10;
 
@@ -197,11 +206,12 @@ type DotProps = Readonly<{
   cx?: number;
   cy?: number;
   payload?: ChartPoint;
+  /** Driven by parent `hoveredPointId` so reorder/remount does not drop hover scale. */
+  isActive: boolean;
   onHoverChange?: (id: string | null) => void;
 }>;
 
-function Dot({ cx = 0, cy = 0, payload, onHoverChange }: DotProps) {
-  const [hovered, setHovered] = useState(false);
+function Dot({ cx = 0, cy = 0, payload, isActive, onHoverChange }: DotProps) {
   if (!payload) return null;
 
   const fill = deviationFillColor(payload.y);
@@ -210,24 +220,23 @@ function Dot({ cx = 0, cy = 0, payload, onHoverChange }: DotProps) {
   const r = starred ? DOT_R : DOT_R_SMALL;
   const iconSize = starred ? HAUS_ICON_SIZE : Math.round((HAUS_ICON_SIZE * DOT_R_SMALL) / DOT_R);
 
+  const notifyEnter = () => onHoverChange?.(payload.id);
+  const notifyLeave = () => onHoverChange?.(null);
+
   return (
-    <g
-      transform={`translate(${cx},${cy})`}
-      onMouseEnter={() => {
-        setHovered(true);
-        onHoverChange?.(payload.id);
-      }}
-      onMouseLeave={() => {
-        setHovered(false);
-        onHoverChange?.(null);
-      }}
-    >
-      <g
+    <g transform={`translate(${cx},${cy})`}>
+      <MotionG
         style={{
           transformBox: "fill-box" as React.CSSProperties["transformBox"],
           transformOrigin: "center",
-          transform: hovered ? "scale(1.16)" : "scale(1)",
-          transition: "transform 240ms cubic-bezier(0.22, 2.8, 0.36, 1)",
+          pointerEvents: "none",
+        }}
+        initial={{ scale: 1 }}
+        animate={{ scale: isActive ? 1.16 : 1 }}
+        transition={{
+          type: "tween",
+          duration: DOT_HOVER_DURATION_S,
+          ease: DOT_HOVER_EASE,
         }}
       >
         <circle
@@ -237,11 +246,7 @@ function Dot({ cx = 0, cy = 0, payload, onHoverChange }: DotProps) {
           strokeWidth={starred ? 2.5 : 2}
         />
         {hr && (
-          <g
-            transform={`translate(${-iconSize / 2}, ${-iconSize / 2})`}
-            style={{ pointerEvents: "none" }}
-            aria-hidden
-          >
+          <g transform={`translate(${-iconSize / 2}, ${-iconSize / 2})`} aria-hidden>
             {hr === "strength" ? (
               <HausStrengthMuscleIcon size={iconSize} color={HAUS_ICON_INNER} />
             ) : (
@@ -250,7 +255,7 @@ function Dot({ cx = 0, cy = 0, payload, onHoverChange }: DotProps) {
           </g>
         )}
         {payload.isUserAction && (
-          <g transform="translate(17,-17)" style={{ pointerEvents: "none" }} aria-hidden>
+          <g transform="translate(17,-17)" aria-hidden>
             <g transform="translate(-11,-11)">
               <Star
                 width={22}
@@ -263,7 +268,17 @@ function Dot({ cx = 0, cy = 0, payload, onHoverChange }: DotProps) {
             </g>
           </g>
         )}
-      </g>
+      </MotionG>
+      {/* Hit target outside scaled group — stable size; captures pointer for parent state */}
+      <circle
+        r={r + DOT_HIT_SLOP}
+        fill="transparent"
+        stroke="none"
+        pointerEvents="all"
+        style={{ cursor: "pointer" }}
+        onPointerEnter={notifyEnter}
+        onPointerLeave={notifyLeave}
+      />
     </g>
   );
 }
@@ -346,10 +361,17 @@ export function PortfolioScatterPanel({
   }, [chartData, hoveredPointId]);
 
   const dotRenderer = useCallback(
-    (p: { cx?: number; cy?: number; payload?: ChartPoint }) => (
-      <Dot {...p} onHoverChange={handleDotHoverChange} />
-    ),
-    [handleDotHoverChange],
+    (p: { cx?: number; cy?: number; payload?: ChartPoint }) => {
+      const point = p.payload;
+      return (
+        <Dot
+          {...p}
+          isActive={point ? hoveredPointId === point.id : false}
+          onHoverChange={handleDotHoverChange}
+        />
+      );
+    },
+    [handleDotHoverChange, hoveredPointId],
   );
 
   const labelRenderer = useMemo(
