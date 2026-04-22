@@ -1,22 +1,22 @@
-/** Maps benchmark deviation y in [-1, 1] to red → yellow → green (aligned with legend). */
-export function deviationFillColor(y: number, yMin = -1, yMax = 1): string {
-  const t = (y - yMin) / (yMax - yMin);
-  const c = Math.max(0, Math.min(1, t));
-  if (c <= 0.5) {
-    return interpolateHex(0xef4444, 0xeab308, c * 2);
-  }
-  return interpolateHex(0xeab308, 0x22c55e, (c - 0.5) * 2);
+const DEVIATION_PALETTE = ["#BA1B26", "#F97079", "#989898", "#80D7A0", "#15803C"] as const;
+
+/**
+ * Maps benchmark deviation score to 5 fixed colors (worst → best).
+ * Expected primary input is integer score in [-14, 14].
+ * If value looks normalized in [-1, 1], we convert it to [-14, 14].
+ */
+export function deviationFillColor(value: number): string {
+  return DEVIATION_PALETTE[getDeviationBucket(value)];
 }
 
-function interpolateHex(a: number, b: number, t: number): string {
-  const ar = (a >> 16) & 0xff,
-    ag = (a >> 8) & 0xff,
-    ab = a & 0xff;
-  const br = (b >> 16) & 0xff,
-    bg = (b >> 8) & 0xff,
-    bb = b & 0xff;
-  const r = Math.round(ar + (br - ar) * t);
-  const g = Math.round(ag + (bg - ag) * t);
-  const bl = Math.round(ab + (bb - ab) * t);
-  return `rgb(${r},${g},${bl})`;
+/** Returns color bucket index from worst (0) to best (4). */
+export function getDeviationBucket(value: number): 0 | 1 | 2 | 3 | 4 {
+  const looksNormalizedFloat = Math.abs(value) <= 1 && !Number.isInteger(value);
+  const score = looksNormalizedFloat ? Math.round(value * 14) : Math.round(value);
+
+  if (score <= -8) return 0;
+  if (score <= -3) return 1;
+  if (score < 3) return 2;
+  if (score < 8) return 3;
+  return 4;
 }

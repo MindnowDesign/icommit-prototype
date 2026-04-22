@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   Briefcase,
@@ -39,6 +39,11 @@ import type { ActionPortfolioPoint } from "../../data/actionPortfolioSample";
 import type { AppLocale } from "../../i18n/LocaleContext";
 import { useLocale } from "../../i18n/LocaleContext";
 import { getActionPortfolioCopy, getTopicDisplayLabel } from "../../i18n/actionPortfolioCopy";
+import benchmarkValue01 from "../../../assets/Icons/Benchmark/iCommit-Icons-benchmark-value-01.svg";
+import benchmarkValue02 from "../../../assets/Icons/Benchmark/iCommit-Icons-benchmark-value-02.svg";
+import benchmarkValue03 from "../../../assets/Icons/Benchmark/iCommit-Icons-benchmark-value-03.svg";
+import benchmarkValue04 from "../../../assets/Icons/Benchmark/iCommit-Icons-benchmark-value-04.svg";
+import benchmarkValue05 from "../../../assets/Icons/Benchmark/iCommit-Icons-benchmark-value-05.svg";
 import {
   HAUS_STRENGTH_COLOR,
   HAUS_WEAKNESS_COLOR,
@@ -46,7 +51,7 @@ import {
   HausWeaknessAlertIcon,
 } from "../icons/HausRelativeIcons";
 import { ChartLegendOverlay } from "./ChartLegendOverlay";
-import { deviationFillColor } from "./deviationColor";
+import { deviationFillColor, getDeviationBucket } from "./deviationColor";
 import { Separator } from "../ui/separator";
 import { cn } from "../ui/utils";
 
@@ -78,10 +83,23 @@ const FIELD_ICONS: Record<string, React.ComponentType<{ className?: string; stro
 const HAUS_ICON_INNER = "#ffffff";
 const STAR_GOLD = "#FAC215";
 const LABEL_MAX = 20;
+const BENCHMARK_SCALE_MAX = 14;
+const BENCHMARK_TOOLTIP_ICONS = [
+  benchmarkValue01,
+  benchmarkValue02,
+  benchmarkValue03,
+  benchmarkValue04,
+  benchmarkValue05,
+] as const;
 
-/** Maps influence [-1, 1] → plot X in [0.5, 2] (ticks every 0.5). */
+/** Maps influence [-1, 1] → normalized plot X in [0, 1]. */
 function influenceToPlotX(influence: number): number {
-  return 0.5 + ((influence + 1) / 2) * 1.5;
+  return (influence + 1) / 2;
+}
+
+/** Maps benchmark deviation [-1, 1] to integer benchmark score [-14, 14]. */
+function benchmarkToPlotY(deviation: number): number {
+  return Math.round(deviation * BENCHMARK_SCALE_MAX);
 }
 
 function formatXAxisTick(v: number): string {
@@ -89,23 +107,37 @@ function formatXAxisTick(v: number): string {
   return v.toFixed(1);
 }
 
-type ChartPoint = ActionPortfolioPoint & { influence: number; displayLabel: string };
+function buildSymmetricIntegerTicks(absMax: number): number[] {
+  if (absMax <= 1) return [-1, 0, 1];
+  const half = Math.max(1, Math.round(absMax / 2));
+  return [-absMax, -half, 0, half, absMax];
+}
+
+type ChartPoint = ActionPortfolioPoint & {
+  influence: number;
+  benchmarkDeviation: number;
+  displayLabel: string;
+};
 
 function toChartData(points: ActionPortfolioPoint[], locale: AppLocale): ChartPoint[] {
   return points.map((p) => ({
     ...p,
     influence: p.x,
     x: influenceToPlotX(p.x),
+    benchmarkDeviation: p.y,
+    y: benchmarkToPlotY(p.y),
     displayLabel: getTopicDisplayLabel(p, locale),
   }));
 }
 
-const DOT_R = 18;
-/** Phase-3 / starred points — slightly larger */
-const DOT_R_SMALL = 15;
+const DOT_R = 15;
 /** Extra invisible hit area (px) — easier hover, esp. next to overlapping dots */
 const DOT_HIT_SLOP = 10;
 const HAUS_ICON_SIZE = 17;
+const LABEL_FONT_SIZE = 12;
+const LABEL_LINE_HEIGHT = 16;
+const LABEL_PILL_H_PAD = 4;
+const LABEL_PILL_V_PAD = 1;
 
 /** Bouncy hover scale (same feel as previous CSS cubic-bezier). */
 const DOT_HOVER_EASE = [0.22, 2.8, 0.36, 1] as const;
@@ -117,6 +149,10 @@ const X_AXIS_TITLE_LABEL_OFFSET = -10;
 
 function truncate(s: string): string {
   return s.length <= LABEL_MAX ? s : `${s.slice(0, LABEL_MAX - 1)}…`;
+}
+
+function estimateLabelWidth(text: string): number {
+  return Math.max(44, Math.min(180, Math.round(text.length * 6 + LABEL_PILL_H_PAD * 2)));
 }
 
 /** Same Y as Recharts XAxis `label` with `position: "insideBottom"` (see Label getAttrs). */
@@ -200,20 +236,24 @@ function HausTooltipBadge({
   );
 }
 
+function FocusOpportunityBadgeIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="10" fill="#F59E0B" stroke="#ffffff" strokeWidth="1.5" />
+      <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
+    </svg>
+  );
+}
+
 /* ── Dot ────────────────────────────────────────────────────────────────── */
 
 type DotProps = Readonly<{
   cx?: number;
   cy?: number;
   payload?: ChartPoint;
-  /** Driven by parent `hoveredPointId` so reorder/remount does not drop hover scale. */
   isActive: boolean;
   onHoverChange?: (id: string | null) => void;
-  /**
-   * Second Scatter clone (hover on top): mounts already “active”, so Motion would skip 1→1.16.
-   * Defer the target scale one frame so the same easing as `isActive` flips is visible.
-   */
-  emphasizeEntrance?: boolean;
+  showPhase3Selected?: boolean;
 }>;
 
 function Dot({
@@ -222,40 +262,22 @@ function Dot({
   payload,
   isActive,
   onHoverChange,
-  emphasizeEntrance = false,
+  showPhase3Selected = true,
 }: DotProps) {
   if (!payload) return null;
 
   const reduceMotion = useReducedMotion();
-  const [entranceReady, setEntranceReady] = useState(!emphasizeEntrance);
-
-  useEffect(() => {
-    if (!emphasizeEntrance) return;
-    if (reduceMotion === true) {
-      setEntranceReady(true);
-      return;
-    }
-    const id = requestAnimationFrame(() => setEntranceReady(true));
-    return () => cancelAnimationFrame(id);
-  }, [emphasizeEntrance, reduceMotion]);
 
   const fill = deviationFillColor(payload.y);
   const hr = payload.hausRelative;
   const starred = payload.isUserAction;
-  const r = starred ? DOT_R : DOT_R_SMALL;
-  const iconSize = starred ? HAUS_ICON_SIZE : Math.round((HAUS_ICON_SIZE * DOT_R_SMALL) / DOT_R);
+  const r = DOT_R;
+  const iconSize = Math.round((HAUS_ICON_SIZE * DOT_R) / 18);
 
   const notifyEnter = () => onHoverChange?.(payload.id);
   const notifyLeave = () => onHoverChange?.(null);
 
-  const scale =
-    emphasizeEntrance && reduceMotion !== true
-      ? entranceReady
-        ? 1.16
-        : 1
-      : isActive
-        ? 1.16
-        : 1;
+  const scale = reduceMotion === true ? 1 : (isActive ? 1.16 : 1);
 
   return (
     <g transform={`translate(${cx},${cy})`}>
@@ -277,7 +299,7 @@ function Dot({
           r={r}
           fill={fill}
           stroke="#ffffff"
-          strokeWidth={starred ? 2.5 : 2}
+          strokeWidth={2}
         />
         {hr && (
           <g transform={`translate(${-iconSize / 2}, ${-iconSize / 2})`} aria-hidden>
@@ -288,17 +310,21 @@ function Dot({
             )}
           </g>
         )}
-        {payload.isUserAction && (
-          <g transform="translate(16,-16)" aria-hidden>
-            <g transform="translate(-11,-11)">
-              <Star
-                width={22}
-                height={22}
-                fill={STAR_GOLD}
-                stroke="#ffffff"
-                strokeWidth={1.5}
-                aria-hidden
-              />
+        {showPhase3Selected && payload.isUserAction && (
+          <g transform="translate(14,-14)" aria-hidden>
+            <g transform="translate(-10,-10)">
+              {payload.y >= 0 ? (
+                <Star
+                  width={20}
+                  height={20}
+                  fill={STAR_GOLD}
+                  stroke="#ffffff"
+                  strokeWidth={1.5}
+                  aria-hidden
+                />
+              ) : (
+                <FocusOpportunityBadgeIcon size={20} />
+              )}
             </g>
           </g>
         )}
@@ -321,23 +347,42 @@ function Dot({
 
 type LabelProps = { cx?: number; cy?: number; payload?: ChartPoint; index?: number };
 
-function makeLabelRenderer(showAll: boolean, data: ChartPoint[]) {
+function makeLabelRenderer(
+  showAll: boolean,
+  showPhase3Selected: boolean,
+  data: ChartPoint[],
+) {
   return function LabelRenderer({ cx = 0, cy = 0, payload, index }: LabelProps) {
     const p = payload ?? (typeof index === "number" ? data[index] : undefined);
-    if (!p || (!showAll && !p.isUserAction)) return null;
-    const labelR = p.isUserAction ? DOT_R : DOT_R_SMALL;
+    if (!p || (!showAll && !(showPhase3Selected && p.isUserAction))) return null;
+    const labelR = DOT_R;
+    const text = truncate(p.displayLabel ?? p.label);
+    const width = estimateLabelWidth(text);
+    const height = LABEL_LINE_HEIGHT + LABEL_PILL_V_PAD * 2;
+    const x = cx - width / 2;
+    const y = cy + labelR + 4;
     return (
-      <text
-        x={cx}
-        y={cy + labelR + 15}
-        textAnchor="middle"
-        fill="#334155"
-        fontSize={13}
-        fontFamily='"Source Sans Pro", sans-serif'
-        style={{ pointerEvents: "none", userSelect: "none" }}
-      >
-        {truncate(p.displayLabel ?? p.label)}
-      </text>
+      <g style={{ pointerEvents: "none", userSelect: "none" }}>
+        <rect
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          rx={8}
+          fill="rgba(255,255,255,0.88)"
+          stroke="#e2e8f0"
+        />
+        <text
+          x={cx}
+          y={y + LABEL_PILL_V_PAD + LABEL_LINE_HEIGHT - 4}
+          textAnchor="middle"
+          fill="#334155"
+          fontSize={LABEL_FONT_SIZE}
+          fontFamily='"Source Sans Pro", sans-serif'
+        >
+          {text}
+        </text>
+      </g>
     );
   };
 }
@@ -347,100 +392,53 @@ function makeLabelRenderer(showAll: boolean, data: ChartPoint[]) {
 type PanelProps = {
   data: ActionPortfolioPoint[];
   showAllLabels: boolean;
+  showPhase3Selected?: boolean;
   className?: string;
 };
 
 export function PortfolioScatterPanel({
   data,
   showAllLabels,
+  showPhase3Selected = true,
   className,
 }: PanelProps) {
   const { locale } = useLocale();
   const t = getActionPortfolioCopy(locale);
   const chartData = useMemo(() => toChartData(data, locale), [data, locale]);
+  const yAbsMax = useMemo(() => {
+    if (!chartData.length) return 1;
+    let absMax = 0;
+    for (const point of chartData) {
+      const abs = Math.abs(point.y);
+      if (abs > absMax) absMax = abs;
+    }
+    return Math.max(1, Math.min(BENCHMARK_SCALE_MAX, absMax));
+  }, [chartData]);
+  const yTicks = useMemo(() => buildSymmetricIntegerTicks(yAbsMax), [yAbsMax]);
 
   const [hoveredPointId, setHoveredPointId] = useState<string | null>(null);
-  const hoverClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleDotHoverChange = useCallback((id: string | null) => {
-    if (hoverClearTimerRef.current) {
-      clearTimeout(hoverClearTimerRef.current);
-      hoverClearTimerRef.current = null;
-    }
-    if (id) {
-      setHoveredPointId(id);
-    } else {
-      hoverClearTimerRef.current = setTimeout(() => {
-        setHoveredPointId(null);
-        hoverClearTimerRef.current = null;
-      }, 120);
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (hoverClearTimerRef.current) clearTimeout(hoverClearTimerRef.current);
-    };
-  }, []);
-
-  /**
-   * Do NOT reorder `chartData` on hover: Recharts Scatter keys each symbol as
-   * `symbol-${cx}-${cy}-${size}-${index}` — changing index remounts the node and breaks
-   * hover scale / Motion. Order stays fixed for stable keys and consistent easing.
-   */
-  /** Single hovered row — second Scatter draws it on top without reordering base `chartData` (stable Recharts keys). */
-  const elevatedData = useMemo(() => {
-    if (!hoveredPointId) return [];
-    const hit = chartData.find((p) => p.id === hoveredPointId);
-    return hit ? [hit] : [];
-  }, [chartData, hoveredPointId]);
+  const handleDotHoverChange = useCallback((id: string | null) => setHoveredPointId(id), []);
 
   const baseDotRenderer = useCallback(
     (p: { cx?: number; cy?: number; payload?: ChartPoint }) => {
       const point = p.payload;
       if (!point) return null;
-      if (hoveredPointId === point.id) {
-        return (
-          <g
-            key={point.id}
-            transform={`translate(${p.cx ?? 0},${p.cy ?? 0})`}
-            aria-hidden
-            style={{ pointerEvents: "none" }}
-          />
-        );
-      }
       return (
         <Dot
           key={point.id}
           {...p}
-          isActive={false}
+          isActive={hoveredPointId === point.id}
+          showPhase3Selected={showPhase3Selected}
           onHoverChange={handleDotHoverChange}
         />
       );
     },
-    [handleDotHoverChange, hoveredPointId],
-  );
-
-  const overlayDotRenderer = useCallback(
-    (p: { cx?: number; cy?: number; payload?: ChartPoint }) => {
-      const point = p.payload;
-      if (!point) return null;
-      return (
-        <Dot
-          key={`ov-${point.id}`}
-          {...p}
-          isActive
-          emphasizeEntrance
-          onHoverChange={handleDotHoverChange}
-        />
-      );
-    },
-    [handleDotHoverChange],
+    [handleDotHoverChange, hoveredPointId, showPhase3Selected],
   );
 
   const labelRenderer = useMemo(
-    () => makeLabelRenderer(showAllLabels, chartData),
-    [showAllLabels, chartData],
+    () => makeLabelRenderer(showAllLabels, showPhase3Selected, chartData),
+    [showAllLabels, showPhase3Selected, chartData],
   );
 
   return (
@@ -452,8 +450,8 @@ export function PortfolioScatterPanel({
             <XAxis
               type="number"
               dataKey="x"
-              domain={[0.5, 2]}
-              ticks={[0.5, 1, 1.5, 2]}
+              domain={[0, 1]}
+              ticks={[0, 0.5, 1]}
               tickFormatter={formatXAxisTick}
               tick={{ fill: "#94a3b8", fontSize: 11 }}
               axisLine={{ stroke: "#7CCBFD" }}
@@ -469,12 +467,12 @@ export function PortfolioScatterPanel({
             <YAxis
               type="number"
               dataKey="y"
-              domain={[-1, 1]}
-              ticks={[-1, -0.5, 0, 0.5, 1]}
+              domain={[-yAbsMax, yAbsMax]}
+              ticks={yTicks}
               tick={{ fill: "#94a3b8", fontSize: 11 }}
               axisLine={{ stroke: "#7CCBFD" }}
               tickLine={false}
-              width={52}
+              width={56}
               label={{
                 value: t.chartBenchmarkAxis,
                 angle: -90,
@@ -498,6 +496,7 @@ export function PortfolioScatterPanel({
                 const p = payload[0].payload as ChartPoint;
                 const FieldIcon = p.fieldId ? FIELD_ICONS[p.fieldId] : null;
                 const benchSign = p.y >= 0 ? "+" : "";
+                const benchmarkIcon = BENCHMARK_TOOLTIP_ICONS[getDeviationBucket(p.y)];
                 const titleLabel = p.displayLabel ?? p.label;
                 return (
                   <div
@@ -539,28 +538,40 @@ export function PortfolioScatterPanel({
                       </div>
                       <div className="flex items-baseline justify-between gap-4 text-sm text-[#64748b]">
                         <span>{t.tooltipVsBenchmark}</span>
-                        <span className={cn(
-                          "shrink-0 tabular-nums text-base font-bold",
-                          p.y < 0 ? "text-[#dc2626]" : "text-[#0b446f]"
-                        )}>
-                          {benchSign}{p.y.toFixed(2)}
+                        <span
+                          className="inline-flex shrink-0 items-center gap-1 tabular-nums text-base font-bold"
+                          style={{ color: deviationFillColor(p.y) }}
+                        >
+                          <img
+                            src={benchmarkIcon}
+                            alt=""
+                            aria-hidden
+                            className="size-[18px] shrink-0"
+                          />
+                          <span>{benchSign}{p.y}</span>
                         </span>
                       </div>
                     </div>
 
                     {/* Phase 3 — only when isUserAction */}
-                    {p.isUserAction ? (
+                    {showPhase3Selected && p.isUserAction ? (
                       <>
                         <Separator className="my-2.5 bg-[#e0f0fe]" />
                         <p className="flex items-center gap-2 text-sm font-medium text-[#0b446f]">
-                          <Star
-                            className="size-4 shrink-0"
-                            fill={STAR_GOLD}
-                            stroke="#ffffff"
-                            strokeWidth={1.5}
-                            aria-hidden
-                          />
-                          {t.tooltipPhase3}
+                          {p.y >= 0 ? (
+                            <Star
+                              className="size-4 shrink-0"
+                              fill={STAR_GOLD}
+                              stroke="#ffffff"
+                              strokeWidth={1.5}
+                              aria-hidden
+                            />
+                          ) : (
+                            <span className="shrink-0">
+                              <FocusOpportunityBadgeIcon size={15} />
+                            </span>
+                          )}
+                          {p.y >= 0 ? t.tooltipPhase3Strength : t.tooltipPhase3Weakness}
                         </p>
                       </>
                     ) : null}
@@ -577,15 +588,6 @@ export function PortfolioScatterPanel({
             >
               <LabelList dataKey="displayLabel" position="bottom" content={labelRenderer} />
             </Scatter>
-            {elevatedData.length > 0 ? (
-              <Scatter
-                name="actions-focus"
-                data={elevatedData}
-                fill="transparent"
-                shape={overlayDotRenderer}
-                isAnimationActive={false}
-              />
-            ) : null}
             <Customized
               component={(chartProps: { xAxisMap?: Record<string, XAxisMapEntry> }) => (
                 <XAxisPoleLabels

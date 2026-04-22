@@ -1,5 +1,5 @@
 /** Mock benchmark sources for Action Portfolio (replace with API later). */
-export type BenchmarkOptionId = "industry" | "internal" | "dach";
+export type BenchmarkOptionId = "industry" | "internal" | "dach" | "external2";
 
 export const BENCHMARK_OPTIONS: readonly {
   id: BenchmarkOptionId;
@@ -8,18 +8,23 @@ export const BENCHMARK_OPTIONS: readonly {
 }[] = [
   {
     id: "industry",
-    label: "External benchmark",
-    description: "Comparison with aggregated reference companies in your sector (sample).",
+    label: "11 other groups within the company",
+    description: "Comparison against 11 other groups within your company.",
   },
   {
     id: "internal",
-    label: "Internal benchmark",
-    description: "Comparison with your organisation’s internal reference (sample).",
+    label: "Historical comparison (2021)",
+    description: "Comparison against the 2021 historical baseline.",
   },
   {
     id: "dach",
-    label: "Historical comparison",
-    description: "Trend or period comparison against historical reference (sample).",
+    label: "121 Swiss companies",
+    description: "Comparison against 121 Swiss companies.",
+  },
+  {
+    id: "external2",
+    label: "External benchmark 2",
+    description: "Comparison against external benchmark 2.",
   },
 ];
 

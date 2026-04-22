@@ -37,17 +37,17 @@ export const BenchmarkSelect = memo(function BenchmarkSelect({
       <SelectTrigger
         size="default"
         className={cn(
-          "h-auto min-h-[42px] w-fit min-w-[90px] rounded-[10px] border border-[#d8d8d8] bg-white px-3 py-1.5",
+          "h-auto min-h-[42px] w-full min-w-[90px] rounded-[10px] border border-[#d8d8d8] bg-white px-3 py-1.5",
           "flex items-center justify-between gap-2 text-left text-lg font-normal text-[#3b3b3b] shadow-none",
           "transition-colors hover:border-gray-400",
           "outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-gray-400",
           "focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-gray-400 focus-visible:shadow-none",
-          "data-[size=default]:h-auto [&_svg]:opacity-70",
+          "data-[size=default]:h-auto [&_svg]:opacity-70 [&_[data-slot=select-value]]:min-w-0 [&_[data-slot=select-value]]:truncate",
           className,
         )}
         aria-label={t.benchmarkLabel}
       >
-        <SelectValue placeholder={t.benchmarkPlaceholder} />
+        <SelectValue placeholder={t.benchmarkPlaceholder} className="block min-w-0 truncate" />
       </SelectTrigger>
       <SelectContent
         position="popper"

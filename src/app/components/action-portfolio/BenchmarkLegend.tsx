@@ -13,6 +13,16 @@ import { Separator } from "../ui/separator";
 import { cn } from "../ui/utils";
 
 const STAR_GOLD = "#FAC215";
+const LEGEND_STEP_COLORS = ["#BA1B26", "#F97079", "#989898", "#80D7A0", "#15803C"] as const;
+
+function FocusOpportunityBadgeIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="10" fill="#F59E0B" stroke="#ffffff" strokeWidth="1.5" />
+      <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
+    </svg>
+  );
+}
 
 /** Inner legend blocks (used in sidebar card and in-chart overlay). */
 export function BenchmarkLegendContent({ className }: { className?: string }) {
@@ -24,10 +34,11 @@ export function BenchmarkLegendContent({ className }: { className?: string }) {
       <div className="min-w-0">
         <p className="mb-2 text-[15px] font-medium text-[#0b446f]">{t.legendVsBenchmark}</p>
         <div className="w-full">
-          <div
-            className="h-3.5 w-full rounded-full bg-gradient-to-r from-[#ef4444] via-[#eab308] to-[#22c55e]"
-            aria-hidden
-          />
+          <div className="flex h-3.5 w-full overflow-hidden rounded-full" aria-hidden>
+            {LEGEND_STEP_COLORS.map((color) => (
+              <span key={color} className="h-full flex-1" style={{ backgroundColor: color }} />
+            ))}
+          </div>
           <div className="mt-1.5 flex justify-between text-[14px] leading-none text-[#525252]">
             <span>{t.legendWorse}</span>
             <span className="text-xs text-[#94a3b8]">{t.legendAvg}</span>
@@ -41,7 +52,13 @@ export function BenchmarkLegendContent({ className }: { className?: string }) {
       <div className="flex min-w-0 flex-col gap-1.5">
         <div className="flex items-center gap-2">
           <Star className="size-[17px] shrink-0" fill={STAR_GOLD} stroke="#fff" strokeWidth={1.5} aria-hidden />
-          <span className="text-[15px] leading-snug">{t.legendPhase3}</span>
+          <span className="text-[15px] leading-snug">{t.legendPhase3Strength}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex shrink-0">
+            <FocusOpportunityBadgeIcon size={15} />
+          </span>
+          <span className="text-[15px] leading-snug">{t.legendPhase3Weakness}</span>
         </div>
       </div>
 

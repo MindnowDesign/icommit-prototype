@@ -12,7 +12,7 @@ export const HeroSection = memo(function HeroSection({
   title = "Welcome back",
   showTourButton = true,
 }: HeroSectionProps) {
-  const [selectedTeam, setSelectedTeam] = useState("unternehmen-a");
+  const [selectedTeam, setSelectedTeam] = useState("company-name");
 
   const handleTeamChange = useCallback((value: string) => {
     setSelectedTeam(value);

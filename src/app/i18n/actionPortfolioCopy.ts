@@ -34,6 +34,7 @@ export type ActionPortfolioCopy = {
   teamLabel: string;
   benchmarkLabel: string;
   showLabels: string;
+  showPhase3Selected: string;
   legendTitle: string;
   legendVsBenchmark: string;
   legendWorse: string;
@@ -42,7 +43,8 @@ export type ActionPortfolioCopy = {
   /** X-axis pole captions (placed under the chart). */
   chartXAxisPoleLow: string;
   chartXAxisPoleHigh: string;
-  legendPhase3: string;
+  legendPhase3Strength: string;
+  legendPhase3Weakness: string;
   legendHaus: string;
   legendHausStrength: string;
   legendHausWeakness: string;
@@ -50,7 +52,8 @@ export type ActionPortfolioCopy = {
   chartBenchmarkAxis: string;
   tooltipInfluence: string;
   tooltipVsBenchmark: string;
-  tooltipPhase3: string;
+  tooltipPhase3Strength: string;
+  tooltipPhase3Weakness: string;
   tooltipHausStrength: string;
   tooltipHausWeakness: string;
   benchmarkPlaceholder: string;
@@ -60,13 +63,15 @@ export type ActionPortfolioCopy = {
   benchmarkInternalDesc: string;
   benchmarkDach: string;
   benchmarkDachDesc: string;
+  benchmarkExternal2: string;
+  benchmarkExternal2Desc: string;
   teamSelectPlaceholder: string;
 };
 
 const EN: ActionPortfolioCopy = {
   pageTitle: "Influencing factors",
   pageIntro:
-    "Each point is one influencing factor. Horizontal position is statistical influence on the tab’s target values; vertical position is deviation from the benchmark you select. Use the tabs to switch commitment, satisfaction, or resignation. Choose team and benchmark in the toolbar; turn on all labels to show every topic name.",
+    "Each point is one influencing factor. Horizontal position is statistical influence on the tab’s target values; vertical position is deviation from the benchmark you select. Use the tabs to switch commitment, satisfaction, or resignation. Choose benchmark in the toolbar; turn on all labels to show every topic name.",
   portfolioToolbar: "Portfolio",
   tabCommitment: "Commitment",
   tabSatisfaction: "Satisfaction",
@@ -75,12 +80,14 @@ const EN: ActionPortfolioCopy = {
   teamLabel: "Team",
   benchmarkLabel: "Benchmark",
   showLabels: "Show label",
+  showPhase3Selected: "Show Phase 3 selected",
   legendTitle: "Legend",
   legendVsBenchmark: "vs benchmark",
   legendWorse: "Negative",
   legendAvg: "avg",
   legendBetter: "Positive",
-  legendPhase3: "Phase 3 focus area",
+  legendPhase3Strength: "Phase 3 selected strength",
+  legendPhase3Weakness: "Phase 3 selected weakness",
   legendHaus: "Haus",
   legendHausStrength: "Relative strength",
   legendHausWeakness: "Relative weakness",
@@ -88,25 +95,28 @@ const EN: ActionPortfolioCopy = {
   chartBenchmarkAxis: "vs benchmark",
   chartXAxisPoleLow: "Lowest correlation",
   chartXAxisPoleHigh: "Highest correlation",
-  tooltipInfluence: "Correlation / influence strength",
+  tooltipInfluence: "Influence strength",
   tooltipVsBenchmark: "vs benchmark",
-  tooltipPhase3: "Phase 3 focus area",
+  tooltipPhase3Strength: "Phase 3 selected strength",
+  tooltipPhase3Weakness: "Phase 3 selected weakness",
   tooltipHausStrength: "Relative strength",
   tooltipHausWeakness: "Relative weakness",
   benchmarkPlaceholder: "Select benchmark",
-  benchmarkIndustry: "External benchmark",
-  benchmarkIndustryDesc: "Comparison with aggregated reference companies in your sector (sample).",
-  benchmarkInternal: "Internal benchmark",
-  benchmarkInternalDesc: "Comparison with your organisation’s internal reference (sample).",
-  benchmarkDach: "Historical comparison",
-  benchmarkDachDesc: "Trend or period comparison against historical reference (sample).",
+  benchmarkIndustry: "11 other groups within the company",
+  benchmarkIndustryDesc: "Comparison against 11 other groups within your company.",
+  benchmarkInternal: "Historical comparison (2021)",
+  benchmarkInternalDesc: "Comparison against the 2021 historical baseline.",
+  benchmarkDach: "121 Swiss companies",
+  benchmarkDachDesc: "Comparison against 121 Swiss companies.",
+  benchmarkExternal2: "External benchmark 2",
+  benchmarkExternal2Desc: "Comparison against external benchmark 2.",
   teamSelectPlaceholder: "Select team",
 };
 
 const DE: ActionPortfolioCopy = {
   pageTitle: "Einflussgrössen",
   pageIntro:
-    "Jeder Punkt steht für eine Einflussgrösse. Die horizontale Position zeigt den statistischen Einfluss auf die Zielgrösse des gewählten Tabs; die vertikale Position die Abweichung vom gewählten Benchmark. Wechseln Sie mit den Tabs zwischen Commitment, Zufriedenheit und Resignation. Wählen Sie Team und Benchmark in der Leiste; aktivieren Sie «Beschriftungen», um alle Themenbezeichnungen anzuzeigen.",
+    "Jeder Punkt steht für eine Einflussgrösse. Die horizontale Position zeigt den statistischen Einfluss auf die Zielgrösse des gewählten Tabs; die vertikale Position die Abweichung vom gewählten Benchmark. Wechseln Sie mit den Tabs zwischen Commitment, Zufriedenheit und Resignation. Wählen Sie den Benchmark in der Leiste; aktivieren Sie «Beschriftungen», um alle Themenbezeichnungen anzuzeigen.",
   portfolioToolbar: "Portfolio",
   tabCommitment: "Commitment",
   tabSatisfaction: "Zufriedenheit",
@@ -115,12 +125,14 @@ const DE: ActionPortfolioCopy = {
   teamLabel: "Team",
   benchmarkLabel: "Benchmark",
   showLabels: "Beschriftungen",
+  showPhase3Selected: "Phase 3 Auswahl anzeigen",
   legendTitle: "Legende",
   legendVsBenchmark: "vs. Benchmark",
   legendWorse: "Negativ",
   legendAvg: "Ø",
   legendBetter: "Positiv",
-  legendPhase3: "Fokusbereich Phase 3",
+  legendPhase3Strength: "Phase 3 ausgewählte Stärke",
+  legendPhase3Weakness: "Phase 3 ausgewählte Schwäche",
   legendHaus: "Haus",
   legendHausStrength: "Relative Stärke",
   legendHausWeakness: "Relative Schwäche",
@@ -130,16 +142,19 @@ const DE: ActionPortfolioCopy = {
   chartXAxisPoleHigh: "höchste Korrelation",
   tooltipInfluence: "Korrelation / Einfluss-Stärke",
   tooltipVsBenchmark: "vs. Benchmark",
-  tooltipPhase3: "Fokusbereich Phase 3",
+  tooltipPhase3Strength: "Phase 3 ausgewählte Stärke",
+  tooltipPhase3Weakness: "Phase 3 ausgewählte Schwäche",
   tooltipHausStrength: "Relative Stärke",
   tooltipHausWeakness: "Relative Schwäche",
   benchmarkPlaceholder: "Benchmark wählen",
-  benchmarkIndustry: "Externer Benchmark",
-  benchmarkIndustryDesc: "Vergleich mit aggregierten Referenzunternehmen Ihrer Branche (Beispiel).",
-  benchmarkInternal: "Interner Benchmark",
-  benchmarkInternalDesc: "Vergleich mit der internen Referenz Ihrer Organisation (Beispiel).",
-  benchmarkDach: "Historischer Vergleich",
-  benchmarkDachDesc: "Vergleich über die Zeit bzw. gegen historische Referenz (Beispiel).",
+  benchmarkIndustry: "11 andere Gruppen im Unternehmen",
+  benchmarkIndustryDesc: "Vergleich mit 11 anderen Gruppen innerhalb Ihres Unternehmens.",
+  benchmarkInternal: "Historischer Vergleich (2021)",
+  benchmarkInternalDesc: "Vergleich mit der historischen Ausgangslage von 2021.",
+  benchmarkDach: "121 Schweizer Firmen",
+  benchmarkDachDesc: "Vergleich mit 121 Schweizer Firmen.",
+  benchmarkExternal2: "External benchmark 2",
+  benchmarkExternal2Desc: "Vergleich mit dem zweiten externen Benchmark.",
   teamSelectPlaceholder: "Team wählen",
 };
 
@@ -166,6 +181,8 @@ export function getBenchmarkCopy(
       return { label: t.benchmarkInternal, description: t.benchmarkInternalDesc };
     case "dach":
       return { label: t.benchmarkDach, description: t.benchmarkDachDesc };
+    case "external2":
+      return { label: t.benchmarkExternal2, description: t.benchmarkExternal2Desc };
     default:
       return { label: t.benchmarkIndustry, description: t.benchmarkIndustryDesc };
   }

@@ -61,6 +61,9 @@ interface HierarchicalTeamSelectProps {
 // Reusable row component for consistent styling
 interface RowProps {
   name: string;
+  current: number;
+  total: number;
+  percentage: number;
   isSelected: boolean;
   onClick: () => void;
   variant: "company" | "category" | "department" | "item";
@@ -69,29 +72,35 @@ interface RowProps {
 
 const Row = memo(function Row({
   name,
+  current,
+  total,
+  percentage,
   isSelected,
   onClick,
   variant,
   isBold = false,
 }: RowProps) {
   const baseStyles = "px-4 py-3 flex items-center gap-3 cursor-pointer transition-colors";
-  
+
   // Background styles based on variant (when NOT selected)
-  // company: header row (blue when selected, gray when not)
+  // company: header row (always company blue)
   // category: parent departments (gray background) - e.g., Admin, Production
   // department: standalone first-level items (white for Management, gray for others like Interns)
   // item: child departments (white background) - e.g., Accounting, HR, Prod A
   const variantBgStyles = {
-    company: "bg-[#f5f5f5] hover:bg-[#ebebeb]",
+    company: "bg-[#015ea3] hover:bg-[#014a82]", // Always blue for company header
     category: "bg-[#f5f5f5] hover:bg-[#ebebeb]",
     department: name === "Management" ? "bg-white hover:bg-[#f5f5f5]" : "bg-[#f5f5f5] hover:bg-[#ebebeb]",
     item: "bg-white hover:bg-[#f5f5f5]",
   };
 
-  // Selected state: blue background for all variants
-  const bgStyles = isSelected
-    ? "bg-[#015ea3] hover:bg-[#014a82]"
-    : variantBgStyles[variant];
+  // Selected state: blue background (except company which is always blue)
+  const bgStyles =
+    variant === "company"
+      ? variantBgStyles.company
+      : isSelected
+        ? "bg-[#015ea3] hover:bg-[#014a82]"
+        : variantBgStyles[variant];
 
   // Indentation based on level
   // category/department: one level indent (pl-8)
@@ -108,21 +117,47 @@ const Row = memo(function Row({
       onClick={onClick}
       className={cn(baseStyles, bgStyles, indentStyles[variant])}
     >
-      {/* Name */}
       <span
         className={cn(
-          "text-sm whitespace-nowrap min-w-0",
-          isSelected ? "text-white" : "text-[#292929]",
-          variant === "company" && "text-base font-bold",
+          "text-sm truncate min-w-0 flex-1",
+          variant === "company"
+            ? "text-white text-base font-bold"
+            : isSelected
+              ? "text-white"
+              : "text-[#292929]",
           isBold && "font-semibold"
         )}
       >
         {name}
       </span>
 
-      {/* Check icon - far right */}
+      <span
+        className={cn(
+          "text-sm w-[60px] text-right tabular-nums shrink-0",
+          variant === "company" ? "text-white/80" : isSelected ? "text-white/80" : "text-[#656565]"
+        )}
+      >
+        {current} / {total}
+      </span>
+      <span
+        className={cn(
+          "text-sm font-semibold w-[40px] text-right tabular-nums shrink-0",
+          variant === "company" ? "text-white" : isSelected ? "text-white" : "text-[#292929]"
+        )}
+      >
+        {percentage}%
+      </span>
+
       <div className="w-6 flex items-center justify-center shrink-0">
-        {isSelected && <Check className="w-5 h-5 text-white" strokeWidth={2.5} />}
+        {(isSelected || variant === "company") && (
+          <Check
+            className={cn(
+              "w-5 h-5",
+              variant === "company" || isSelected ? "text-white" : "text-transparent"
+            )}
+            strokeWidth={2.5}
+          />
+        )}
       </div>
     </div>
   );
@@ -208,17 +243,20 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
       <PopoverContent
         className={cn(
           "bg-white border border-[#d8d8d8] rounded-[10px]",
-          "shadow-lg w-max max-w-[calc(100vw-1.5rem)] p-0",
+          "shadow-lg w-[min(420px,100%)] max-w-[calc(100vw-1.5rem)] p-0",
           "max-h-[500px] overflow-y-auto"
         )}
         align="start"
       >
-        <div className="flex flex-col w-max max-w-full">
+        <div className="flex flex-col w-full">
           {teamGroups.map((group) => (
             <div key={group.id} className="flex flex-col">
               {/* Company header row */}
               <Row
                 name={group.name}
+                current={group.current}
+                total={group.total}
+                percentage={group.percentage}
                 isSelected={value === group.id}
                 onClick={() => handleSelect(group.id)}
                 variant="company"
@@ -242,6 +280,9 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                   {/* - "department" for standalone items (Management, Interns) - bold except Management */}
                   <Row
                     name={dept.name}
+                    current={dept.current}
+                    total={dept.total}
+                    percentage={dept.percentage}
                     isSelected={value === dept.id}
                     onClick={() => handleSelect(dept.id)}
                     variant={dept.isParent ? "category" : "department"}
@@ -253,6 +294,9 @@ export const HierarchicalTeamSelect = memo(function HierarchicalTeamSelect({
                     <Row
                       key={child.id}
                       name={child.name}
+                      current={child.current}
+                      total={child.total}
+                      percentage={child.percentage}
                       isSelected={value === child.id}
                       onClick={() => handleSelect(child.id)}
                       variant="item"

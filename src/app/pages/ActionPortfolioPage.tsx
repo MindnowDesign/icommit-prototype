@@ -6,9 +6,7 @@ import { getActionPortfolioCopy } from "../i18n/actionPortfolioCopy";
 import { useLocale } from "../i18n/LocaleContext";
 import { BenchmarkSelect } from "../components/action-portfolio/BenchmarkSelect";
 import { PortfolioScatterPanel } from "../components/action-portfolio/PortfolioScatterPanel";
-import { HierarchicalTeamSelect } from "../components/HierarchicalTeamSelect";
 import {
-  BENCHMARK_OPTIONS,
   DEFAULT_BENCHMARK_ID,
   type BenchmarkOptionId,
 } from "../data/benchmarkOptions";
@@ -47,8 +45,8 @@ export default function ActionPortfolioPage() {
   const [tab, setTab] = useState<Tab>("commitment");
   const [dir, setDir] = useState(0);
   const [benchmarkId, setBenchmarkId] = useState<BenchmarkOptionId>(DEFAULT_BENCHMARK_ID);
-  const [selectedTeam, setSelectedTeam] = useState<string | undefined>(undefined);
   const [showAllLabels, setShowAllLabels] = useState(false);
+  const [showPhase3Selected, setShowPhase3Selected] = useState(true);
 
   function handleTabChange(next: Tab) {
     if (next === tab) return;
@@ -114,23 +112,29 @@ export default function ActionPortfolioPage() {
                   <span className="hidden h-5 w-px shrink-0 bg-gray-200 sm:block" aria-hidden />
 
                   <div className="flex min-w-0 flex-col gap-2">
-                    <span className="text-sm leading-none text-[#64748b]">{t.teamLabel}</span>
-                    <HierarchicalTeamSelect
-                      value={selectedTeam}
-                      onValueChange={setSelectedTeam}
-                      placeholder={t.teamSelectPlaceholder}
-                      className="max-w-[min(100vw-10rem,240px)] min-w-[100px] justify-between focus-visible:!ring-0 sm:max-w-[260px]"
-                    />
-                  </div>
-
-                  <span className="hidden h-5 w-px shrink-0 bg-gray-200 sm:block" aria-hidden />
-
-                  <div className="flex min-w-0 flex-col gap-2">
                     <span className="text-sm leading-none text-[#64748b]">{t.benchmarkLabel}</span>
                     <BenchmarkSelect
                       value={benchmarkId}
                       onValueChange={setBenchmarkId}
                       className="max-w-[min(100vw-10rem,240px)] min-w-[100px] focus-visible:!ring-0 sm:max-w-[260px]"
+                    />
+                  </div>
+
+                  <span className="hidden h-5 w-px shrink-0 bg-gray-200 sm:block" aria-hidden />
+
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <Label
+                      htmlFor="sw-phase3"
+                      className="cursor-pointer text-sm leading-none font-normal text-[#64748b]"
+                    >
+                      {t.showPhase3Selected}
+                    </Label>
+                    <Switch
+                      id="sw-phase3"
+                      size="lg"
+                      checked={showPhase3Selected}
+                      onCheckedChange={setShowPhase3Selected}
+                      className="data-[state=checked]:bg-[#015ea3] focus-visible:!ring-0 focus-visible:!ring-offset-0"
                     />
                   </div>
 
@@ -170,6 +174,7 @@ export default function ActionPortfolioPage() {
                     <PortfolioScatterPanel
                       data={PORTFOLIO_DATA[tab]}
                       showAllLabels={showAllLabels}
+                      showPhase3Selected={showPhase3Selected}
                     />
                   </motion.div>
                 </AnimatePresence>

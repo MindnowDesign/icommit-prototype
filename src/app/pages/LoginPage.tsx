@@ -15,6 +15,7 @@ import {
 } from "../components/ui/dropdown-menu";
 import { LoginIllustrationParallax } from "../components/LoginIllustrationParallax";
 import iCommitLogo from "../../assets/logo/iCommit-logo.png";
+import iCommitCommitmentLogo from "../../assets/logo/iCommit-Commitment_Logo.png";
 import loginIllustration from "../../assets/Illustration-01.svg";
 
 const LANGUAGES = [
@@ -178,7 +179,7 @@ export default function LoginPage() {
             "lg:flex-1 lg:basis-0 lg:min-w-0",
             "gap-8 rounded-[2rem] md:rounded-[2.5rem]",
             "border border-border/60 bg-card shadow-sm",
-            "px-8 py-12 sm:px-12 sm:py-14 lg:px-14 lg:py-16",
+            "px-8 py-10 sm:px-12 sm:py-12 lg:px-14 lg:py-14",
           )}
         >
           <Link
@@ -187,9 +188,9 @@ export default function LoginPage() {
             aria-label={t.ariaBackHome}
           >
             <img
-              src={iCommitLogo}
-              alt="iCommit"
-              className="h-[26px] w-auto object-contain sm:h-[28px]"
+              src={iCommitCommitmentLogo}
+              alt="iCommit Commitment"
+              className="h-[40px] w-auto object-contain sm:h-[44px]"
             />
           </Link>
 
@@ -273,8 +274,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Language — dropdown, bottom-left */}
-          <div className="shrink-0 self-start">
+          {/* Footer row — language bottom-left + old logo bottom-right */}
+          <div className="shrink-0 flex w-full items-center justify-between gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -301,7 +302,7 @@ export default function LoginPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="min-w-[12rem] rounded-lg border-zinc-200 p-1 shadow-lg dark:border-zinc-700"
-                align="start"
+                align="end"
                 side="top"
                 sideOffset={8}
               >
@@ -326,6 +327,18 @@ export default function LoginPage() {
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <Link
+              to="/"
+              className="inline-flex shrink-0 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+              aria-label={t.ariaBackHome}
+            >
+              <img
+                src={iCommitLogo}
+                alt="iCommit"
+                className="h-[20px] w-auto object-contain sm:h-[22px]"
+              />
+            </Link>
           </div>
         </div>
 
