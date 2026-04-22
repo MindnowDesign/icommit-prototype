@@ -1,11 +1,12 @@
 import React, { useMemo, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ChevronDown, Eye, EyeOff } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "../components/ui/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { LoginIllustrationParallax } from "../components/LoginIllustrationParallax";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +14,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
-import { LoginIllustrationParallax } from "../components/LoginIllustrationParallax";
 import iCommitLogo from "../../assets/logo/iCommit-logo.png";
 import iCommitCommitmentLogo from "../../assets/logo/iCommit-Commitment_Logo.png";
 import loginIllustration from "../../assets/Illustration-01.svg";
@@ -28,122 +28,91 @@ const LANGUAGES = [
 
 type LoginLangId = (typeof LANGUAGES)[number]["id"];
 
-type LoginCopy = {
+type TokenCopy = {
   title: string;
   subtitle: string;
-  emailLabel: string;
-  emailPlaceholder: string;
-  passwordLabel: string;
-  passwordPlaceholder: string;
-  forgotPassword: string;
-  loginButton: string;
+  tokenLabel: string;
+  tokenHint: string;
+  tokenPlaceholder: string;
+  submitButton: string;
   ariaBackHome: string;
   ariaLanguage: string;
-  showPassword: string;
-  hidePassword: string;
-  toastEmailRequiredTitle: string;
-  toastEmailRequiredDesc: string;
-  toastInvalidEmailTitle: string;
-  toastInvalidEmailDesc: string;
-  toastPasswordRequiredTitle: string;
-  toastPasswordRequiredDesc: string;
-  toastSignedInTitle: string;
-  toastSignedInDesc: string;
+  toastTokenRequiredTitle: string;
+  toastTokenRequiredDesc: string;
+  toastTokenAcceptedTitle: string;
+  toastTokenAcceptedDesc: string;
 };
 
-const LOGIN_COPY = {
+const TOKEN_COPY = {
   en: {
-    title: "Login to your account",
-    subtitle: "Enter your email below to login to your account.",
-    emailLabel: "Email",
-    emailPlaceholder: "name@example.com",
-    passwordLabel: "Password",
-    passwordPlaceholder: "insert your password",
-    forgotPassword: "Forgot your password?",
-    loginButton: "Login",
+    title: "Sign in with your account",
+    subtitle: "Please enter the email token we sent to your inbox.",
+    tokenLabel: "Email token",
+    tokenHint: "Use the one-time token received by email.",
+    tokenPlaceholder: "Enter token",
+    submitButton: "Sign in",
     ariaBackHome: "Back to home",
     ariaLanguage: "Language",
-    showPassword: "Show password",
-    hidePassword: "Hide password",
-    toastEmailRequiredTitle: "Email required",
-    toastEmailRequiredDesc: "Please enter the email address for your account.",
-    toastInvalidEmailTitle: "Invalid email",
-    toastInvalidEmailDesc:
-      "Check the format and try again (e.g. name@company.com).",
-    toastPasswordRequiredTitle: "Password required",
-    toastPasswordRequiredDesc: "Enter your password to continue.",
-    toastSignedInTitle: "Signed in",
-    toastSignedInDesc:
-      "This is a prototype — no account is created or verified.",
+    toastTokenRequiredTitle: "Token required",
+    toastTokenRequiredDesc: "Please enter the token from your email.",
+    toastTokenAcceptedTitle: "Signed in",
+    toastTokenAcceptedDesc: "Prototype flow complete.",
   },
   de: {
-    title: "Bei Ihrem Konto anmelden",
-    subtitle:
-      "Geben Sie unten Ihre E-Mail-Adresse ein, um sich anzumelden.",
-    emailLabel: "E-Mail",
-    emailPlaceholder: "name@beispiel.de",
-    passwordLabel: "Passwort",
-    passwordPlaceholder: "Passwort eingeben",
-    forgotPassword: "Passwort vergessen?",
-    loginButton: "Anmelden",
+    title: "Melde dich bitte mit deinem Konto an.",
+    subtitle: "Bitte gib den E-Mail-Token ein, den du erhalten hast.",
+    tokenLabel: "E-Mail-Token",
+    tokenHint: "Gib den Token ein, den du per E-Mail erhalten hast.",
+    tokenPlaceholder: "Token eingeben",
+    submitButton: "Anmelden",
     ariaBackHome: "Zurück zur Startseite",
     ariaLanguage: "Sprache",
-    showPassword: "Passwort anzeigen",
-    hidePassword: "Passwort verbergen",
-    toastEmailRequiredTitle: "E-Mail erforderlich",
-    toastEmailRequiredDesc:
-      "Bitte geben Sie die E-Mail-Adresse für Ihr Konto ein.",
-    toastInvalidEmailTitle: "Ungültige E-Mail",
-    toastInvalidEmailDesc:
-      "Prüfen Sie das Format und versuchen Sie es erneut (z. B. name@firma.de).",
-    toastPasswordRequiredTitle: "Passwort erforderlich",
-    toastPasswordRequiredDesc:
-      "Geben Sie Ihr Passwort ein, um fortzufahren.",
-    toastSignedInTitle: "Angemeldet",
-    toastSignedInDesc:
-      "Dies ist ein Prototyp — es wird kein Konto erstellt oder geprüft.",
+    toastTokenRequiredTitle: "Token erforderlich",
+    toastTokenRequiredDesc: "Bitte gib den Token aus der E-Mail ein.",
+    toastTokenAcceptedTitle: "Angemeldet",
+    toastTokenAcceptedDesc: "Prototyp-Flow abgeschlossen.",
   },
-} satisfies Record<"en" | "de", LoginCopy>;
+} satisfies Record<"en" | "de", TokenCopy>;
 
-function loginStrings(lang: LoginLangId): LoginCopy {
-  return lang === "de" ? LOGIN_COPY.de : LOGIN_COPY.en;
+function tokenStrings(lang: LoginLangId): TokenCopy {
+  return lang === "de" ? TOKEN_COPY.de : TOKEN_COPY.en;
 }
 
-/** Clearer default edge than theme `--border` (too faint on white); focus keeps Input ring. */
-const loginInputClassName =
+const tokenInputClassName =
   "h-12 rounded-xl bg-background px-3.5 text-[1.0625rem] leading-normal shadow-sm border-zinc-300 dark:border-zinc-600 md:text-[1.0625rem]";
 
-export default function LoginPage() {
+type LoginLocationState = {
+  lang?: LoginLangId;
+  email?: string;
+};
+
+export default function LoginTokenPage() {
   const navigate = useNavigate();
-  const [lang, setLang] = useState<(typeof LANGUAGES)[number]["id"]>("en");
-  const [showPassword, setShowPassword] = useState(false);
+  const { state } = useLocation();
+  const locationState = (state ?? {}) as LoginLocationState;
+  const initialLang = locationState.lang ?? "en";
+  const [lang, setLang] = useState<LoginLangId>(initialLang);
 
   const selectedLang = useMemo(
     () => LANGUAGES.find((l) => l.id === lang) ?? LANGUAGES[0],
     [lang],
   );
+  const t = useMemo(() => tokenStrings(lang), [lang]);
 
-  const t = useMemo(() => loginStrings(lang), [lang]);
-
-  function handleLoginSubmit(e: FormEvent<HTMLFormElement>) {
+  function handleTokenSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim() ?? "";
-    const password =
-      (form.elements.namedItem("password") as HTMLInputElement)?.value ?? "";
-    if (!email) {
-      toast.error(t.toastEmailRequiredTitle, {
-        description: t.toastEmailRequiredDesc,
+    const token = (form.elements.namedItem("token") as HTMLInputElement)?.value?.trim() ?? "";
+    if (!token) {
+      toast.error(t.toastTokenRequiredTitle, {
+        description: t.toastTokenRequiredDesc,
       });
       return;
     }
-    if (!password) {
-      toast.error(t.toastPasswordRequiredTitle, {
-        description: t.toastPasswordRequiredDesc,
-      });
-      return;
-    }
-    navigate("/login/token", { state: { lang, email } });
+    toast.success(t.toastTokenAcceptedTitle, {
+      description: t.toastTokenAcceptedDesc,
+    });
+    navigate("/", { replace: true });
   }
 
   return (
@@ -152,11 +121,9 @@ export default function LoginPage() {
         className={cn(
           "flex w-full max-w-full flex-col items-stretch lg:flex-row",
           "gap-6 lg:gap-8 xl:gap-10",
-          /* Wider on large viewports so both columns scale up (still capped for readability) */
           "lg:max-w-[min(100%,1480px)] xl:max-w-[min(100%,1680px)] 2xl:max-w-[min(100%,min(1880px,92vw))]",
         )}
       >
-        {/* Form column — own card, separated from illustration */}
         <div
           className={cn(
             "flex min-h-[min(90vh,800px)] flex-col lg:min-h-[min(88vh,820px)] xl:min-h-[min(88vh,860px)] 2xl:min-h-[min(88vh,900px)]",
@@ -189,58 +156,23 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form className="space-y-6" onSubmit={handleLoginSubmit} noValidate>
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">{t.emailLabel}</Label>
-                  <Input
-                    id="login-email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder={t.emailPlaceholder}
-                    className={loginInputClassName}
-                  />
-                </div>
-
+              <form className="space-y-6" onSubmit={handleTokenSubmit} noValidate>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <Label htmlFor="login-password">{t.passwordLabel}</Label>
-                    <button
-                      type="button"
-                      className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-                      onClick={() => navigate("/login/forgot-password", { state: { lang } })}
-                    >
-                      {t.forgotPassword}
-                    </button>
+                    <Label htmlFor="email-token">{t.tokenLabel}</Label>
+                    {locationState.email ? (
+                      <span className="text-xs text-muted-foreground">{locationState.email}</span>
+                    ) : null}
                   </div>
-                  <div className="relative">
-                    <Input
-                      id="login-password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      placeholder={t.passwordPlaceholder}
-                      className={cn(loginInputClassName, "pr-11")}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className={cn(
-                        "absolute right-1.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md",
-                        "text-muted-foreground transition-colors",
-                        "hover:bg-muted hover:text-foreground",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                      )}
-                      aria-pressed={showPassword}
-                      aria-label={showPassword ? t.hidePassword : t.showPassword}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-[1.125rem] shrink-0" strokeWidth={2} />
-                      ) : (
-                        <Eye className="size-[1.125rem] shrink-0" strokeWidth={2} />
-                      )}
-                    </button>
-                  </div>
+                  <p className="text-xs text-muted-foreground">{t.tokenHint}</p>
+                  <Input
+                    id="email-token"
+                    name="token"
+                    type="text"
+                    autoComplete="one-time-code"
+                    placeholder={t.tokenPlaceholder}
+                    className={tokenInputClassName}
+                  />
                 </div>
 
                 <Button
@@ -248,13 +180,12 @@ export default function LoginPage() {
                   size="big"
                   className="w-full bg-[#015ea3] font-normal text-white border-[#015ea3] hover:bg-[#014a82]"
                 >
-                  {t.loginButton}
+                  {t.submitButton}
                 </Button>
               </form>
             </div>
           </div>
 
-          {/* Footer row — language bottom-left + old logo bottom-right */}
           <div className="shrink-0 flex w-full items-center justify-between gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -282,15 +213,13 @@ export default function LoginPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="min-w-[12rem] rounded-lg border-zinc-200 p-1 shadow-lg dark:border-zinc-700"
-                align="end"
+                align="start"
                 side="top"
                 sideOffset={8}
               >
                 <DropdownMenuRadioGroup
                   value={lang}
-                  onValueChange={(v) =>
-                    setLang(v as (typeof LANGUAGES)[number]["id"])
-                  }
+                  onValueChange={(v) => setLang(v as LoginLangId)}
                 >
                   {LANGUAGES.map((item) => (
                     <DropdownMenuRadioItem
@@ -322,7 +251,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Illustration column — separate card */}
         <div
           className={cn(
             "relative hidden flex-col items-center justify-center lg:flex",

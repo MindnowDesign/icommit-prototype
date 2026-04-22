@@ -1,7 +1,7 @@
 import React, { useMemo, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ChevronDown, Eye, EyeOff } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "../components/ui/utils";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -28,122 +28,93 @@ const LANGUAGES = [
 
 type LoginLangId = (typeof LANGUAGES)[number]["id"];
 
-type LoginCopy = {
+type ForgotCopy = {
   title: string;
   subtitle: string;
   emailLabel: string;
   emailPlaceholder: string;
-  passwordLabel: string;
-  passwordPlaceholder: string;
-  forgotPassword: string;
-  loginButton: string;
+  submitButton: string;
+  backToLogin: string;
+  continueToReset: string;
   ariaBackHome: string;
   ariaLanguage: string;
-  showPassword: string;
-  hidePassword: string;
   toastEmailRequiredTitle: string;
   toastEmailRequiredDesc: string;
-  toastInvalidEmailTitle: string;
-  toastInvalidEmailDesc: string;
-  toastPasswordRequiredTitle: string;
-  toastPasswordRequiredDesc: string;
-  toastSignedInTitle: string;
-  toastSignedInDesc: string;
+  toastSuccessTitle: string;
+  toastSuccessDesc: string;
 };
 
-const LOGIN_COPY = {
+const FORGOT_COPY = {
   en: {
-    title: "Login to your account",
-    subtitle: "Enter your email below to login to your account.",
+    title: "Forgot your password?",
+    subtitle: "Enter your email and we will send you a recovery link.",
     emailLabel: "Email",
     emailPlaceholder: "name@example.com",
-    passwordLabel: "Password",
-    passwordPlaceholder: "insert your password",
-    forgotPassword: "Forgot your password?",
-    loginButton: "Login",
+    submitButton: "Send recovery email",
+    backToLogin: "Back to login",
+    continueToReset: "I already have the link",
     ariaBackHome: "Back to home",
     ariaLanguage: "Language",
-    showPassword: "Show password",
-    hidePassword: "Hide password",
     toastEmailRequiredTitle: "Email required",
-    toastEmailRequiredDesc: "Please enter the email address for your account.",
-    toastInvalidEmailTitle: "Invalid email",
-    toastInvalidEmailDesc:
-      "Check the format and try again (e.g. name@company.com).",
-    toastPasswordRequiredTitle: "Password required",
-    toastPasswordRequiredDesc: "Enter your password to continue.",
-    toastSignedInTitle: "Signed in",
-    toastSignedInDesc:
-      "This is a prototype — no account is created or verified.",
+    toastEmailRequiredDesc: "Please enter your email to continue.",
+    toastSuccessTitle: "Recovery email sent",
+    toastSuccessDesc: "Check your inbox for the password reset link.",
   },
   de: {
-    title: "Bei Ihrem Konto anmelden",
+    title: "Passwort vergessen?",
     subtitle:
-      "Geben Sie unten Ihre E-Mail-Adresse ein, um sich anzumelden.",
+      "Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen.",
     emailLabel: "E-Mail",
     emailPlaceholder: "name@beispiel.de",
-    passwordLabel: "Passwort",
-    passwordPlaceholder: "Passwort eingeben",
-    forgotPassword: "Passwort vergessen?",
-    loginButton: "Anmelden",
+    submitButton: "Recovery-E-Mail senden",
+    backToLogin: "Zurück zum Login",
+    continueToReset: "Ich habe den Link bereits",
     ariaBackHome: "Zurück zur Startseite",
     ariaLanguage: "Sprache",
-    showPassword: "Passwort anzeigen",
-    hidePassword: "Passwort verbergen",
     toastEmailRequiredTitle: "E-Mail erforderlich",
-    toastEmailRequiredDesc:
-      "Bitte geben Sie die E-Mail-Adresse für Ihr Konto ein.",
-    toastInvalidEmailTitle: "Ungültige E-Mail",
-    toastInvalidEmailDesc:
-      "Prüfen Sie das Format und versuchen Sie es erneut (z. B. name@firma.de).",
-    toastPasswordRequiredTitle: "Passwort erforderlich",
-    toastPasswordRequiredDesc:
-      "Geben Sie Ihr Passwort ein, um fortzufahren.",
-    toastSignedInTitle: "Angemeldet",
-    toastSignedInDesc:
-      "Dies ist ein Prototyp — es wird kein Konto erstellt oder geprüft.",
+    toastEmailRequiredDesc: "Bitte gib deine E-Mail-Adresse ein.",
+    toastSuccessTitle: "Recovery-E-Mail gesendet",
+    toastSuccessDesc: "Prüfe dein Postfach für den Reset-Link.",
   },
-} satisfies Record<"en" | "de", LoginCopy>;
+} satisfies Record<"en" | "de", ForgotCopy>;
 
-function loginStrings(lang: LoginLangId): LoginCopy {
-  return lang === "de" ? LOGIN_COPY.de : LOGIN_COPY.en;
+function forgotStrings(lang: LoginLangId): ForgotCopy {
+  return lang === "de" ? FORGOT_COPY.de : FORGOT_COPY.en;
 }
 
-/** Clearer default edge than theme `--border` (too faint on white); focus keeps Input ring. */
-const loginInputClassName =
+const forgotInputClassName =
   "h-12 rounded-xl bg-background px-3.5 text-[1.0625rem] leading-normal shadow-sm border-zinc-300 dark:border-zinc-600 md:text-[1.0625rem]";
 
-export default function LoginPage() {
+type ForgotLocationState = {
+  lang?: LoginLangId;
+  email?: string;
+};
+
+export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [lang, setLang] = useState<(typeof LANGUAGES)[number]["id"]>("en");
-  const [showPassword, setShowPassword] = useState(false);
+  const { state } = useLocation();
+  const locationState = (state ?? {}) as ForgotLocationState;
+  const [lang, setLang] = useState<LoginLangId>(locationState.lang ?? "en");
 
   const selectedLang = useMemo(
-    () => LANGUAGES.find((l) => l.id === lang) ?? LANGUAGES[0],
+    () => LANGUAGES.find((item) => item.id === lang) ?? LANGUAGES[0],
     [lang],
   );
+  const t = useMemo(() => forgotStrings(lang), [lang]);
 
-  const t = useMemo(() => loginStrings(lang), [lang]);
-
-  function handleLoginSubmit(e: FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim() ?? "";
-    const password =
-      (form.elements.namedItem("password") as HTMLInputElement)?.value ?? "";
     if (!email) {
       toast.error(t.toastEmailRequiredTitle, {
         description: t.toastEmailRequiredDesc,
       });
       return;
     }
-    if (!password) {
-      toast.error(t.toastPasswordRequiredTitle, {
-        description: t.toastPasswordRequiredDesc,
-      });
-      return;
-    }
-    navigate("/login/token", { state: { lang, email } });
+    toast.success(t.toastSuccessTitle, {
+      description: t.toastSuccessDesc,
+    });
   }
 
   return (
@@ -152,11 +123,9 @@ export default function LoginPage() {
         className={cn(
           "flex w-full max-w-full flex-col items-stretch lg:flex-row",
           "gap-6 lg:gap-8 xl:gap-10",
-          /* Wider on large viewports so both columns scale up (still capped for readability) */
           "lg:max-w-[min(100%,1480px)] xl:max-w-[min(100%,1680px)] 2xl:max-w-[min(100%,min(1880px,92vw))]",
         )}
       >
-        {/* Form column — own card, separated from illustration */}
         <div
           className={cn(
             "flex min-h-[min(90vh,800px)] flex-col lg:min-h-[min(88vh,820px)] xl:min-h-[min(88vh,860px)] 2xl:min-h-[min(88vh,900px)]",
@@ -189,58 +158,18 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form className="space-y-6" onSubmit={handleLoginSubmit} noValidate>
+              <form className="space-y-6" onSubmit={handleSubmit} noValidate>
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">{t.emailLabel}</Label>
+                  <Label htmlFor="recovery-email">{t.emailLabel}</Label>
                   <Input
-                    id="login-email"
+                    id="recovery-email"
                     name="email"
                     type="email"
                     autoComplete="email"
+                    defaultValue={locationState.email ?? ""}
                     placeholder={t.emailPlaceholder}
-                    className={loginInputClassName}
+                    className={forgotInputClassName}
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <Label htmlFor="login-password">{t.passwordLabel}</Label>
-                    <button
-                      type="button"
-                      className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-                      onClick={() => navigate("/login/forgot-password", { state: { lang } })}
-                    >
-                      {t.forgotPassword}
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="login-password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      placeholder={t.passwordPlaceholder}
-                      className={cn(loginInputClassName, "pr-11")}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className={cn(
-                        "absolute right-1.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md",
-                        "text-muted-foreground transition-colors",
-                        "hover:bg-muted hover:text-foreground",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                      )}
-                      aria-pressed={showPassword}
-                      aria-label={showPassword ? t.hidePassword : t.showPassword}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-[1.125rem] shrink-0" strokeWidth={2} />
-                      ) : (
-                        <Eye className="size-[1.125rem] shrink-0" strokeWidth={2} />
-                      )}
-                    </button>
-                  </div>
                 </div>
 
                 <Button
@@ -248,13 +177,33 @@ export default function LoginPage() {
                   size="big"
                   className="w-full bg-[#015ea3] font-normal text-white border-[#015ea3] hover:bg-[#014a82]"
                 >
-                  {t.loginButton}
+                  {t.submitButton}
                 </Button>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                  <button
+                    type="button"
+                    className="text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+                    onClick={() => navigate("/login", { state: { lang } })}
+                  >
+                    {t.backToLogin}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+                    onClick={() =>
+                      navigate("/login/reset-password", {
+                        state: { lang, email: locationState.email },
+                      })
+                    }
+                  >
+                    {t.continueToReset}
+                  </button>
+                </div>
               </form>
             </div>
           </div>
 
-          {/* Footer row — language bottom-left + old logo bottom-right */}
           <div className="shrink-0 flex w-full items-center justify-between gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -288,9 +237,7 @@ export default function LoginPage() {
               >
                 <DropdownMenuRadioGroup
                   value={lang}
-                  onValueChange={(v) =>
-                    setLang(v as (typeof LANGUAGES)[number]["id"])
-                  }
+                  onValueChange={(v) => setLang(v as LoginLangId)}
                 >
                   {LANGUAGES.map((item) => (
                     <DropdownMenuRadioItem
@@ -322,7 +269,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Illustration column — separate card */}
         <div
           className={cn(
             "relative hidden flex-col items-center justify-center lg:flex",

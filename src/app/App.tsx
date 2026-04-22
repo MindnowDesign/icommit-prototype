@@ -8,6 +8,9 @@ import MeasuresPage from "./pages/MeasuresPage";
 import PulsePage from "./pages/PulsePage";
 import HousePage from "./pages/HousePage";
 import LoginPage from "./pages/LoginPage";
+import LoginTokenPage from "./pages/LoginTokenPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ActionPortfolioPage from "./pages/ActionPortfolioPage";
 
 export default function App() {
@@ -33,6 +36,9 @@ export default function App() {
         <Route path="/action-portfolio" element={<Navigate to="/fields" replace />} />
         <Route path="/house" element={<HousePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/login/token" element={<LoginTokenPage />} />
+        <Route path="/login/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/login/reset-password" element={<ResetPasswordPage />} />
       </Routes>
     </BrowserRouter>
     </LocaleProvider>
