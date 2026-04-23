@@ -61,17 +61,17 @@ const FORGOT_COPY = {
   de: {
     title: "Passwort vergessen?",
     subtitle:
-      "Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen.",
+      "Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen.",
     emailLabel: "E-Mail",
     emailPlaceholder: "name@beispiel.de",
-    submitButton: "Recovery-E-Mail senden",
-    continueToReset: "Ich habe den Link bereits (NUR für Prototyp-Zwecke, für Dev entfernen)",
+    submitButton: "E-Mail zur Wiederherstellung senden",
+    continueToReset: "Ich habe den Link bereits (nur für Prototyp-Zwecke, vor Go-live entfernen)",
     ariaBackHome: "Zurück zur Startseite",
     ariaLanguage: "Sprache",
     toastEmailRequiredTitle: "E-Mail erforderlich",
-    toastEmailRequiredDesc: "Bitte gib deine E-Mail-Adresse ein.",
-    toastSuccessTitle: "Recovery-E-Mail gesendet",
-    toastSuccessDesc: "Prüfe dein Postfach für den Reset-Link.",
+    toastEmailRequiredDesc: "Bitte geben Sie Ihre E-Mail-Adresse ein.",
+    toastSuccessTitle: "E-Mail zur Wiederherstellung gesendet",
+    toastSuccessDesc: "Prüfen Sie Ihren Posteingang auf den Link zum Zurücksetzen.",
   },
 } satisfies Record<"en" | "de", ForgotCopy>;
 

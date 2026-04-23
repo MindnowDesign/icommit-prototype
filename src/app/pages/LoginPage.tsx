@@ -85,11 +85,10 @@ const LOGIN_COPY = {
       "This is a prototype — no account is created or verified.",
   },
   de: {
-    title: "Bei Ihrem Konto anmelden",
-    subtitle:
-      "Geben Sie unten Ihre E-Mail-Adresse ein, um sich anzumelden.",
+    title: "Melden Sie sich in Ihrem Konto an",
+    subtitle: "Geben Sie Ihre E-Mail-Adresse ein, um sich anzumelden.",
     emailLabel: "E-Mail",
-    emailPlaceholder: "name@beispiel.de",
+    emailPlaceholder: "name@beispiel.ch",
     passwordLabel: "Passwort",
     passwordPlaceholder: "Passwort eingeben",
     forgotPassword: "Passwort vergessen?",
@@ -107,13 +106,13 @@ const LOGIN_COPY = {
     toastPasswordRequiredTitle: "Passwort erforderlich",
     toastPasswordRequiredDesc:
       "Geben Sie Ihr Passwort ein, um fortzufahren.",
-    emailErrorInvalid: "E-Mail ist nicht korrekt. Bitte überprüfe die Schreibweise.",
-    passwordErrorInvalid: "Passwort ist nicht korrekt. Bitte überprüfe die Schreibweise.",
-    toastFixErrorsTitle: "Bitte korrigiere die Fehler",
-    toastFixErrorsDesc: "Prüfe die markierten Felder und versuche es erneut.",
+    emailErrorInvalid: "Ungültige E-Mail-Adresse. Bitte prüfen Sie die Eingabe.",
+    passwordErrorInvalid: "Ungültiges Passwort. Bitte prüfen Sie die Eingabe.",
+    toastFixErrorsTitle: "Bitte korrigieren Sie die Fehler",
+    toastFixErrorsDesc: "Prüfen Sie die markierten Felder und versuchen Sie es erneut.",
     toastSignedInTitle: "Angemeldet",
     toastSignedInDesc:
-      "Dies ist ein Prototyp — es wird kein Konto erstellt oder geprüft.",
+      "Dies ist ein Prototyp — es erfolgt keine echte Kontoüberprüfung.",
   },
 } satisfies Record<"en" | "de", LoginCopy>;
 
