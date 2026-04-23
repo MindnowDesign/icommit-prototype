@@ -174,7 +174,7 @@ export default function LoginPage() {
             <img
               src={iCommitCommitmentLogo}
               alt="iCommit Commitment"
-              className="h-[40px] w-auto object-contain sm:h-[44px]"
+              className="h-[46px] w-auto object-contain sm:h-[50px]"
             />
           </Link>
 

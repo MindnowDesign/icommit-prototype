@@ -34,7 +34,6 @@ type ForgotCopy = {
   emailLabel: string;
   emailPlaceholder: string;
   submitButton: string;
-  backToLogin: string;
   continueToReset: string;
   ariaBackHome: string;
   ariaLanguage: string;
@@ -51,8 +50,7 @@ const FORGOT_COPY = {
     emailLabel: "Email",
     emailPlaceholder: "name@example.com",
     submitButton: "Send recovery email",
-    backToLogin: "Back to login",
-    continueToReset: "I already have the link",
+    continueToReset: "I already have the link (ONLY for Prototype purpose, remove for Dev)",
     ariaBackHome: "Back to home",
     ariaLanguage: "Language",
     toastEmailRequiredTitle: "Email required",
@@ -67,8 +65,7 @@ const FORGOT_COPY = {
     emailLabel: "E-Mail",
     emailPlaceholder: "name@beispiel.de",
     submitButton: "Recovery-E-Mail senden",
-    backToLogin: "Zurück zum Login",
-    continueToReset: "Ich habe den Link bereits",
+    continueToReset: "Ich habe den Link bereits (NUR für Prototyp-Zwecke, für Dev entfernen)",
     ariaBackHome: "Zurück zur Startseite",
     ariaLanguage: "Sprache",
     toastEmailRequiredTitle: "E-Mail erforderlich",
@@ -143,7 +140,7 @@ export default function ForgotPasswordPage() {
             <img
               src={iCommitCommitmentLogo}
               alt="iCommit Commitment"
-              className="h-[40px] w-auto object-contain sm:h-[44px]"
+              className="h-[46px] w-auto object-contain sm:h-[50px]"
             />
           </Link>
 
@@ -180,17 +177,10 @@ export default function ForgotPasswordPage() {
                   {t.submitButton}
                 </Button>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <div className="flex justify-center text-sm">
                   <button
                     type="button"
-                    className="text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-                    onClick={() => navigate("/login", { state: { lang } })}
-                  >
-                    {t.backToLogin}
-                  </button>
-                  <button
-                    type="button"
-                    className="text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+                    className="text-muted-foreground/75 underline underline-offset-4 transition-colors hover:text-foreground"
                     onClick={() =>
                       navigate("/login/reset-password", {
                         state: { lang, email: locationState.email },

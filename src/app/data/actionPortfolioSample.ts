@@ -71,7 +71,7 @@ const COMMITMENT_POS: TabPos[] = [
   { x: -0.65, y: -0.42, hausRelative: "weakness", isUserAction: true },
   { x: 0.18, y: 0.55, isUserAction: true },
   { x: 0.72, y: -0.12, isUserAction: false },
-  { x: -0.35, y: -0.58, isUserAction: true },
+  { x: -0.35, y: 0.42, isUserAction: true },
   { x: 0.45, y: 0.22, isUserAction: false },
   { x: -0.08, y: 0.68, isUserAction: false },
   { x: 0.55, y: -0.35, isUserAction: false },
