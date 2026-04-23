@@ -47,6 +47,10 @@ type LoginCopy = {
   toastInvalidEmailDesc: string;
   toastPasswordRequiredTitle: string;
   toastPasswordRequiredDesc: string;
+  emailErrorInvalid: string;
+  passwordErrorInvalid: string;
+  toastFixErrorsTitle: string;
+  toastFixErrorsDesc: string;
   toastSignedInTitle: string;
   toastSignedInDesc: string;
 };
@@ -72,6 +76,10 @@ const LOGIN_COPY = {
       "Check the format and try again (e.g. name@company.com).",
     toastPasswordRequiredTitle: "Password required",
     toastPasswordRequiredDesc: "Enter your password to continue.",
+    emailErrorInvalid: "Wrong email, check spelling.",
+    passwordErrorInvalid: "Wrong password, check spelling.",
+    toastFixErrorsTitle: "Please fix the errors",
+    toastFixErrorsDesc: "Check the highlighted fields and try again.",
     toastSignedInTitle: "Signed in",
     toastSignedInDesc:
       "This is a prototype — no account is created or verified.",
@@ -99,6 +107,10 @@ const LOGIN_COPY = {
     toastPasswordRequiredTitle: "Passwort erforderlich",
     toastPasswordRequiredDesc:
       "Geben Sie Ihr Passwort ein, um fortzufahren.",
+    emailErrorInvalid: "E-Mail ist nicht korrekt. Bitte überprüfe die Schreibweise.",
+    passwordErrorInvalid: "Passwort ist nicht korrekt. Bitte überprüfe die Schreibweise.",
+    toastFixErrorsTitle: "Bitte korrigiere die Fehler",
+    toastFixErrorsDesc: "Prüfe die markierten Felder und versuche es erneut.",
     toastSignedInTitle: "Angemeldet",
     toastSignedInDesc:
       "Dies ist ein Prototyp — es wird kein Konto erstellt oder geprüft.",
@@ -117,6 +129,10 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [lang, setLang] = useState<(typeof LANGUAGES)[number]["id"]>("en");
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const selectedLang = useMemo(
     () => LANGUAGES.find((l) => l.id === lang) ?? LANGUAGES[0],
@@ -127,23 +143,32 @@ export default function LoginPage() {
 
   function handleLoginSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim() ?? "";
-    const password =
-      (form.elements.namedItem("password") as HTMLInputElement)?.value ?? "";
-    if (!email) {
-      toast.error(t.toastEmailRequiredTitle, {
-        description: t.toastEmailRequiredDesc,
+    const trimmedEmail = email.trim();
+
+    let hasError = false;
+    const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+    if (!emailLooksValid) {
+      setEmailError(t.emailErrorInvalid);
+      hasError = true;
+    } else {
+      setEmailError(null);
+    }
+
+    const passwordLooksValid = password.trim().length >= 6;
+    if (!passwordLooksValid) {
+      setPasswordError(t.passwordErrorInvalid);
+      hasError = true;
+    } else {
+      setPasswordError(null);
+    }
+
+    if (hasError) {
+      toast.error(t.toastFixErrorsTitle, {
+        description: t.toastFixErrorsDesc,
       });
       return;
     }
-    if (!password) {
-      toast.error(t.toastPasswordRequiredTitle, {
-        description: t.toastPasswordRequiredDesc,
-      });
-      return;
-    }
-    navigate("/login/token", { state: { lang, email } });
+    navigate("/login/token", { state: { lang, email: trimmedEmail } });
   }
 
   return (
@@ -197,9 +222,21 @@ export default function LoginPage() {
                     name="email"
                     type="email"
                     autoComplete="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError(null);
+                    }}
                     placeholder={t.emailPlaceholder}
-                    className={loginInputClassName}
+                    className={cn(loginInputClassName, emailError && "border-red-500 focus-visible:ring-red-500/40")}
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? "login-email-error" : undefined}
                   />
+                  {emailError ? (
+                    <p id="login-email-error" className="text-xs text-red-600">
+                      {emailError}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-2">
@@ -219,8 +256,19 @@ export default function LoginPage() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (passwordError) setPasswordError(null);
+                      }}
                       placeholder={t.passwordPlaceholder}
-                      className={cn(loginInputClassName, "pr-11")}
+                      className={cn(
+                        loginInputClassName,
+                        "pr-11",
+                        passwordError && "border-red-500 focus-visible:ring-red-500/40",
+                      )}
+                      aria-invalid={!!passwordError}
+                      aria-describedby={passwordError ? "login-password-error" : undefined}
                     />
                     <button
                       type="button"
@@ -241,6 +289,11 @@ export default function LoginPage() {
                       )}
                     </button>
                   </div>
+                  {passwordError ? (
+                    <p id="login-password-error" className="text-xs text-red-600">
+                      {passwordError}
+                    </p>
+                  ) : null}
                 </div>
 
                 <Button
