@@ -11,7 +11,6 @@ import {
   RefreshCw,
   Sailboat,
   Share2,
-  Star,
   Target,
   User,
   UserCheck,
@@ -81,7 +80,6 @@ const FIELD_ICONS: Record<string, React.ComponentType<{ className?: string; stro
 /* ── Constants ──────────────────────────────────────────────────────────── */
 
 const HAUS_ICON_INNER = "#ffffff";
-const STAR_GOLD = "#FAC215";
 const LABEL_MAX = 20;
 const BENCHMARK_SCALE_MAX = 14;
 const BENCHMARK_TOOLTIP_ICONS = [
@@ -245,6 +243,16 @@ function FocusOpportunityBadgeIcon({ size = 20 }: { size?: number }) {
   );
 }
 
+function GrowthOpportunityBadgeIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="10" fill="#15803C" stroke="#ffffff" strokeWidth="1.5" />
+      <rect x="10" y="6.5" width="2" height="9" rx="1" fill="#ffffff" />
+      <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
+    </svg>
+  );
+}
+
 /* ── Dot ────────────────────────────────────────────────────────────────── */
 
 type DotProps = Readonly<{
@@ -314,14 +322,7 @@ function Dot({
           <g transform="translate(14,-14)" aria-hidden>
             <g transform="translate(-10,-10)">
               {payload.y >= 0 ? (
-                <Star
-                  width={20}
-                  height={20}
-                  fill={STAR_GOLD}
-                  stroke="#ffffff"
-                  strokeWidth={1.5}
-                  aria-hidden
-                />
+                <GrowthOpportunityBadgeIcon size={20} />
               ) : (
                 <FocusOpportunityBadgeIcon size={20} />
               )}
@@ -538,17 +539,14 @@ export function PortfolioScatterPanel({
                       </div>
                       <div className="flex items-baseline justify-between gap-4 text-sm text-[#64748b]">
                         <span>{t.tooltipVsBenchmark}</span>
-                        <span
-                          className="inline-flex shrink-0 items-center gap-1 tabular-nums text-base font-bold"
-                          style={{ color: deviationFillColor(p.y) }}
-                        >
+                        <span className="inline-flex shrink-0 items-center gap-1 tabular-nums text-base font-bold">
                           <img
                             src={benchmarkIcon}
                             alt=""
                             aria-hidden
                             className="size-[18px] shrink-0"
                           />
-                          <span>{benchSign}{p.y}</span>
+                          <span className="text-[#0b446f]">{benchSign}{p.y}</span>
                         </span>
                       </div>
                     </div>
@@ -559,13 +557,7 @@ export function PortfolioScatterPanel({
                         <Separator className="my-2.5 bg-[#e0f0fe]" />
                         <p className="flex items-center gap-2 text-sm font-medium text-[#0b446f]">
                           {p.y >= 0 ? (
-                            <Star
-                              className="size-4 shrink-0"
-                              fill={STAR_GOLD}
-                              stroke="#ffffff"
-                              strokeWidth={1.5}
-                              aria-hidden
-                            />
+                            <GrowthOpportunityBadgeIcon size={16} />
                           ) : (
                             <span className="shrink-0">
                               <FocusOpportunityBadgeIcon size={15} />

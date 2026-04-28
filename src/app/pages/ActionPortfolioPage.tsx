@@ -17,10 +17,37 @@ import { Label } from "../components/ui/label";
 import { SectionWrapper } from "../components/ui/SectionWrapper";
 import { Switch } from "../components/ui/switch";
 import { cn } from "../components/ui/utils";
+import { HausStrengthMuscleIcon, HausWeaknessAlertIcon } from "../components/icons/HausRelativeIcons";
 
 type Tab = "commitment" | "satisfaction" | "resignation";
 
 const TAB_ORDER: Tab[] = ["commitment", "satisfaction", "resignation"];
+
+function TabRelativeBadge({ tab }: { tab: Tab }) {
+  if (tab === "commitment") {
+    return (
+      <span
+        className="pointer-events-none absolute -right-[9px] -top-[9px] inline-flex size-6 items-center justify-center rounded-full border border-[#dbeafe] bg-white shadow-sm"
+        aria-hidden
+      >
+        <HausWeaknessAlertIcon size={13} color="#A17C07" />
+      </span>
+    );
+  }
+
+  if (tab === "satisfaction") {
+    return (
+      <span
+        className="pointer-events-none absolute -right-[9px] -top-[9px] inline-flex size-6 items-center justify-center rounded-full border border-[#dbeafe] bg-white shadow-sm"
+        aria-hidden
+      >
+        <HausStrengthMuscleIcon size={13} color="#15803C" />
+      </span>
+    );
+  }
+
+  return null;
+}
 
 const slideVariants = {
   enter: (d: number) => ({ opacity: 0, x: d > 0 ? 32 : d < 0 ? -32 : 0, filter: "blur(6px)" }),
@@ -87,7 +114,7 @@ export default function ActionPortfolioPage() {
                     <div
                       role="group"
                       aria-label={t.portfolioTabsAria}
-                      className="flex min-h-[40px] items-center gap-2 rounded-lg border border-[#e0f0fe] bg-[#f0f8ff] p-2"
+                      className="flex min-h-[40px] items-center gap-3 rounded-lg border border-[#e0f0fe] bg-[#f0f8ff] p-2"
                     >
                       {portfolioTabs.map(({ value, label, Icon }) => (
                         <button
@@ -96,12 +123,13 @@ export default function ActionPortfolioPage() {
                           aria-pressed={tab === value}
                           onClick={() => handleTabChange(value)}
                           className={cn(
-                            "flex h-full min-h-[38px] items-center gap-2 rounded-md border border-transparent px-2.5 py-1.5 text-[15px] font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-0 sm:px-3",
+                            "relative flex h-full min-h-[38px] items-center gap-2 rounded-md border border-transparent px-3.5 py-1.5 text-[15px] font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-0 sm:px-4",
                             tab === value
                               ? "bg-[#015ea3] text-white"
                               : "text-[#0b446f] hover:bg-white/80",
                           )}
                         >
+                          <TabRelativeBadge tab={value} />
                           <Icon className="size-[18px] shrink-0" strokeWidth={2} aria-hidden />
                           {label}
                         </button>

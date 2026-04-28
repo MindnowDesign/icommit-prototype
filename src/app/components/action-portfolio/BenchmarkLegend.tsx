@@ -1,5 +1,4 @@
 import React from "react";
-import { Star } from "lucide-react";
 
 import { getActionPortfolioCopy } from "../../i18n/actionPortfolioCopy";
 import { useLocale } from "../../i18n/LocaleContext";
@@ -12,13 +11,22 @@ import {
 import { Separator } from "../ui/separator";
 import { cn } from "../ui/utils";
 
-const STAR_GOLD = "#FAC215";
 const LEGEND_STEP_COLORS = ["#BA1B26", "#F97079", "#989898", "#80D7A0", "#15803C"] as const;
 
 function FocusOpportunityBadgeIcon({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
       <circle cx="11" cy="11" r="10" fill="#F59E0B" stroke="#ffffff" strokeWidth="1.5" />
+      <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
+    </svg>
+  );
+}
+
+function GrowthOpportunityBadgeIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="10" fill="#15803C" stroke="#ffffff" strokeWidth="1.5" />
+      <rect x="10" y="6.5" width="2" height="9" rx="1" fill="#ffffff" />
       <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
     </svg>
   );
@@ -51,7 +59,9 @@ export function BenchmarkLegendContent({ className }: { className?: string }) {
 
       <div className="flex min-w-0 flex-col gap-1.5">
         <div className="flex items-center gap-2">
-          <Star className="size-[17px] shrink-0" fill={STAR_GOLD} stroke="#fff" strokeWidth={1.5} aria-hidden />
+          <span className="inline-flex shrink-0">
+            <GrowthOpportunityBadgeIcon size={16} />
+          </span>
           <span className="text-[15px] leading-snug">{t.legendPhase3Strength}</span>
         </div>
         <div className="flex items-center gap-2">
