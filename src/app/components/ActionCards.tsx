@@ -482,10 +482,10 @@ const ActionSection = memo(function ActionSection({
 const ACTION_CARDS_DATA = [
   {
     phase: "Phase 3",
-    title: "Your areas of action",
+    title: "Capture the areas of action from your team dialogue",
     description: (
       <span>
-        Create custom action areas and assign the <span className="font-semibold text-[#525252]">influencing factors</span> you want to work on.
+        Name the focus areas your team agreed on and assign the influencing factors behind them.
       </span>
     ),
     confirmedDescription: (

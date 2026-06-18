@@ -24,11 +24,17 @@ const MuscleIcon = ({ color = "currentColor", className = "w-6 h-6" }: { color?:
 
 type FlowStep = "strength" | "weakness" | "confirmation" | "summary";
 
+export type FieldsFlowState = {
+  step: FlowStep;
+  isPhase3Unlocked: boolean;
+};
+
 interface FieldOfActionSelectorProps {
   onPhase3Unlock?: () => void;
+  onFlowStateChange?: (state: FieldsFlowState) => void;
 }
 
-export function FieldOfActionSelector({ onPhase3Unlock }: FieldOfActionSelectorProps) {
+export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange }: FieldOfActionSelectorProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>("strength");
   const [weaknessSelected, setWeaknessSelected] = useState<Set<string>>(new Set(WEAKNESS_DEFAULT));
   const [strengthSelected, setStrengthSelected] = useState<Set<string>>(new Set(STRENGTH_DEFAULT));
@@ -41,6 +47,10 @@ export function FieldOfActionSelector({ onPhase3Unlock }: FieldOfActionSelectorP
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const maxSelections = 3;
+
+  useEffect(() => {
+    onFlowStateChange?.({ step: currentStep, isPhase3Unlocked });
+  }, [currentStep, isPhase3Unlocked, onFlowStateChange]);
 
   // Get current selections based on step
   const currentSelections = currentStep === "weakness" ? weaknessSelected : strengthSelected;

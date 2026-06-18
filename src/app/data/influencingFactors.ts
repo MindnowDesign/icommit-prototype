@@ -60,3 +60,24 @@ export function getFactorHausRelative(factorId: string): HausRelative | undefine
 export function getFactorById(id: string): InfluencingFactorField | undefined {
   return AVAILABLE_FIELDS.find((field) => field.id === id);
 }
+
+const HAUS_RELATIVE_SORT_ORDER: Record<HausRelative, number> = {
+  strength: 0,
+  weakness: 1,
+};
+
+export function sortFieldsByHausRelative(
+  fields: readonly InfluencingFactorField[]
+): InfluencingFactorField[] {
+  return [...fields].sort((a, b) => {
+    const aRelative = getFactorHausRelative(a.id);
+    const bRelative = getFactorHausRelative(b.id);
+    const aOrder = aRelative !== undefined ? HAUS_RELATIVE_SORT_ORDER[aRelative] : 2;
+    const bOrder = bRelative !== undefined ? HAUS_RELATIVE_SORT_ORDER[bRelative] : 2;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+
+    const aIndex = AVAILABLE_FIELDS.findIndex((field) => field.id === a.id);
+    const bIndex = AVAILABLE_FIELDS.findIndex((field) => field.id === b.id);
+    return aIndex - bIndex;
+  });
+}

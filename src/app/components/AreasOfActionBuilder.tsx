@@ -3,6 +3,7 @@ import { Plus, ArrowRight, MoreHorizontal, Pencil, Trash2, Search, ChevronDown, 
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
 import { Checkbox } from "./ui/checkbox";
 import {
   Dialog,
@@ -28,21 +29,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { AVAILABLE_FIELDS, getFactorById, getFactorHausRelative } from "../data/influencingFactors";
+import { AVAILABLE_FIELDS, getFactorById, getFactorHausRelative, sortFieldsByHausRelative } from "../data/influencingFactors";
 
 export type AreaOfAction = {
   id: string;
   name: string;
+  description: string;
   factorIds: string[];
 };
 
 type AreaDraft = {
   name: string;
+  description: string;
   factorIds: string[];
 };
 
-function isAreaValid(area: Pick<AreaOfAction, "name" | "factorIds">): boolean {
-  return area.name.trim().length > 0 && area.factorIds.length >= 1;
+function isAreaValid(area: Pick<AreaOfAction, "name" | "description" | "factorIds">): boolean {
+  return (
+    area.name.trim().length > 0 &&
+    area.description.trim().length > 0 &&
+    area.factorIds.length >= 1
+  );
 }
 
 const CARD_MIN_HEIGHT = "min-h-[120px]";
@@ -78,7 +85,7 @@ function AreaOfActionDialog({
   editingArea,
   onSave,
 }: AreaOfActionDialogProps) {
-  const [draft, setDraft] = useState<AreaDraft>({ name: "", factorIds: [] });
+  const [draft, setDraft] = useState<AreaDraft>({ name: "", description: "", factorIds: [] });
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllFactors, setShowAllFactors] = useState(false);
 
@@ -86,8 +93,12 @@ function AreaOfActionDialog({
     if (open) {
       setDraft(
         editingArea
-          ? { name: editingArea.name, factorIds: [...editingArea.factorIds] }
-          : { name: "", factorIds: [] }
+          ? {
+              name: editingArea.name,
+              description: editingArea.description,
+              factorIds: [...editingArea.factorIds],
+            }
+          : { name: "", description: "", factorIds: [] }
       );
       setSearchQuery("");
       setShowAllFactors(false);
@@ -95,11 +106,12 @@ function AreaOfActionDialog({
   }, [open, editingArea]);
 
   const filteredFields = useMemo(() => {
-    if (!searchQuery.trim()) return AVAILABLE_FIELDS;
-    const query = searchQuery.toLowerCase();
-    return AVAILABLE_FIELDS.filter((field) =>
-      field.name.toLowerCase().includes(query)
-    );
+    const fields = !searchQuery.trim()
+      ? AVAILABLE_FIELDS
+      : AVAILABLE_FIELDS.filter((field) =>
+          field.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    return sortFieldsByHausRelative(fields);
   }, [searchQuery]);
 
   const isSearching = searchQuery.trim().length > 0;
@@ -151,6 +163,25 @@ function AreaOfActionDialog({
               onChange={(e) => setDraft((prev) => ({ ...prev, name: e.target.value }))}
               placeholder="e.g. Improve team collaboration"
               className="h-11"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5">
+              <label htmlFor="area-description" className="text-sm font-semibold text-[#656565]">
+                Description
+              </label>
+              <span className="text-sm text-[#989898]">
+                Briefly capture the discussion or problem behind this focus area.
+              </span>
+            </div>
+            <Textarea
+              id="area-description"
+              value={draft.description}
+              onChange={(e) => setDraft((prev) => ({ ...prev, description: e.target.value }))}
+              placeholder="e.g. Team feedback showed unclear priorities after the reorg..."
+              rows={3}
+              className="min-h-[88px] resize-none"
             />
           </div>
 
@@ -324,7 +355,13 @@ function AreaOfActionCard({ area, onEdit, onDelete }: AreaOfActionCardProps) {
           >
             {area.name}
           </h4>
-          <span className="text-sm text-[#989898]">
+          <p
+            className="text-sm text-[#656565] line-clamp-2 mt-0.5"
+            title={area.description}
+          >
+            {area.description}
+          </p>
+          <span className="text-sm text-[#989898] mt-1">
             {factors.length} influencing factor{factors.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -420,7 +457,7 @@ function AddAreaCard({ hasAreas, onClick }: AddAreaCardProps) {
     >
       <Plus className="w-6 h-6 text-[#015ea3]" strokeWidth={2} />
       <span className="text-base font-medium text-[#015ea3]">
-        {hasAreas ? "Create another area of action" : "Create area of action"}
+        {hasAreas ? "Add another area of action" : "Add area of action"}
       </span>
     </button>
   );
@@ -464,7 +501,12 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
       setAreas((prev) =>
         prev.map((area) =>
           area.id === editingId
-            ? { ...area, name: draft.name.trim(), factorIds: draft.factorIds }
+            ? {
+                ...area,
+                name: draft.name.trim(),
+                description: draft.description.trim(),
+                factorIds: draft.factorIds,
+              }
             : area
         )
       );
@@ -474,6 +516,7 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
         {
           id: crypto.randomUUID(),
           name: draft.name.trim(),
+          description: draft.description.trim(),
           factorIds: draft.factorIds,
         },
       ]);
@@ -499,6 +542,7 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
               className="border border-[#dcdcdc] rounded-[12px] p-4 bg-[#fafafa] flex flex-col gap-3"
             >
               <p className="text-lg font-semibold text-[#18181b]">{area.name}</p>
+              <p className="text-sm text-[#656565]">{area.description}</p>
               <div className="flex flex-wrap gap-2">
                 {area.factorIds.map((factorId) => {
                   const field = getFactorById(factorId);
@@ -535,9 +579,14 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
   return (
     <>
       {areas.length === 0 && (
-        <p className="text-base text-[#656565]">
-          Create your first area of action to get started.
-        </p>
+        <div className="flex flex-col gap-0.5">
+          <p className="text-base font-semibold text-[#292929]">
+            Start with the outcomes of your team dialogue
+          </p>
+          <p className="text-base text-[#656565] leading-relaxed">
+            Create 1–2 areas of action based on the influencing factors you discussed with your team.
+          </p>
+        </div>
       )}
 
       <div className="flex flex-col gap-3 min-w-0 w-full max-w-full">

@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback } from "react";
+import React, { memo, useMemo, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Rocket, Scale, Anchor, TrendingUp, ArrowUpRight, Lightbulb, MessageCircleQuestion, Dumbbell, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound, AlertTriangle } from "lucide-react";
 import { cn } from "./ui/utils";
@@ -6,7 +6,7 @@ import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Button } from "./ui/button";
 import { useInView } from "./ui/useInView";
-import { FieldOfActionSelector } from "./FieldOfActionSelector";
+import { FieldOfActionSelector, type FieldsFlowState } from "./FieldOfActionSelector";
 import {
   Accordion,
   AccordionContent,
@@ -349,8 +349,36 @@ const HOUSE_CARDS_CONFIG = [
   },
 ] as const;
 
+function getFieldsAccordionCopy({ step, isPhase3Unlocked }: FieldsFlowState) {
+  if (step === "confirmation" || step === "summary") {
+    if (isPhase3Unlocked || step === "summary") {
+      return {
+        title: "Your confirmed strengths and weaknesses",
+        description:
+          "The influencing factors your team validated as relative strengths and weaknesses.",
+      };
+    }
+    return {
+      title: "Your strengths and weaknesses",
+      description:
+        "You've selected your focus areas — take them offline with your team, then confirm to unlock the next phase.",
+    };
+  }
+
+  return {
+    title: "Confirm or adjust strength and weakness factors",
+    description:
+      "Based on your company's survey results, confirm or change which influencing factors determine your relative strengths and weaknesses.",
+  };
+}
+
 function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => void }) {
   const navigate = useNavigate();
+  const [fieldsFlowState, setFieldsFlowState] = useState<FieldsFlowState>({
+    step: "strength",
+    isPhase3Unlocked: false,
+  });
+  const fieldsAccordionCopy = getFieldsAccordionCopy(fieldsFlowState);
   // Intersection observer for entrance animation
   const [sectionRef, isInView] = useInView<HTMLDivElement>({ threshold: 0.15, triggerOnce: true });
 
@@ -614,15 +642,18 @@ function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => voi
           <AccordionTrigger className="px-6 py-5 hover:no-underline [&[data-state=open]]:pb-3 [&>svg]:text-[#015ea3]">
             <div className="flex flex-col gap-1 text-left">
               <h3 className="text-lg font-semibold text-[#18181b]">
-                Confirm or adjust strength and weakness factors
+                {fieldsAccordionCopy.title}
               </h3>
               <p className="text-base font-normal text-[#7c7c7c] leading-[1.5]">
-                Based on your company&apos;s survey results, confirm or change which influencing factors determine your relative strengths and weaknesses.
+                {fieldsAccordionCopy.description}
               </p>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6 text-base">
-            <FieldOfActionSelector onPhase3Unlock={onPhase3Unlock} />
+            <FieldOfActionSelector
+              onPhase3Unlock={onPhase3Unlock}
+              onFlowStateChange={setFieldsFlowState}
+            />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
