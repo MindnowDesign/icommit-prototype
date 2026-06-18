@@ -11,8 +11,6 @@ import { PhaseUnlockDialog } from "../components/ui/phase-unlock-dialog";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 
 interface LocationState {
-  unlockPhase3?: boolean;
-  scrollToPhase3?: boolean;
   unlockPhase5?: boolean;
 }
 
@@ -28,32 +26,6 @@ export default function HomePage() {
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [pendingPhaseUnlock, setPendingPhaseUnlock] = useState<number | null>(null);
   
-  // Handle Phase 3 unlock from navigation state (coming from Results page after dialog)
-  useEffect(() => {
-    if (state?.unlockPhase3 && !isPhase3Unlocked) {
-      // Unlock Phase 3 directly (dialog was already shown on Results page)
-      setIsPhase3Unlocked(true);
-      
-      // Scroll to Phase 3 section if requested
-      if (state?.scrollToPhase3) {
-        setTimeout(() => {
-          const phase3Section = document.getElementById("phase-3-section");
-          if (phase3Section) {
-            const elementPosition = phase3Section.getBoundingClientRect().top + window.scrollY;
-            const offsetPosition = elementPosition - 180;
-            window.scrollTo({
-              top: offsetPosition,
-              behavior: "smooth"
-            });
-          }
-        }, 100);
-      }
-      
-      // Clear navigation state
-      window.history.replaceState({}, document.title);
-    }
-  }, [state?.unlockPhase3, state?.scrollToPhase3, isPhase3Unlocked]);
-
   // Handle Phase 5 unlock from Measures page navigation state
   useEffect(() => {
     if (state?.unlockPhase5 && !isPhase5Unlocked) {
@@ -71,6 +43,11 @@ export default function HomePage() {
     }
   }, [state?.unlockPhase5, isPhase5Unlocked]);
 
+  const handlePhase3UnlockFromFields = () => {
+    setPendingPhaseUnlock(3);
+    setUnlockDialogOpen(true);
+  };
+
   // Handle Phase unlock from ActionCards - shows celebration dialog
   const handlePhaseUnlock = (phase: string) => {
     const phaseNumber = parseInt(phase.replace("Phase ", ""));
@@ -83,8 +60,17 @@ export default function HomePage() {
   const performPhaseUnlock = (phaseNumber: number) => {
     if (phaseNumber === 3) {
       setIsPhase3Unlocked(true);
-      // Clear navigation state without scrolling - user stays where they are
-      window.history.replaceState({}, document.title);
+      setTimeout(() => {
+        const phase3Section = document.getElementById("phase-3-section");
+        if (phase3Section) {
+          const elementPosition = phase3Section.getBoundingClientRect().top + window.scrollY;
+          const offsetPosition = elementPosition - 180;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+        }
+      }, 100);
     }
     if (phaseNumber === 4) {
       setIsPhase4Unlocked(true);
@@ -181,7 +167,7 @@ export default function HomePage() {
             </SectionWrapper>
           </div>
           
-          <HouseSectionB />
+          <HouseSectionB onPhase3Unlock={handlePhase3UnlockFromFields} />
           
           <ActionCards 
             initialUnlockedPhases={unlockedPhases} 
@@ -213,7 +199,7 @@ export default function HomePage() {
               : currentPhase === 4 
                 ? "Your measures" 
                 : currentPhase === 3 
-                  ? "Your focus areas" 
+                  ? "Your areas of action" 
                   : "Analyse data"
         }
         actionText={
@@ -264,9 +250,15 @@ export default function HomePage() {
               }
             }, 100);
           } else if (currentPhase === 3) {
-            // Go back to Phase 2
             setIsPhase3Unlocked(false);
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            setTimeout(() => {
+              const phase2Section = document.getElementById("phase-2-section");
+              if (phase2Section) {
+                const elementPosition = phase2Section.getBoundingClientRect().top + window.scrollY;
+                const offsetPosition = elementPosition - 180;
+                window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+              }
+            }, 100);
           }
         }}
         onActionClick={() => {
@@ -286,7 +278,6 @@ export default function HomePage() {
               setHasDownloadedPhase4Docs(true);
             }
           } else if (currentPhase === 3) {
-            // Scroll to Phase 3 section to interact with FieldOfActionSelector
             const phase3Section = document.getElementById("phase-3-section");
             if (phase3Section) {
               const elementPosition = phase3Section.getBoundingClientRect().top + window.scrollY;

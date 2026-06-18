@@ -6,6 +6,13 @@ import { SectionWrapper } from "./ui/SectionWrapper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Button } from "./ui/button";
 import { useInView } from "./ui/useInView";
+import { FieldOfActionSelector } from "./FieldOfActionSelector";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "./ui/accordion";
 import TettoSvg from "../../assets/house/Tetto.svg";
 import RoofSvg from "../../assets/house/Roof.svg";
 import RoofYellowSvg from "../../assets/house/Roof-Yellow.svg";
@@ -342,7 +349,7 @@ const HOUSE_CARDS_CONFIG = [
   },
 ] as const;
 
-function HouseSectionBComponent() {
+function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => void }) {
   const navigate = useNavigate();
   // Intersection observer for entrance animation
   const [sectionRef, isInView] = useInView<HTMLDivElement>({ threshold: 0.15, triggerOnce: true });
@@ -390,7 +397,7 @@ function HouseSectionBComponent() {
   }, []);
 
   return (
-    <SectionWrapper className="flex flex-col items-center gap-8">
+    <SectionWrapper id="phase-2-section" className="flex flex-col items-center gap-8">
       {/* Header */}
       <div className="w-full flex flex-col items-start gap-3">
         <div className="bg-[#b9e2fe] px-3 py-2 rounded-lg text-[#0b446f] text-sm">
@@ -595,6 +602,30 @@ function HouseSectionBComponent() {
           </div>
         </div>
       </div>
+
+      {/* Field selection — part of Phase 2 */}
+      <Accordion
+        type="single"
+        collapsible
+        defaultValue="fields"
+        className="w-full border border-[#dcdcdc] rounded-[12px] bg-white"
+      >
+        <AccordionItem value="fields" className="border-none">
+          <AccordionTrigger className="px-6 py-5 hover:no-underline [&[data-state=open]]:pb-3 [&>svg]:text-[#015ea3]">
+            <div className="flex flex-col gap-1 text-left">
+              <h3 className="text-lg font-semibold text-[#18181b]">
+                Confirm or adjust strength and weakness factors
+              </h3>
+              <p className="text-base font-normal text-[#7c7c7c] leading-[1.5]">
+                Based on your company&apos;s survey results, confirm or change which influencing factors determine your relative strengths and weaknesses.
+              </p>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="px-6 pb-6 text-base">
+            <FieldOfActionSelector onPhase3Unlock={onPhase3Unlock} />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </SectionWrapper>
   );
 }

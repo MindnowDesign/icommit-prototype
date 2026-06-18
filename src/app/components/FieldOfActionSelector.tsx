@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { Search, X, Briefcase, Sailboat, Building2, Wrench, Users, RefreshCw, UserCheck, Target, UserPlus, User, Crown, GraduationCap, FileCheck, Coins, Share2, UsersRound, ArrowRight, ArrowLeft, Download, MessageSquare, Lightbulb, CheckCircle2, AlertTriangle, FileText, Undo2 } from "lucide-react";
+import { X, ArrowRight, Download, AlertTriangle, Undo2 } from "lucide-react";
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import Phase3Illustration from "../../assets/Illustration-03-Phase03.svg";
-import { toast } from "sonner";
+import { AVAILABLE_FIELDS, WEAKNESS_DEFAULT, STRENGTH_DEFAULT } from "../data/influencingFactors";
 
 // Custom Muscle Icon (same as in HouseSectionB)
 const MuscleIcon = ({ color = "currentColor", className = "w-6 h-6" }: { color?: string; className?: string }) => (
@@ -22,44 +22,20 @@ const MuscleIcon = ({ color = "currentColor", className = "w-6 h-6" }: { color?:
   </svg>
 );
 
-// Available fields of action with their icons
-const AVAILABLE_FIELDS = [
-  { id: "job-content", name: "Job content", icon: Briefcase },
-  { id: "work-leisure", name: "Work and leisure", icon: Sailboat },
-  { id: "structures-procedures", name: "Structures and procedures", icon: Building2 },
-  { id: "workplace-tools", name: "Workplace / Tools", icon: Wrench },
-  { id: "collaboration", name: "Collaboration within the company", icon: Users },
-  { id: "dealing-changes", name: "Dealing with changes", icon: RefreshCw },
-  { id: "customer-orientation", name: "Customer orientation", icon: UserCheck },
-  { id: "company-strategy", name: "Company strategy", icon: Target },
-  { id: "involvement-employees", name: "Involvement of employees", icon: UserPlus },
-  { id: "immediate-superior", name: "Immediate superior", icon: User },
-  { id: "executive-management", name: "Executive management", icon: Crown },
-  { id: "employee-development", name: "Employee development", icon: GraduationCap },
-  { id: "objective-agreement", name: "Objective agreement", icon: FileCheck },
-  { id: "remuneration", name: "Remuneration", icon: Coins },
-  { id: "knowledge-sharing", name: "Knowledge sharing", icon: Share2 },
-  { id: "team", name: "Team", icon: UsersRound },
-] as const;
-
-// Pre-selected factors from the house cards
-const WEAKNESS_DEFAULT = ["job-content", "company-strategy", "involvement-employees"];
-const STRENGTH_DEFAULT = ["work-leisure", "team", "immediate-superior"];
-
 type FlowStep = "strength" | "weakness" | "confirmation" | "summary";
 
 interface FieldOfActionSelectorProps {
-  onPhase4Unlock?: () => void;
+  onPhase3Unlock?: () => void;
 }
 
-export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorProps) {
+export function FieldOfActionSelector({ onPhase3Unlock }: FieldOfActionSelectorProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>("strength");
   const [weaknessSelected, setWeaknessSelected] = useState<Set<string>>(new Set(WEAKNESS_DEFAULT));
   const [strengthSelected, setStrengthSelected] = useState<Set<string>>(new Set(STRENGTH_DEFAULT));
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
-  const [isPhase4Unlocked, setIsPhase4Unlocked] = useState(false);
+  const [isPhase3Unlocked, setIsPhase3Unlocked] = useState(false);
   const [hasDownloadedDocs, setHasDownloadedDocs] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -169,10 +145,9 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
     setHasDownloadedDocs(true);
   };
 
-  // Handle confirm and unlock Phase 4
   const handleConfirmUnlock = () => {
-    onPhase4Unlock?.();
-    setIsPhase4Unlocked(true);
+    onPhase3Unlock?.();
+    setIsPhase3Unlocked(true);
   };
 
   // Get fields for summary dialog
@@ -267,10 +242,10 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
           {/* Title and description */}
           <div className="flex flex-col items-center gap-3 text-center max-w-lg">
             <h3 className="text-3xl font-semibold text-[#0b446f] tracking-tight">
-              {isPhase4Unlocked ? "Proceed to phase 4" : "Take it offline with your team"}
+              {isPhase3Unlocked ? "Proceed to Phase 3" : "Take it offline with your team"}
             </h3>
             <p className="text-base text-[#656565] leading-relaxed">
-              {isPhase4Unlocked 
+              {isPhase3Unlocked 
                 ? "You've selected your focus areas and discussed them with your team. You can still edit them, view your summary or download the documentation again."
                 : "You've selected your focus areas. Download the documentation, discuss them with your team, validate them in practice, and come back to confirm or adjust before moving on."
               }
@@ -319,7 +294,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
 
           {/* Buttons */}
           <div className="flex items-center gap-2">
-            {isPhase4Unlocked ? (
+            {isPhase3Unlocked ? (
               <Button
                 size="big"
                 onClick={handleEditFocusAreas}
@@ -359,7 +334,7 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
     );
   }
 
-  // Summary view - shown after Phase 4 is unlocked
+  // Summary view - shown after Phase 3 is unlocked
   if (currentStep === "summary") {
     const weaknessFields = AVAILABLE_FIELDS.filter(field => weaknessSelected.has(field.id));
     const strengthFields = AVAILABLE_FIELDS.filter(field => strengthSelected.has(field.id));
@@ -562,16 +537,17 @@ export function FieldOfActionSelector({ onPhase4Unlock }: FieldOfActionSelectorP
       {/* Action Buttons */}
       <div className="flex justify-end gap-3 pt-2">
         <Button
+          size="big"
           onClick={() => currentStep === "strength" ? setCurrentStep("weakness") : setCurrentStep("confirmation")}
           disabled={currentSelections.size === 0}
           className={cn(
-            "w-fit border shrink-0 rounded-lg text-base font-normal py-3 px-4",
+            "font-normal",
             currentSelections.size === 0
               ? "bg-[#9e9e9e] text-white border-[#9e9e9e] cursor-not-allowed hover:bg-[#9e9e9e] opacity-60"
               : "bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82]"
           )}
         >
-          <span>{currentStep === "strength" ? "Move to relative weakness" : "Confirm areas of interest"}</span>
+          <span>{currentStep === "strength" ? "Move to relative weakness" : "Confirm strength and weakness factors"}</span>
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>

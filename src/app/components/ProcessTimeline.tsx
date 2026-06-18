@@ -84,9 +84,9 @@ export const ProcessTimeline = memo(function ProcessTimeline({ currentPhase = 2 
     },
     {
       phase: "Phase 3",
-      title: "Your focus areas",
-      description: "Discover where to focus your next actions.",
-      buttonText: "Open fields",
+      title: "Your areas of action",
+      description: "Create custom areas and assign influencing factors.",
+      buttonText: "Open areas",
       buttonIcon: <ArrowUpRight className="w-4 h-4" />,
       variant: (currentPhase > 3 ? "default" : currentPhase === 3 ? "active" : "future") as const
     },

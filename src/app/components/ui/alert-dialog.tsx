@@ -124,7 +124,7 @@ function AlertDialogAction({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Action>) {
   return (
     <AlertDialogPrimitive.Action
-      className={cn(buttonVariants(), className)}
+      className={cn(buttonVariants({ size: "big" }), "font-normal", className)}
       {...props}
     />
   );
@@ -136,7 +136,11 @@ function AlertDialogCancel({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
   return (
     <AlertDialogPrimitive.Cancel
-      className={cn(buttonVariants({ variant: "ghost" }), className)}
+      className={cn(
+        buttonVariants({ variant: "ghost", size: "big" }),
+        "font-normal",
+        className,
+      )}
       {...props}
     />
   );
