@@ -61,6 +61,18 @@ export function getFactorById(id: string): InfluencingFactorField | undefined {
   return AVAILABLE_FIELDS.find((field) => field.id === id);
 }
 
+export function idsToFactorNames(ids: readonly string[]): string[] {
+  return ids
+    .map((id) => getFactorById(id)?.name)
+    .filter((name): name is string => name !== undefined);
+}
+
+export function areIdSetsEqual(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) return false;
+  const setB = new Set(b);
+  return a.every((id) => setB.has(id));
+}
+
 const HAUS_RELATIVE_SORT_ORDER: Record<HausRelative, number> = {
   strength: 0,
   weakness: 1,

@@ -32,9 +32,10 @@ export type FieldsFlowState = {
 interface FieldOfActionSelectorProps {
   onPhase3Unlock?: () => void;
   onFlowStateChange?: (state: FieldsFlowState) => void;
+  onConfirmSelections?: (selections: { weaknessIds: string[]; strengthIds: string[] }) => void;
 }
 
-export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange }: FieldOfActionSelectorProps) {
+export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onConfirmSelections }: FieldOfActionSelectorProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>("strength");
   const [weaknessSelected, setWeaknessSelected] = useState<Set<string>>(new Set(WEAKNESS_DEFAULT));
   const [strengthSelected, setStrengthSelected] = useState<Set<string>>(new Set(STRENGTH_DEFAULT));
@@ -158,6 +159,14 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange }: Fie
   const handleConfirmUnlock = () => {
     onPhase3Unlock?.();
     setIsPhase3Unlocked(true);
+  };
+
+  const handleConfirmFactors = () => {
+    onConfirmSelections?.({
+      weaknessIds: Array.from(weaknessSelected),
+      strengthIds: Array.from(strengthSelected),
+    });
+    setCurrentStep("confirmation");
   };
 
   // Get fields for summary dialog
@@ -548,7 +557,7 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange }: Fie
       <div className="flex justify-end gap-3 pt-2">
         <Button
           size="big"
-          onClick={() => currentStep === "strength" ? setCurrentStep("weakness") : setCurrentStep("confirmation")}
+          onClick={() => currentStep === "strength" ? setCurrentStep("weakness") : handleConfirmFactors()}
           disabled={currentSelections.size === 0}
           className={cn(
             "font-normal",

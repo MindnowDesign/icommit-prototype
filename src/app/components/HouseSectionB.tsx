@@ -13,6 +13,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "./ui/accordion";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
+import { WEAKNESS_DEFAULT, STRENGTH_DEFAULT, idsToFactorNames, areIdSetsEqual } from "../data/influencingFactors";
 import TettoSvg from "../../assets/house/Tetto.svg";
 import RoofSvg from "../../assets/house/Roof.svg";
 import RoofYellowSvg from "../../assets/house/Roof-Yellow.svg";
@@ -372,6 +374,212 @@ function getFieldsAccordionCopy({ step, isPhase3Unlocked }: FieldsFlowState) {
   };
 }
 
+// Build house cards data, injecting factors per card (Commitment -> weakness, Satisfaction -> strength)
+function buildHouseCardsData(
+  weaknessFactors: readonly string[],
+  strengthFactors: readonly string[]
+) {
+  return HOUSE_CARDS_CONFIG.map((config) => {
+    let icon: React.ReactNode;
+    switch (config.iconType) {
+      case "commitment":
+        icon = <CommitmentIcon />;
+        break;
+      case "satisfaction":
+        icon = <SatisfactionIcon />;
+        break;
+      case "resignation":
+        icon = <ResignationIcon />;
+        break;
+    }
+
+    let badgeIcon: React.ReactNode | undefined;
+    if ('badgeIconType' in config && config.badgeIconType === "trendingDown") {
+      badgeIcon = <AlertTriangle className="w-6 h-6" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
+    } else if ('badgeIconType' in config && config.badgeIconType === "trendingUp") {
+      badgeIcon = <MuscleIcon color={'badgeTextColor' in config ? config.badgeTextColor : undefined} className="w-6 h-6" />;
+    }
+
+    let factors: readonly string[] = config.factors;
+    if (config.title === "Commitment") {
+      factors = weaknessFactors;
+    } else if (config.title === "Satisfaction") {
+      factors = strengthFactors;
+    }
+
+    return {
+      title: config.title,
+      subtitle: config.subtitle,
+      trendingKeyword: config.influencingTitle,
+      icon,
+      iconBg: config.iconBg,
+      factors,
+      badgeText: 'badgeText' in config ? config.badgeText : undefined,
+      badgeBgColor: 'badgeBgColor' in config ? config.badgeBgColor : undefined,
+      badgeHoverBgColor: 'badgeHoverBgColor' in config ? config.badgeHoverBgColor : undefined,
+      badgeTextColor: 'badgeTextColor' in config ? config.badgeTextColor : undefined,
+      chipBgColor: 'chipBgColor' in config ? config.chipBgColor : undefined,
+      chipBorderColor: 'chipBorderColor' in config ? config.chipBorderColor : undefined,
+      badgeIcon,
+      badgeTooltip: 'badgeTooltip' in config ? config.badgeTooltip : undefined,
+    };
+  });
+}
+
+interface HouseGraphicProps {
+  weaknessFactors: readonly string[];
+  strengthFactors: readonly string[];
+  isInView: boolean;
+}
+
+// Roof + cards stack + bottom fade. Parameterized by factor lists so it can render
+// either the survey view or the user's adjusted view.
+const HouseGraphic = memo(function HouseGraphic({ weaknessFactors, strengthFactors, isInView }: HouseGraphicProps) {
+  const houseCardsData = useMemo(
+    () => buildHouseCardsData(weaknessFactors, strengthFactors),
+    [weaknessFactors, strengthFactors]
+  );
+
+  return (
+    <>
+      {/* Roof Graphic - above first card, slightly wider */}
+      <div 
+        className={cn(
+          "w-full max-w-[1100px] h-[87px] relative -mx-4 md:-mx-6 lg:-mx-8 -mb-2",
+          "transition-all duration-700 ease-out",
+          isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        )}
+        style={{ transitionDelay: '750ms' }}
+      >
+         <img 
+           src={TettoSvg} 
+           alt="Roof" 
+           className="w-full h-full block m-0 p-0 object-cover"
+         />
+      </div>
+
+      {/* Cards Stack */}
+      <div className="w-full max-w-[1050px] flex flex-col gap-0 relative mt-0 -mx-4 md:-mx-6 lg:-mx-8">
+        <div className="mx-4 md:mx-6 lg:mx-8">
+          {houseCardsData.map((card, index) => {
+            // Determine background color based on card type
+            let cardBgColor = "bg-[#f0f8ff]"; // Default cyan/50
+            if (card.title === "Satisfaction") {
+              cardBgColor = "bg-[#e0f0fe]"; // cyan/100
+            } else if (card.title === "Resignation") {
+              cardBgColor = "bg-[#b9e2fe]"; // cyan/200
+            } else if (card.title === "Commitment") {
+              cardBgColor = "bg-[#f0f8ff]"; // cyan/50
+            }
+            
+            // Padding: remove top padding for first card (Commitment), keep uniform for others
+            const isFirstCard = index === 0;
+            const paddingClass = isFirstCard 
+              ? "px-[47px] pb-[20px] pt-0" 
+              : "px-[47px] py-[20px]";
+            
+            // Add border radius to bottom corners for last card (Resignation)
+            const isLastCard = index === houseCardsData.length - 1;
+            const borderRadiusClass = isLastCard ? "rounded-b-[16px]" : "";
+            
+            // Animation: bottom to top (reverse index for stagger)
+            const baseDelay = 400;
+            const reverseIndex = houseCardsData.length - 1 - index;
+            const animationDelay = baseDelay + (reverseIndex * 150);
+            const animationClass = isInView 
+              ? "opacity-100 translate-y-0" 
+              : "opacity-0 translate-y-8";
+            
+            if (isFirstCard) {
+              return (
+                <div 
+                  key={card.title} 
+                  className={cn(
+                    cardBgColor, paddingClass, borderRadiusClass, 
+                    "flex flex-col items-center justify-center gap-0",
+                    "transition-all duration-700 ease-out",
+                    animationClass
+                  )}
+                  style={{ transitionDelay: `${animationDelay}ms` }}
+                >
+                  {/* Wrapper for image and card - scales together on hover */}
+                  <div className={cn(
+                    "w-full flex flex-col gap-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom group/roofCard",
+                    card.badgeBgColor ? "hover:scale-110 hover:z-20" : ""
+                  )}>
+                    {/* Roof with color swap on hover */}
+                    <div className="relative w-full">
+                      <img 
+                        src={RoofSvg} 
+                        alt="Roof" 
+                        className="w-full h-auto block m-0 p-0 relative z-0 transition-opacity duration-300 group-hover/roofCard:opacity-0"
+                      />
+                      <img 
+                        src={RoofYellowSvg} 
+                        alt="Roof Yellow" 
+                        className="w-full h-auto block m-0 p-0 absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover/roofCard:opacity-100"
+                      />
+                    </div>
+                    <HouseCardB 
+                      title={card.title}
+                      subtitle={card.subtitle}
+                      trendingKeyword={card.trendingKeyword}
+                      icon={card.icon}
+                      iconBg={card.iconBg}
+                      factors={card.factors}
+                      badgeText={card.badgeText}
+                      badgeBgColor={card.badgeBgColor}
+                      badgeHoverBgColor={card.badgeHoverBgColor}
+                      badgeTextColor={card.badgeTextColor}
+                      chipBgColor={card.chipBgColor}
+                      chipBorderColor={card.chipBorderColor}
+                      badgeIcon={card.badgeIcon}
+                      badgeTooltip={card.badgeTooltip}
+                      isFirstCard={isFirstCard}
+                      isInsideRoofGroup={true}
+                    />
+                  </div>
+                </div>
+              );
+            }
+            
+            return (
+              <div 
+                key={card.title} 
+                className={cn(
+                  cardBgColor, paddingClass, borderRadiusClass, 
+                  "flex flex-col items-center justify-center",
+                  "transition-all duration-700 ease-out",
+                  animationClass
+                )}
+                style={{ transitionDelay: `${animationDelay}ms` }}
+              >
+                <HouseCardB 
+                  title={card.title}
+                  subtitle={card.subtitle}
+                  trendingKeyword={card.trendingKeyword}
+                  icon={card.icon}
+                  iconBg={card.iconBg}
+                  factors={card.factors}
+                  badgeText={card.badgeText}
+                  badgeBgColor={card.badgeBgColor}
+                  badgeHoverBgColor={card.badgeHoverBgColor}
+                  badgeTextColor={card.badgeTextColor}
+                  chipBgColor={card.chipBgColor}
+                  chipBorderColor={card.chipBorderColor}
+                  badgeIcon={card.badgeIcon}
+                  badgeTooltip={card.badgeTooltip}
+                  isFirstCard={isFirstCard}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+});
+
 function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => void }) {
   const navigate = useNavigate();
   const [fieldsFlowState, setFieldsFlowState] = useState<FieldsFlowState>({
@@ -382,47 +590,59 @@ function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => voi
   // Intersection observer for entrance animation
   const [sectionRef, isInView] = useInView<HTMLDivElement>({ threshold: 0.15, triggerOnce: true });
 
-  // Create house cards data with JSX elements inside the component
-  const houseCardsData = useMemo(() => {
-    return HOUSE_CARDS_CONFIG.map((config) => {
-      let icon: React.ReactNode;
-      switch (config.iconType) {
-        case "commitment":
-          icon = <CommitmentIcon />;
-          break;
-        case "satisfaction":
-          icon = <SatisfactionIcon />;
-          break;
-        case "resignation":
-          icon = <ResignationIcon />;
-          break;
-      }
+  // User's confirmed selections from the accordion (null until first confirmation)
+  const [confirmedSelections, setConfirmedSelections] = useState<{
+    weaknessIds: string[];
+    strengthIds: string[];
+  } | null>(null);
 
-      let badgeIcon: React.ReactNode | undefined;
-      if ('badgeIconType' in config && config.badgeIconType === "trendingDown") {
-        badgeIcon = <AlertTriangle className="w-6 h-6" style={{ color: 'badgeTextColor' in config ? config.badgeTextColor : undefined }} />;
-      } else if ('badgeIconType' in config && config.badgeIconType === "trendingUp") {
-        badgeIcon = <MuscleIcon color={'badgeTextColor' in config ? config.badgeTextColor : undefined} className="w-6 h-6" />;
-      }
+  // Survey (default) factor names for the house
+  const surveyWeaknessFactors = useMemo(() => idsToFactorNames(WEAKNESS_DEFAULT), []);
+  const surveyStrengthFactors = useMemo(() => idsToFactorNames(STRENGTH_DEFAULT), []);
 
-      return {
-        title: config.title,
-        subtitle: config.subtitle,
-        trendingKeyword: config.influencingTitle,
-        icon,
-        iconBg: config.iconBg,
-        factors: config.factors,
-        badgeText: 'badgeText' in config ? config.badgeText : undefined,
-        badgeBgColor: 'badgeBgColor' in config ? config.badgeBgColor : undefined,
-        badgeHoverBgColor: 'badgeHoverBgColor' in config ? config.badgeHoverBgColor : undefined,
-        badgeTextColor: 'badgeTextColor' in config ? config.badgeTextColor : undefined,
-        chipBgColor: 'chipBgColor' in config ? config.chipBgColor : undefined,
-        chipBorderColor: 'chipBorderColor' in config ? config.chipBorderColor : undefined,
-        badgeIcon,
-        badgeTooltip: 'badgeTooltip' in config ? config.badgeTooltip : undefined,
-      };
-    });
-  }, []);
+  // User's adjusted factor names for the house
+  const adjustedWeaknessFactors = useMemo(
+    () => (confirmedSelections ? idsToFactorNames(confirmedSelections.weaknessIds) : surveyWeaknessFactors),
+    [confirmedSelections, surveyWeaknessFactors]
+  );
+  const adjustedStrengthFactors = useMemo(
+    () => (confirmedSelections ? idsToFactorNames(confirmedSelections.strengthIds) : surveyStrengthFactors),
+    [confirmedSelections, surveyStrengthFactors]
+  );
+
+  // Show the compare tabs only once the user confirmed a selection that differs from the survey
+  const hasChanges =
+    confirmedSelections !== null &&
+    (!areIdSetsEqual(confirmedSelections.weaknessIds, WEAKNESS_DEFAULT) ||
+      !areIdSetsEqual(confirmedSelections.strengthIds, STRENGTH_DEFAULT));
+
+  const [showHouseContent, setShowHouseContent] = useState(true);
+  const [houseContentKey, setHouseContentKey] = useState(0);
+
+  const scrollToHouse = useCallback(() => {
+    if (!sectionRef.current) return;
+    const top = sectionRef.current.getBoundingClientRect().top + window.scrollY - 180;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, [sectionRef]);
+
+  const handleConfirmSelections = useCallback(
+    (selections: { weaknessIds: string[]; strengthIds: string[] }) => {
+      setShowHouseContent(false);
+      scrollToHouse();
+
+      window.setTimeout(() => {
+        setConfirmedSelections(selections);
+        setHouseContentKey((key) => key + 1);
+        setShowHouseContent(true);
+      }, 220);
+    },
+    [scrollToHouse]
+  );
+
+  const houseViewClassName = cn(
+    "w-full flex flex-col items-center transition-all duration-300 ease-out",
+    showHouseContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 scale-[0.99]"
+  );
 
   return (
     <SectionWrapper id="phase-2-section" className="flex flex-col items-center gap-8">
@@ -438,146 +658,59 @@ function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => voi
       {/* Two Column Layout: House on Left, Fixed Banner on Right */}
       <div className="w-full flex flex-col lg:flex-row gap-8 items-start lg:items-stretch">
         {/* Left Column: House Graphic & Cards */}
-        <div ref={sectionRef} className="flex-1 flex flex-col items-center relative w-full lg:w-auto">
-        {/* Roof Graphic - above first card, slightly wider */}
-        <div 
-          className={cn(
-            "w-full max-w-[1100px] h-[87px] relative -mx-4 md:-mx-6 lg:-mx-8 -mb-2",
-            "transition-all duration-700 ease-out",
-            isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          )}
-          style={{ transitionDelay: '750ms' }}
+        <div
+          id="house-compare-anchor"
+          ref={sectionRef}
+          className="flex-1 flex flex-col items-center relative w-full lg:w-auto scroll-mt-48"
         >
-           <img 
-             src={TettoSvg} 
-             alt="Roof" 
-             className="w-full h-full block m-0 p-0 object-cover"
-           />
-        </div>
-
-        {/* Cards Stack */}
-        <div className="w-full max-w-[1050px] flex flex-col gap-0 relative mt-0 -mx-4 md:-mx-6 lg:-mx-8">
-          <div className="mx-4 md:mx-6 lg:mx-8">
-            {houseCardsData.map((card, index) => {
-              // Determine background color based on card type
-              let cardBgColor = "bg-[#f0f8ff]"; // Default cyan/50
-              if (card.title === "Satisfaction") {
-                cardBgColor = "bg-[#e0f0fe]"; // cyan/100
-              } else if (card.title === "Resignation") {
-                cardBgColor = "bg-[#b9e2fe]"; // cyan/200
-              } else if (card.title === "Commitment") {
-                cardBgColor = "bg-[#f0f8ff]"; // cyan/50
-              }
-              
-              // Padding: remove top padding for first card (Commitment), keep uniform for others
-              const isFirstCard = index === 0;
-              const paddingClass = isFirstCard 
-                ? "px-[47px] pb-[20px] pt-0" 
-                : "px-[47px] py-[20px]";
-              
-              // Add border radius to bottom corners for last card (Resignation)
-              const isLastCard = index === houseCardsData.length - 1;
-              const borderRadiusClass = isLastCard ? "rounded-b-[16px]" : "";
-              
-              // Animation: bottom to top (reverse index for stagger)
-              // Base delay of 400ms so user can see the section before animation starts
-              // Resignation (index 2) -> delay 400ms, Satisfaction (index 1) -> delay 550ms, Commitment (index 0) -> delay 700ms
-              const baseDelay = 400;
-              const reverseIndex = houseCardsData.length - 1 - index;
-              const animationDelay = baseDelay + (reverseIndex * 150);
-              const animationClass = isInView 
-                ? "opacity-100 translate-y-0" 
-                : "opacity-0 translate-y-8";
-              
-              if (isFirstCard) {
-                return (
-                  <div 
-                    key={card.title} 
-                    className={cn(
-                      cardBgColor, paddingClass, borderRadiusClass, 
-                      "flex flex-col items-center justify-center gap-0",
-                      "transition-all duration-700 ease-out",
-                      animationClass
-                    )}
-                    style={{ transitionDelay: `${animationDelay}ms` }}
+          <div className={houseViewClassName}>
+          {hasChanges ? (
+            <Tabs key={houseContentKey} defaultValue="adjusted" className="w-full flex flex-col items-center gap-5">
+              <div
+                role="group"
+                aria-label="Commitment House view"
+                className="flex min-h-[40px] items-center gap-3 rounded-lg border border-[#e0f0fe] bg-[#f0f8ff] p-2"
+              >
+                <TabsList className="flex bg-transparent border-0 p-0 gap-3 h-auto">
+                  <TabsTrigger
+                    value="survey"
+                    className="relative flex h-full min-h-[38px] items-center rounded-md border border-transparent bg-transparent px-3.5 py-1.5 text-[15px] font-medium whitespace-nowrap text-[#0b446f] transition-colors outline-none hover:bg-white/80 focus-visible:ring-0 sm:px-4 cursor-pointer data-[state=active]:bg-[#015ea3] data-[state=active]:text-white data-[state=active]:shadow-none"
                   >
-                    {/* Wrapper for image and card - scales together on hover */}
-                    <div className={cn(
-                      "w-full flex flex-col gap-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-bottom group/roofCard",
-                      card.badgeBgColor ? "hover:scale-110 hover:z-20" : ""
-                    )}>
-                      {/* Roof with color swap on hover */}
-                      <div className="relative w-full">
-                        <img 
-                          src={RoofSvg} 
-                          alt="Roof" 
-                          className="w-full h-auto block m-0 p-0 relative z-0 transition-opacity duration-300 group-hover/roofCard:opacity-0"
-                        />
-                        <img 
-                          src={RoofYellowSvg} 
-                          alt="Roof Yellow" 
-                          className="w-full h-auto block m-0 p-0 absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover/roofCard:opacity-100"
-                        />
-                      </div>
-                      <HouseCardB 
-                        title={card.title}
-                        subtitle={card.subtitle}
-                        trendingKeyword={card.trendingKeyword}
-                        icon={card.icon}
-                        iconBg={card.iconBg}
-                        factors={card.factors}
-                        badgeText={card.badgeText}
-                        badgeBgColor={card.badgeBgColor}
-                        badgeHoverBgColor={card.badgeHoverBgColor}
-                        badgeTextColor={card.badgeTextColor}
-                        chipBgColor={card.chipBgColor}
-                        chipBorderColor={card.chipBorderColor}
-                        badgeIcon={card.badgeIcon}
-                        badgeTooltip={card.badgeTooltip}
-                        isFirstCard={isFirstCard}
-                        isInsideRoofGroup={true}
-                      />
-                    </div>
-                  </div>
-                );
-              }
-              
-              return (
-                <div 
-                  key={card.title} 
-                  className={cn(
-                    cardBgColor, paddingClass, borderRadiusClass, 
-                    "flex flex-col items-center justify-center",
-                    "transition-all duration-700 ease-out",
-                    animationClass
-                  )}
-                  style={{ transitionDelay: `${animationDelay}ms` }}
-                >
-                  <HouseCardB 
-                    title={card.title}
-                    subtitle={card.subtitle}
-                    trendingKeyword={card.trendingKeyword}
-                    icon={card.icon}
-                    iconBg={card.iconBg}
-                    factors={card.factors}
-                    badgeText={card.badgeText}
-                    badgeBgColor={card.badgeBgColor}
-                    badgeHoverBgColor={card.badgeHoverBgColor}
-                    badgeTextColor={card.badgeTextColor}
-                    chipBgColor={card.chipBgColor}
-                    chipBorderColor={card.chipBorderColor}
-                    badgeIcon={card.badgeIcon}
-                    badgeTooltip={card.badgeTooltip}
-                    isFirstCard={isFirstCard}
-                  />
-                </div>
-              );
-            })}
+                    Survey results
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="adjusted"
+                    className="relative flex h-full min-h-[38px] items-center rounded-md border border-transparent bg-transparent px-3.5 py-1.5 text-[15px] font-medium whitespace-nowrap text-[#0b446f] transition-colors outline-none hover:bg-white/80 focus-visible:ring-0 sm:px-4 cursor-pointer data-[state=active]:bg-[#015ea3] data-[state=active]:text-white data-[state=active]:shadow-none"
+                  >
+                    Your adjustments
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="survey" className="w-full flex flex-col items-center mt-0">
+                <HouseGraphic
+                  weaknessFactors={surveyWeaknessFactors}
+                  strengthFactors={surveyStrengthFactors}
+                  isInView={isInView}
+                />
+              </TabsContent>
+              <TabsContent value="adjusted" className="w-full flex flex-col items-center mt-0">
+                <HouseGraphic
+                  weaknessFactors={adjustedWeaknessFactors}
+                  strengthFactors={adjustedStrengthFactors}
+                  isInView={isInView}
+                />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <div key={houseContentKey} className="w-full flex flex-col items-center">
+              <HouseGraphic
+                weaknessFactors={surveyWeaknessFactors}
+                strengthFactors={surveyStrengthFactors}
+                isInView={isInView}
+              />
+            </div>
+          )}
           </div>
-        </div>
-        
-        {/* Bottom Fade/Gradient */}
-        <div className="w-full max-w-[1040px] h-16 bg-gradient-to-t from-[#efefef] to-white mt-[-20px] -z-10 rounded-b-lg" />
         </div>
 
         {/* Right Column: Fixed Banner - Wrapped in container that limits sticky area */}
@@ -639,7 +772,7 @@ function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => voi
         className="w-full border border-[#dcdcdc] rounded-[12px] bg-white"
       >
         <AccordionItem value="fields" className="border-none">
-          <AccordionTrigger className="px-6 py-5 hover:no-underline [&[data-state=open]]:pb-3 [&>svg]:text-[#015ea3]">
+          <AccordionTrigger className="px-6 py-5 hover:no-underline [&[data-state=open]]:pb-6 [&>svg]:text-[#015ea3]">
             <div className="flex flex-col gap-1 text-left">
               <h3 className="text-lg font-semibold text-[#18181b]">
                 {fieldsAccordionCopy.title}
@@ -649,10 +782,11 @@ function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => voi
               </p>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-6 pb-6 text-base">
+          <AccordionContent className="px-6 pt-8 pb-6 text-base">
             <FieldOfActionSelector
               onPhase3Unlock={onPhase3Unlock}
               onFlowStateChange={setFieldsFlowState}
+              onConfirmSelections={handleConfirmSelections}
             />
           </AccordionContent>
         </AccordionItem>
