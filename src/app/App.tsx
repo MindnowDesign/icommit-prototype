@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import { LocaleProvider } from "./i18n/LocaleContext";
+import { CommitmentFlowProvider } from "./context/CommitmentFlowContext";
 import HomePage from "./pages/HomePage";
 import ResultsPage from "./pages/ResultsPage";
 import MeasuresPage from "./pages/MeasuresPage";
@@ -16,6 +17,7 @@ import ActionPortfolioPage from "./pages/ActionPortfolioPage";
 export default function App() {
   return (
     <LocaleProvider>
+    <CommitmentFlowProvider>
     <BrowserRouter>
       <Toaster 
         position="top-right" 
@@ -41,6 +43,7 @@ export default function App() {
         <Route path="/login/reset-password" element={<ResetPasswordPage />} />
       </Routes>
     </BrowserRouter>
+    </CommitmentFlowProvider>
     </LocaleProvider>
   );
 }

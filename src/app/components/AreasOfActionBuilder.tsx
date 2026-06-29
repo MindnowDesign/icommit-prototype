@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { AVAILABLE_FIELDS, getFactorById, getFactorHausRelative, sortFieldsByHausRelative } from "../data/influencingFactors";
+import { useCommitmentFlow } from "../context/CommitmentFlowContext";
 
 export type AreaOfAction = {
   id: string;
@@ -514,7 +515,7 @@ interface AreasOfActionBuilderProps {
 }
 
 export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderProps) {
-  const [areas, setAreas] = useState<AreaOfAction[]>([]);
+  const { areas, addArea, updateArea, deleteArea } = useCommitmentFlow();
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAreaId, setEditingAreaId] = useState<string | null>(null);
@@ -536,38 +537,29 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
     setDialogOpen(true);
   }, []);
 
-  const handleDelete = useCallback((id: string) => {
-    setAreas((prev) => prev.filter((area) => area.id !== id));
-  }, []);
+  const handleDelete = useCallback(
+    (id: string) => {
+      deleteArea(id);
+    },
+    [deleteArea]
+  );
 
-  const handleSave = useCallback((draft: AreaDraft, editingId: string | null) => {
-    if (editingId) {
-      setAreas((prev) =>
-        prev.map((area) =>
-          area.id === editingId
-            ? {
-                ...area,
-                name: draft.name.trim(),
-                description: draft.description.trim(),
-                desiredTargetDescription: draft.desiredTargetDescription.trim(),
-                factorIds: draft.factorIds,
-              }
-            : area
-        )
-      );
-    } else {
-      setAreas((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          name: draft.name.trim(),
-          description: draft.description.trim(),
-          desiredTargetDescription: draft.desiredTargetDescription.trim(),
-          factorIds: draft.factorIds,
-        },
-      ]);
-    }
-  }, []);
+  const handleSave = useCallback(
+    (draft: AreaDraft, editingId: string | null) => {
+      const payload = {
+        name: draft.name.trim(),
+        description: draft.description.trim(),
+        desiredTargetDescription: draft.desiredTargetDescription.trim(),
+        factorIds: draft.factorIds,
+      };
+      if (editingId) {
+        updateArea(editingId, payload);
+      } else {
+        addArea(payload);
+      }
+    },
+    [addArea, updateArea]
+  );
 
   const handleConfirm = () => {
     if (!canProceed) return;

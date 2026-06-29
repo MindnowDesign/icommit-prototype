@@ -12,6 +12,7 @@ import CompassIcon from "../../assets/Icons/Compass-2.svg";
 
 interface LocationState {
   unlockPhase5?: boolean;
+  scrollToPhase3?: boolean;
 }
 
 export default function HomePage() {
@@ -42,6 +43,20 @@ export default function HomePage() {
       window.history.replaceState({}, document.title);
     }
   }, [state?.unlockPhase5, isPhase5Unlocked]);
+
+  useEffect(() => {
+    if (state?.scrollToPhase3) {
+      setIsPhase3Unlocked(true);
+      setTimeout(() => {
+        const phase3Section = document.getElementById("phase-3-section");
+        if (phase3Section) {
+          const elementPosition = phase3Section.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top: elementPosition - 180, behavior: "smooth" });
+        }
+      }, 100);
+      window.history.replaceState({}, document.title);
+    }
+  }, [state?.scrollToPhase3]);
 
   const handlePhase3UnlockFromFields = () => {
     setPendingPhaseUnlock(3);
