@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Plus, ArrowRight, MoreHorizontal, Pencil, Trash2, Search, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { Plus, ArrowRight, MoreHorizontal, Pencil, Trash2, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -35,19 +35,24 @@ export type AreaOfAction = {
   id: string;
   name: string;
   description: string;
+  desiredTargetDescription: string;
   factorIds: string[];
 };
 
 type AreaDraft = {
   name: string;
   description: string;
+  desiredTargetDescription: string;
   factorIds: string[];
 };
 
-function isAreaValid(area: Pick<AreaOfAction, "name" | "description" | "factorIds">): boolean {
+function isAreaValid(
+  area: Pick<AreaOfAction, "name" | "description" | "desiredTargetDescription" | "factorIds">
+): boolean {
   return (
     area.name.trim().length > 0 &&
     area.description.trim().length > 0 &&
+    area.desiredTargetDescription.trim().length > 0 &&
     area.factorIds.length >= 1
   );
 }
@@ -55,20 +60,24 @@ function isAreaValid(area: Pick<AreaOfAction, "name" | "description" | "factorId
 const CARD_MIN_HEIGHT = "min-h-[120px]";
 const COLLAPSED_FACTOR_COUNT = 4;
 
-const MuscleIcon = ({ color = "currentColor", className = "w-3 h-3" }: { color?: string; className?: string }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <g clipPath="url(#clip0_muscle_area_builder)">
-      <path d="M17.625 14.25C18.8131 12.8243 20.573 12 22.4288 12H23.2969V21.75L22.3887 22.0867C20.2301 22.8871 17.9463 23.2969 15.6442 23.2969C13.2358 23.2969 10.8485 22.8484 8.60428 21.9745L4.6695 20.4422C3.11775 19.8379 1.86206 18.6535 1.16822 17.1397C0.861797 16.4711 0.703172 15.7443 0.703172 15.0089C0.703172 14.262 0.866766 13.5243 1.18237 12.8474L2.778 9.42581C4.39364 5.96133 6.94744 3.01866 10.15 0.931266C10.3784 0.782391 10.6452 0.703125 10.9178 0.703125H13.3749C13.9107 0.703125 14.3999 1.00758 14.6365 1.48823L15.75 3.75L13.125 6.375L10.125 4.875" stroke={color} strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M10.875 5.625L10.1979 6.30211C9.21825 7.28175 8.80697 8.69405 9.10753 10.0465C9.28303 10.8363 9.25856 11.6575 9.03628 12.4355C8.7683 13.3734 8.22422 14.209 7.47483 14.8335L6.375 15.75" stroke={color} strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M18.75 16.125L18.4061 15.5518C17.2236 13.5809 15.0937 12.375 12.7953 12.375C11.3095 12.375 9.86794 12.8807 8.70774 13.8088L7.0118 15.2193" stroke={color} strokeWidth="2" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-    </g>
-    <defs>
-      <clipPath id="clip0_muscle_area_builder">
-        <rect width="24" height="24" fill="white" transform="matrix(-1 0 0 1 24 0)"/>
-      </clipPath>
-    </defs>
-  </svg>
-);
+function Phase2SelectedStrengthIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="10" fill="#15803C" stroke="#ffffff" strokeWidth="1.5" />
+      <rect x="10" y="6.5" width="2" height="9" rx="1" fill="#ffffff" />
+      <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
+    </svg>
+  );
+}
+
+function Phase2SelectedWeaknessIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="10" fill="#F59E0B" stroke="#ffffff" strokeWidth="1.5" />
+      <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
+    </svg>
+  );
+}
 
 // --- AreaOfActionDialog ---
 
@@ -85,7 +94,12 @@ function AreaOfActionDialog({
   editingArea,
   onSave,
 }: AreaOfActionDialogProps) {
-  const [draft, setDraft] = useState<AreaDraft>({ name: "", description: "", factorIds: [] });
+  const [draft, setDraft] = useState<AreaDraft>({
+    name: "",
+    description: "",
+    desiredTargetDescription: "",
+    factorIds: [],
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllFactors, setShowAllFactors] = useState(false);
 
@@ -96,9 +110,10 @@ function AreaOfActionDialog({
           ? {
               name: editingArea.name,
               description: editingArea.description,
+              desiredTargetDescription: editingArea.desiredTargetDescription,
               factorIds: [...editingArea.factorIds],
             }
-          : { name: "", description: "", factorIds: [] }
+          : { name: "", description: "", desiredTargetDescription: "", factorIds: [] }
       );
       setSearchQuery("");
       setShowAllFactors(false);
@@ -142,8 +157,8 @@ function AreaOfActionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl rounded-[16px] p-8 gap-6">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-xl rounded-[16px] p-8 gap-4 max-h-[min(780px,90vh)] flex flex-col overflow-hidden">
+        <DialogHeader className="gap-1 shrink-0">
           <DialogTitle className="text-2xl font-semibold text-[#292929] tracking-tight">
             {editingArea ? "Edit area of action" : "New area of action"}
           </DialogTitle>
@@ -152,7 +167,7 @@ function AreaOfActionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 overflow-y-auto min-h-0 flex-1 px-1 -mx-1 pr-2 -mr-1">
           <div className="flex flex-col gap-2">
             <label htmlFor="area-name" className="text-sm font-semibold text-[#656565]">
               Area name
@@ -168,20 +183,41 @@ function AreaOfActionDialog({
 
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-0.5">
-              <label htmlFor="area-description" className="text-sm font-semibold text-[#656565]">
-                Description
+              <label htmlFor="area-current-problem" className="text-sm font-semibold text-[#656565]">
+                Current problem description
               </label>
               <span className="text-sm text-[#989898]">
                 Briefly capture the discussion or problem behind this focus area.
               </span>
             </div>
             <Textarea
-              id="area-description"
+              id="area-current-problem"
               value={draft.description}
               onChange={(e) => setDraft((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="e.g. Team feedback showed unclear priorities after the reorg..."
-              rows={3}
-              className="min-h-[88px] resize-none"
+              rows={2}
+              className="min-h-[64px] resize-none"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5">
+              <label htmlFor="area-desired-target" className="text-sm font-semibold text-[#656565]">
+                Desired target description
+              </label>
+              <span className="text-sm text-[#989898]">
+                Briefly describe the outcome or state you want to reach in this focus area.
+              </span>
+            </div>
+            <Textarea
+              id="area-desired-target"
+              value={draft.desiredTargetDescription}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, desiredTargetDescription: e.target.value }))
+              }
+              placeholder="e.g. Clear priorities agreed by the team within two weeks..."
+              rows={2}
+              className="min-h-[64px] resize-none"
             />
           </div>
 
@@ -201,12 +237,7 @@ function AreaOfActionDialog({
               />
             </div>
 
-            <div
-              className={cn(
-                "flex flex-col gap-1.5",
-                showAllFactors && !isSearching && "max-h-[320px] overflow-y-auto pr-1"
-              )}
-            >
+            <div className="flex flex-col gap-1.5">
               {visibleFields.map((field) => {
                 const isSelected = draft.factorIds.includes(field.id);
                 const hausRelative = getFactorHausRelative(field.id);
@@ -248,18 +279,20 @@ function AreaOfActionDialog({
                     {hausRelative && (
                       <span
                         className={cn(
-                          "shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
+                          "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
                           hausRelative === "weakness"
                             ? "bg-[#FEF0C3] border-[#ECD68A] text-[#A17C07]"
                             : "bg-[#DCFCE8] border-[#BBF7D0] text-[#15803C]"
                         )}
                       >
                         {hausRelative === "weakness" ? (
-                          <AlertTriangle className="w-3 h-3 shrink-0" strokeWidth={2.5} />
+                          <Phase2SelectedWeaknessIcon size={14} />
                         ) : (
-                          <MuscleIcon color="#15803C" className="w-3 h-3 shrink-0" />
+                          <Phase2SelectedStrengthIcon size={14} />
                         )}
-                        {hausRelative === "weakness" ? "Relative weakness" : "Relative strength"}
+                        {hausRelative === "weakness"
+                          ? "Phase 2 selected weakness"
+                          : "Phase 2 selected strength"}
                       </span>
                     )}
                   </label>
@@ -291,7 +324,7 @@ function AreaOfActionDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex flex-row gap-3 sm:justify-end pt-2">
+        <DialogFooter className="flex flex-row gap-3 sm:justify-end pt-2 shrink-0">
           <Button
             variant="ghost"
             size="big"
@@ -355,15 +388,26 @@ function AreaOfActionCard({ area, onEdit, onDelete }: AreaOfActionCardProps) {
           >
             {area.name}
           </h4>
-          <p
-            className="text-sm text-[#656565] line-clamp-2 mt-0.5"
-            title={area.description}
-          >
-            {area.description}
-          </p>
-          <span className="text-sm text-[#989898] mt-1">
-            {factors.length} influencing factor{factors.length !== 1 ? "s" : ""}
-          </span>
+          <ul className="mt-0.5 flex flex-col gap-0.5 list-none">
+            <li className="flex items-start gap-2 text-sm text-[#656565]">
+              <span className="shrink-0 text-[#989898] leading-5" aria-hidden="true">
+                •
+              </span>
+              <span className="line-clamp-2 min-w-0" title={area.description}>
+                {area.description}
+              </span>
+            </li>
+            {area.desiredTargetDescription && (
+              <li className="flex items-start gap-2 text-sm text-[#656565]">
+                <span className="shrink-0 text-[#989898] leading-5" aria-hidden="true">
+                  •
+                </span>
+                <span className="line-clamp-2 min-w-0" title={area.desiredTargetDescription}>
+                  {area.desiredTargetDescription}
+                </span>
+              </li>
+            )}
+          </ul>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -505,6 +549,7 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
                 ...area,
                 name: draft.name.trim(),
                 description: draft.description.trim(),
+                desiredTargetDescription: draft.desiredTargetDescription.trim(),
                 factorIds: draft.factorIds,
               }
             : area
@@ -517,6 +562,7 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
           id: crypto.randomUUID(),
           name: draft.name.trim(),
           description: draft.description.trim(),
+          desiredTargetDescription: draft.desiredTargetDescription.trim(),
           factorIds: draft.factorIds,
         },
       ]);
@@ -543,6 +589,9 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
             >
               <p className="text-lg font-semibold text-[#18181b]">{area.name}</p>
               <p className="text-sm text-[#656565]">{area.description}</p>
+              {area.desiredTargetDescription && (
+                <p className="text-sm text-[#656565]">{area.desiredTargetDescription}</p>
+              )}
               <div className="flex flex-wrap gap-2">
                 {area.factorIds.map((factorId) => {
                   const field = getFactorById(factorId);
