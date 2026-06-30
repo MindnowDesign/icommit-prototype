@@ -27,6 +27,8 @@ interface KanbanColumnProps {
   onCommitDrop: (draggedId: string) => void;
   onDragEnd: () => void;
   onAddMeasure: (status: MeasureStatus) => void;
+  readOnly?: boolean;
+  showAddMeasureButton?: boolean;
 }
 
 export function KanbanColumn({
@@ -41,13 +43,16 @@ export function KanbanColumn({
   onCommitDrop,
   onDragEnd,
   onAddMeasure,
+  readOnly = false,
+  showAddMeasureButton = true,
 }: KanbanColumnProps) {
   const dropRef = useRef<HTMLDivElement>(null);
 
   const [{ isOver, canDrop }, drop] = useDrop<{ id: string }, { handled: true }, { isOver: boolean; canDrop: boolean }>({
     accept: MEASURE_DRAG_TYPE,
+    canDrop: () => !readOnly,
     hover: (item, monitor) => {
-      if (!monitor.isOver({ shallow: true })) return;
+      if (readOnly || !monitor.isOver({ shallow: true })) return;
       if (measures.length === 0) {
         onDropTargetChange({ status, targetId: null, position: "after" });
       } else {
@@ -56,6 +61,7 @@ export function KanbanColumn({
       }
     },
     drop: (item) => {
+      if (readOnly) return undefined;
       onCommitDrop(item.id);
       return { handled: true };
     },
@@ -77,6 +83,9 @@ export function KanbanColumn({
   const showEmptyIndicator =
     dropTarget?.status === status && dropTarget.targetId === null;
 
+  const emptyZoneIsAddButton =
+    status === "todo" && measures.length === 0 && !showAddMeasureButton;
+
   return (
     <motion.div layout transition={COLUMN_LAYOUT_TRANSITION} className="flex min-w-0 flex-1 flex-col gap-3">
       <div className="flex items-center gap-2 px-1">
@@ -97,7 +106,7 @@ export function KanbanColumn({
         layout
         transition={COLUMN_LAYOUT_TRANSITION}
         className={cn(
-          "flex min-h-[280px] flex-1 flex-col gap-3 rounded-[12px] p-3 transition-colors duration-200",
+          "flex min-h-[280px] flex-1 flex-col gap-3 rounded-[14px] p-3 transition-colors duration-200",
           isOver && canDrop ? "bg-[#f0f8ff]" : "bg-[#F9F9F9]"
         )}
       >
@@ -111,6 +120,23 @@ export function KanbanColumn({
               >
                 <span className="h-[3px] w-full rounded-full bg-[#015ea3]" aria-hidden />
               </motion.div>
+            ) : emptyZoneIsAddButton ? (
+              <motion.button
+                type="button"
+                layout
+                transition={COLUMN_LAYOUT_TRANSITION}
+                onClick={() => onAddMeasure(status)}
+                disabled={readOnly}
+                className={cn(
+                  "flex min-h-0 flex-1 w-full items-center justify-center gap-2.5 rounded-[8px] border border-dashed border-[#d0d0d0] bg-transparent px-3 py-2.5 text-base font-medium text-[#015ea3] transition-colors",
+                  readOnly
+                    ? "cursor-not-allowed opacity-50"
+                    : "cursor-pointer hover:border-[#015ea3]/40 hover:bg-[#f0f8ff]/50"
+                )}
+              >
+                Add measure
+                <Plus className="h-5 w-5 shrink-0" strokeWidth={2} />
+              </motion.button>
             ) : (
               <motion.p
                 layout
@@ -140,20 +166,27 @@ export function KanbanColumn({
                     onDelete={onDelete}
                     onDropTargetChange={onDropTargetChange}
                     onDragEnd={onDragEnd}
+                    readOnly={readOnly}
                   />
                 </motion.div>
               ))}
             </AnimatePresence>
           )}
         </motion.div>
-        {status === "todo" && (
+        {status === "todo" && showAddMeasureButton && (
           <button
             type="button"
             onClick={() => onAddMeasure(status)}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-white px-3 py-2.5 text-sm font-medium text-[#015ea3] transition-colors hover:bg-[#f0f8ff]"
+            disabled={readOnly}
+            className={cn(
+              "flex w-full items-center justify-center gap-2 rounded-[8px] border border-[#d0d0d0] bg-white px-3 py-2.5 text-sm font-medium text-[#015ea3] transition-colors",
+              readOnly
+                ? "cursor-not-allowed opacity-50"
+                : "cursor-pointer hover:bg-[#f0f8ff]"
+            )}
           >
-            <Plus className="w-4 h-4 shrink-0" strokeWidth={2} />
             Add measure
+            <Plus className="w-4 h-4 shrink-0" strokeWidth={2} />
           </button>
         )}
       </motion.div>

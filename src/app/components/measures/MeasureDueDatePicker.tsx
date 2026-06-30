@@ -54,7 +54,7 @@ export function MeasureDueDatePicker({ id, value, onChange }: MeasureDueDatePick
             caption_label: "text-sm font-semibold text-[#292929]",
             head_cell: "w-9 text-xs font-medium text-[#989898]",
             nav_button:
-              "inline-flex items-center justify-center p-0 size-8 rounded-[8px] border border-[#efefef] bg-white text-[#656565] hover:bg-[#f5f5f5]",
+              "inline-flex cursor-pointer items-center justify-center p-0 size-8 rounded-[8px] border border-[#efefef] bg-white text-[#656565] hover:bg-[#f5f5f5] [&_svg]:size-4 [&_svg]:shrink-0",
             nav_button_previous: "absolute left-1",
             nav_button_next: "absolute right-1",
             day: "size-9 rounded-[8px] text-sm text-[#292929] hover:bg-[#f0f8ff] hover:text-[#0b446f]",
@@ -62,8 +62,6 @@ export function MeasureDueDatePicker({ id, value, onChange }: MeasureDueDatePick
               "bg-[#015ea3] text-white hover:bg-[#014a82] hover:text-white focus:bg-[#015ea3] focus:text-white",
             day_today: "bg-[#f0f8ff] text-[#0b446f] font-semibold",
             day_outside: "text-[#c8c8c8] aria-selected:text-white",
-            nav_button:
-              "size-8 rounded-[8px] border border-[#efefef] bg-white text-[#656565] hover:bg-[#f5f5f5]",
           }}
         />
       </PopoverContent>

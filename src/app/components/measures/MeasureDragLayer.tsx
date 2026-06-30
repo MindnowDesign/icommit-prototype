@@ -1,5 +1,7 @@
+import type { AreaOfAction } from "../AreasOfActionBuilder";
 import { useDragLayer } from "react-dnd";
 import { useCommitmentFlow } from "../../context/CommitmentFlowContext";
+import type { Measure } from "../../data/measures";
 import { MEASURE_DRAG_TYPE } from "./MeasureCard";
 import { MeasureCardBody } from "./MeasureCardBody";
 
@@ -8,8 +10,15 @@ type DragItem = {
   width: number;
 };
 
-export function MeasureDragLayer() {
-  const { measures, areas } = useCommitmentFlow();
+interface MeasureDragLayerProps {
+  measures?: Measure[];
+  areas?: AreaOfAction[];
+}
+
+export function MeasureDragLayer({ measures: measuresOverride, areas: areasOverride }: MeasureDragLayerProps) {
+  const { measures: contextMeasures, areas: contextAreas } = useCommitmentFlow();
+  const measures = measuresOverride ?? contextMeasures;
+  const areas = areasOverride ?? contextAreas;
 
   const { itemType, isDragging, item, currentOffset } = useDragLayer((monitor) => ({
     item: monitor.getItem() as DragItem | null,

@@ -34,6 +34,7 @@ interface MeasureCardProps {
   onDelete: (id: string) => void;
   onDropTargetChange: (target: MeasureDropTarget) => void;
   onDragEnd: () => void;
+  readOnly?: boolean;
 }
 
 export function MeasureCard({
@@ -44,12 +45,14 @@ export function MeasureCard({
   onDelete,
   onDropTargetChange,
   onDragEnd,
+  readOnly = false,
 }: MeasureCardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const [{ isDragging }, drag, preview] = useDrag({
     type: MEASURE_DRAG_TYPE,
+    canDrag: () => !readOnly,
     item: () => ({
       id: measure.id,
       width: cardRef.current?.getBoundingClientRect().width ?? 340,
@@ -64,8 +67,9 @@ export function MeasureCard({
 
   const [, drop] = useDrop<MeasureDragItem>({
     accept: MEASURE_DRAG_TYPE,
+    canDrop: () => !readOnly,
     hover: (item, monitor) => {
-      if (!cardRef.current || item.id === measure.id) return;
+      if (readOnly || !cardRef.current || item.id === measure.id) return;
 
       const clientOffset = monitor.getClientOffset();
       if (!clientOffset) return;
@@ -94,7 +98,8 @@ export function MeasureCard({
       <div
         ref={cardRef}
         className={cn(
-          "relative w-full rounded-[16px] p-4 bg-white flex flex-col gap-5 cursor-grab active:cursor-grabbing transition-[opacity,transform] duration-150",
+          "relative w-full rounded-[16px] p-4 bg-white flex flex-col gap-5 transition-[opacity,transform] duration-150",
+          readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing",
           isDragging && "opacity-35 scale-[0.98] rotate-1"
         )}
       >

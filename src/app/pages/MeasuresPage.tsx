@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "../components/Header";
@@ -15,29 +15,68 @@ import {
 } from "../components/ui/select";
 import { MeasuresKanban } from "../components/measures/MeasuresKanban";
 import { MeasureDialog, type MeasureDialogDraft } from "../components/measures/MeasureDialog";
+import {
+  getMeasuresPreviewMode,
+  MeasuresPreviewSwitcher,
+} from "../components/measures/MeasuresPreviewSwitcher";
+import { MeasuresEmptyNoAreas } from "../components/measures/MeasuresEmptyNoAreas";
 import { useCommitmentFlow } from "../context/CommitmentFlowContext";
-import type { MeasureStatus } from "../data/measures";
+import { SEED_AREAS_OF_ACTION } from "../data/commitmentFlowSeed";
+import {
+  applyMeasurePlacement,
+  MEASURE_STATUS_LABELS,
+  type Measure,
+  type MeasureDropTarget,
+  type MeasureStatus,
+} from "../data/measures";
 import { cn } from "../components/ui/utils";
 
 const ALL_AREAS_VALUE = "all";
 
 export default function MeasuresPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const previewMode = getMeasuresPreviewMode(searchParams);
+  const isEmptyBoardPreview = previewMode === "empty-board";
+  const isNoAreasPreview = previewMode === "no-areas";
+
   const { areas, measures, addMeasure, updateMeasure } = useCommitmentFlow();
+  const [previewMeasures, setPreviewMeasures] = useState<Measure[]>([]);
   const [areaFilterId, setAreaFilterId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMeasureId, setEditingMeasureId] = useState<string | null>(null);
   const [createStatus, setCreateStatus] = useState<MeasureStatus>("todo");
 
-  const editingMeasure = useMemo(
-    () => measures.find((m) => m.id === editingMeasureId) ?? null,
-    [measures, editingMeasureId]
-  );
+  useEffect(() => {
+    if (isEmptyBoardPreview) {
+      setPreviewMeasures([]);
+      setAreaFilterId(null);
+      setDialogOpen(false);
+      setEditingMeasureId(null);
+    }
+  }, [isEmptyBoardPreview]);
+
+  const displayAreas = useMemo(() => {
+    if (isNoAreasPreview) return [];
+    if (isEmptyBoardPreview) return SEED_AREAS_OF_ACTION;
+    return areas;
+  }, [isNoAreasPreview, isEmptyBoardPreview, areas]);
+
+  const displayMeasures = useMemo(() => {
+    if (isEmptyBoardPreview) return previewMeasures;
+    if (isNoAreasPreview) return [];
+    return measures;
+  }, [isEmptyBoardPreview, isNoAreasPreview, previewMeasures, measures]);
+
+  const editingMeasure = useMemo(() => {
+    const source = isEmptyBoardPreview ? previewMeasures : measures;
+    return source.find((m) => m.id === editingMeasureId) ?? null;
+  }, [isEmptyBoardPreview, previewMeasures, measures, editingMeasureId]);
 
   const filteredCount = useMemo(() => {
-    if (!areaFilterId) return measures.length;
-    return measures.filter((m) => m.areaOfActionId === areaFilterId).length;
-  }, [measures, areaFilterId]);
+    if (!areaFilterId) return displayMeasures.length;
+    return displayMeasures.filter((m) => m.areaOfActionId === areaFilterId).length;
+  }, [displayMeasures, areaFilterId]);
 
   const openCreate = useCallback((status: MeasureStatus = "todo") => {
     setEditingMeasureId(null);
@@ -52,6 +91,41 @@ export default function MeasuresPage() {
 
   const handleSave = useCallback(
     (draft: MeasureDialogDraft, editingId: string | null) => {
+      if (isEmptyBoardPreview) {
+        if (editingId) {
+          setPreviewMeasures((prev) =>
+            prev.map((measure) =>
+              measure.id === editingId
+                ? {
+                    ...measure,
+                    areaOfActionId: draft.areaOfActionId,
+                    description: draft.description.trim(),
+                    ownerId: draft.ownerId,
+                    dueDate: draft.dueDate,
+                    status: draft.status ?? measure.status,
+                  }
+                : measure
+            )
+          );
+          toast.success("Measure updated successfully");
+        } else {
+          const created: Measure = {
+            id: crypto.randomUUID(),
+            areaOfActionId: draft.areaOfActionId,
+            description: draft.description.trim(),
+            ownerId: draft.ownerId,
+            dueDate: draft.dueDate,
+            status: draft.status ?? createStatus,
+          };
+          setPreviewMeasures((prev) => [...prev, created]);
+          if (areaFilterId && areaFilterId !== draft.areaOfActionId) {
+            setAreaFilterId(null);
+          }
+          toast.success("Measure created successfully");
+        }
+        return;
+      }
+
       if (editingId) {
         updateMeasure(editingId, draft);
         toast.success("Measure updated successfully");
@@ -63,12 +137,27 @@ export default function MeasuresPage() {
         toast.success("Measure created successfully");
       }
     },
-    [addMeasure, updateMeasure, createStatus, areaFilterId]
+    [isEmptyBoardPreview, addMeasure, updateMeasure, createStatus, areaFilterId]
   );
+
+  const handlePreviewDelete = useCallback((id: string) => {
+    setPreviewMeasures((prev) => prev.filter((measure) => measure.id !== id));
+  }, []);
+
+  const handlePreviewMove = useCallback((draggedId: string, target: MeasureDropTarget) => {
+    setPreviewMeasures((prev) => {
+      const next = applyMeasurePlacement(prev, draggedId, target);
+      return next ?? prev;
+    });
+    toast.success(`Measure successfully moved to ${MEASURE_STATUS_LABELS[target.status]}`);
+  }, []);
 
   const goToAreasOfAction = () => {
     navigate("/", { state: { scrollToPhase3: true } });
   };
+
+  const hasAreas = displayAreas.length > 0;
+  const hasMeasures = displayMeasures.length > 0;
 
   return (
     <div className="min-h-screen bg-white w-full flex flex-col font-sans">
@@ -76,6 +165,8 @@ export default function MeasuresPage() {
 
       <main className="w-full flex flex-col items-center pt-20">
         <SectionWrapper className="flex w-full flex-col gap-10 pb-32">
+          <MeasuresPreviewSwitcher />
+
           <div className="flex flex-col gap-1.5">
             <h1 className="text-[32px] font-semibold leading-tight tracking-tight text-[#292929]">
               Your measures
@@ -88,20 +179,8 @@ export default function MeasuresPage() {
             </p>
           </div>
 
-          {areas.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-[12px] border border-dashed border-[#dcdcdc] bg-[#fafafa] px-6 py-16 text-center">
-              <p className="text-base font-semibold text-[#292929]">No areas of action yet</p>
-              <p className="max-w-md text-base text-[#656565]">
-                Create at least one area of action in Phase 3 before adding measures.
-              </p>
-              <Button
-                size="big"
-                onClick={goToAreasOfAction}
-                className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal"
-              >
-                Go to areas of action
-              </Button>
-            </div>
+          {!hasAreas ? (
+            <MeasuresEmptyNoAreas onGoToAreas={goToAreasOfAction} />
           ) : (
             <>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -138,7 +217,7 @@ export default function MeasuresPage() {
                       >
                         All areas
                       </SelectItem>
-                      {areas.map((area) => (
+                      {displayAreas.map((area) => (
                         <SelectItem
                           key={area.id}
                           value={area.id}
@@ -152,7 +231,7 @@ export default function MeasuresPage() {
                 </div>
                 <Button
                   size="big"
-                  onClick={openCreate}
+                  onClick={() => openCreate()}
                   className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal shrink-0"
                 >
                   Add measure
@@ -160,37 +239,25 @@ export default function MeasuresPage() {
                 </Button>
               </div>
 
-              {measures.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-4 rounded-[12px] border border-dashed border-[#dcdcdc] bg-[#fafafa] px-6 py-12 text-center">
-                  <p className="text-base font-semibold text-[#292929]">No measures yet</p>
-                  <p className="max-w-md text-base text-[#656565]">
-                    Add your first measure and link it to one of your areas of action.
+              {filteredCount === 0 && areaFilterId && hasMeasures && (
+                <div className="rounded-[12px] border border-dashed border-[#dcdcdc] bg-[#fafafa] px-6 py-4 text-center">
+                  <p className="text-sm text-[#656565]">
+                    No measures for the selected area. Try another filter or add a new measure.
                   </p>
-                  <Button
-                    size="big"
-                    onClick={openCreate}
-                    className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal"
-                  >
-                    Add measure
-                    <Plus className="w-4 h-4" />
-                  </Button>
                 </div>
-              ) : (
-                <>
-                  {filteredCount === 0 && areaFilterId && (
-                    <div className="rounded-[12px] border border-dashed border-[#dcdcdc] bg-[#fafafa] px-6 py-4 text-center">
-                      <p className="text-sm text-[#656565]">
-                        No measures for the selected area. Showing all columns — try another filter or add a new measure.
-                      </p>
-                    </div>
-                  )}
-                  <MeasuresKanban
-                    areaFilterId={areaFilterId}
-                    onEdit={openEdit}
-                    onAddMeasure={openCreate}
-                  />
-                </>
               )}
+
+              <MeasuresKanban
+                areaFilterId={areaFilterId}
+                measures={displayMeasures}
+                areas={displayAreas}
+                readOnly={false}
+                onEdit={openEdit}
+                onAddMeasure={openCreate}
+                onDeleteMeasure={isEmptyBoardPreview ? handlePreviewDelete : undefined}
+                onMoveMeasure={isEmptyBoardPreview ? handlePreviewMove : undefined}
+                showColumnAddButton={!isEmptyBoardPreview}
+              />
             </>
           )}
         </SectionWrapper>
@@ -200,7 +267,7 @@ export default function MeasuresPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editingMeasure={editingMeasure}
-        areas={areas}
+        areas={displayAreas}
         defaultAreaId={areaFilterId ?? undefined}
         onSave={handleSave}
       />

@@ -3,8 +3,9 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { LayoutGroup } from "motion/react";
 import { toast } from "sonner";
+import type { AreaOfAction } from "../AreasOfActionBuilder";
 import { useCommitmentFlow } from "../../context/CommitmentFlowContext";
-import { MEASURE_COLUMNS, MEASURE_STATUS_LABELS } from "../../data/measures";
+import { MEASURE_COLUMNS, MEASURE_STATUS_LABELS, wouldMeasurePlacementChange } from "../../data/measures";
 import type { Measure, MeasureDropTarget, MeasureStatus } from "../../data/measures";
 import { KanbanColumn } from "./KanbanColumn";
 import { MeasureDragLayer } from "./MeasureDragLayer";
@@ -20,63 +21,39 @@ function isSameDropTarget(
   );
 }
 
-function wouldPlacementChange(
-  measures: Measure[],
-  draggedId: string,
-  target: MeasureDropTarget
-): boolean {
-  const dragged = measures.find((measure) => measure.id === draggedId);
-  if (!dragged) return false;
-
-  let next: Measure[];
-
-  if (target.targetId === null) {
-    const without = measures.filter((measure) => measure.id !== draggedId);
-    let lastSameStatusIndex = -1;
-    without.forEach((measure, index) => {
-      if (measure.status === target.status) lastSameStatusIndex = index;
-    });
-    const insertIndex =
-      lastSameStatusIndex === -1 ? without.length : lastSameStatusIndex + 1;
-    next = [...without];
-    next.splice(insertIndex, 0, { ...dragged, status: target.status });
-  } else {
-    if (draggedId === target.targetId) return false;
-    const targetMeasure = measures.find((measure) => measure.id === target.targetId);
-    if (!targetMeasure) return false;
-
-    const without = measures.filter((measure) => measure.id !== draggedId);
-    const targetIndex = without.findIndex((measure) => measure.id === target.targetId);
-    if (targetIndex === -1) return false;
-
-    const insertIndex = target.position === "before" ? targetIndex : targetIndex + 1;
-    next = [...without];
-    next.splice(insertIndex, 0, { ...dragged, status: targetMeasure.status });
-  }
-
-  if (next.length !== measures.length) return true;
-  for (let i = 0; i < measures.length; i++) {
-    if (next[i].id !== measures[i].id || next[i].status !== measures[i].status) {
-      return true;
-    }
-  }
-  return false;
-}
-
 interface MeasuresKanbanProps {
   areaFilterId: string | null;
+  measures?: Measure[];
+  areas?: AreaOfAction[];
+  readOnly?: boolean;
   onEdit: (id: string) => void;
   onAddMeasure: (status: MeasureStatus) => void;
+  onDeleteMeasure?: (id: string) => void;
+  onMoveMeasure?: (draggedId: string, target: MeasureDropTarget) => void;
+  showColumnAddButton?: boolean;
 }
 
-export function MeasuresKanban({ areaFilterId, onEdit, onAddMeasure }: MeasuresKanbanProps) {
+export function MeasuresKanban({
+  areaFilterId,
+  measures: measuresOverride,
+  areas: areasOverride,
+  readOnly = false,
+  onEdit,
+  onAddMeasure,
+  onDeleteMeasure,
+  onMoveMeasure,
+  showColumnAddButton = true,
+}: MeasuresKanbanProps) {
   const {
-    areas,
-    measures,
+    areas: contextAreas,
+    measures: contextMeasures,
     deleteMeasure,
     placeMeasureRelative,
     placeMeasureAtColumnEnd,
   } = useCommitmentFlow();
+
+  const areas = areasOverride ?? contextAreas;
+  const measures = measuresOverride ?? contextMeasures;
 
   const [dropTarget, setDropTargetState] = useState<MeasureDropTarget | null>(null);
   const dropTargetRef = useRef<MeasureDropTarget | null>(null);
@@ -104,10 +81,11 @@ export function MeasuresKanban({ areaFilterId, onEdit, onAddMeasure }: MeasuresK
   }, [filteredMeasures]);
 
   const handleDropTargetChange = useCallback((target: MeasureDropTarget) => {
+    if (readOnly) return;
     if (isSameDropTarget(dropTargetRef.current, target)) return;
     dropTargetRef.current = target;
     setDropTargetState(target);
-  }, []);
+  }, [readOnly]);
 
   const clearDropTarget = useCallback(() => {
     if (dropTargetRef.current === null) return;
@@ -117,26 +95,33 @@ export function MeasuresKanban({ areaFilterId, onEdit, onAddMeasure }: MeasuresK
 
   const handleCommitDrop = useCallback(
     (draggedId: string) => {
+      if (readOnly) return;
       const target = dropTargetRef.current;
       if (!target) return;
-      if (!wouldPlacementChange(measures, draggedId, target)) return;
+      if (!wouldMeasurePlacementChange(measures, draggedId, target)) return;
 
-      if (target.targetId === null) {
+      if (onMoveMeasure) {
+        onMoveMeasure(draggedId, target);
+      } else if (target.targetId === null) {
         placeMeasureAtColumnEnd(draggedId, target.status);
       } else {
         placeMeasureRelative(draggedId, target.targetId, target.position);
       }
 
-      toast.success(`Measure successfully moved to ${MEASURE_STATUS_LABELS[target.status]}`);
+      if (!onMoveMeasure) {
+        toast.success(`Measure successfully moved to ${MEASURE_STATUS_LABELS[target.status]}`);
+      }
     },
-    [measures, placeMeasureAtColumnEnd, placeMeasureRelative]
+    [readOnly, measures, onMoveMeasure, placeMeasureAtColumnEnd, placeMeasureRelative]
   );
+
+  const handleDelete = onDeleteMeasure ?? deleteMeasure;
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <MeasureDragLayer />
+      <MeasureDragLayer measures={measures} areas={areas} />
       <LayoutGroup id="measures-kanban">
-        <div className="flex flex-col gap-4 md:flex-row md:items-stretch">
+        <div className="flex flex-col gap-2 md:flex-row md:items-stretch">
           {MEASURE_COLUMNS.map((column) => (
             <KanbanColumn
               key={column.status}
@@ -146,11 +131,13 @@ export function MeasuresKanban({ areaFilterId, onEdit, onAddMeasure }: MeasuresK
               areaNameById={areaNameById}
               dropTarget={dropTarget}
               onEdit={onEdit}
-              onDelete={deleteMeasure}
+              onDelete={handleDelete}
               onDropTargetChange={handleDropTargetChange}
               onCommitDrop={handleCommitDrop}
               onDragEnd={clearDropTarget}
               onAddMeasure={onAddMeasure}
+              readOnly={readOnly}
+              showAddMeasureButton={showColumnAddButton}
             />
           ))}
         </div>
