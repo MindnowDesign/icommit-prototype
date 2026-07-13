@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Plus, ArrowRight, MoreHorizontal, Pencil, Trash2, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, ArrowRight, MoreHorizontal, Pencil, Trash2, Search, ChevronDown, ChevronUp, UsersRound, CircleDot, Target } from "lucide-react";
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -30,36 +30,70 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { AVAILABLE_FIELDS, getFactorById, getFactorHausRelative, sortFieldsByHausRelative } from "../data/influencingFactors";
+import { hasDesiredTarget, type AreaOfAction } from "../data/areasOfAction";
+import {
+  getAreaMeasureSummary,
+  type AreaMeasureSummary,
+  type Measure,
+} from "../data/measures";
 import { useCommitmentFlow } from "../context/CommitmentFlowContext";
-
-export type AreaOfAction = {
-  id: string;
-  name: string;
-  description: string;
-  desiredTargetDescription: string;
-  factorIds: string[];
-};
+import { MeasureStatusBadge } from "./measures/MeasureStatusBadge";
 
 type AreaDraft = {
   name: string;
   description: string;
-  desiredTargetDescription: string;
   factorIds: string[];
 };
 
 function isAreaValid(
-  area: Pick<AreaOfAction, "name" | "description" | "desiredTargetDescription" | "factorIds">
+  area: Pick<AreaOfAction, "name" | "description" | "factorIds">
 ): boolean {
   return (
     area.name.trim().length > 0 &&
     area.description.trim().length > 0 &&
-    area.desiredTargetDescription.trim().length > 0 &&
     area.factorIds.length >= 1
   );
 }
 
 const CARD_MIN_HEIGHT = "min-h-[120px]";
 const COLLAPSED_FACTOR_COUNT = 4;
+
+function AreaStateSection({
+  label,
+  text,
+  icon: Icon,
+  labelClassName,
+  iconClassName,
+}: {
+  label: string;
+  text: string;
+  icon: typeof CircleDot;
+  labelClassName: string;
+  iconClassName: string;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-2.5">
+        <Icon className={cn("size-4 shrink-0", iconClassName)} strokeWidth={2} />
+        <span className={cn("text-xs font-semibold tracking-[0.06em]", labelClassName)}>
+          {label}
+        </span>
+      </div>
+      <p className="pl-[26px] text-sm leading-relaxed text-[#656565]">{text}</p>
+    </div>
+  );
+}
+
+function AreaMeasureMeta({ summary }: { summary: AreaMeasureSummary }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-t border-[#efefef] pt-3">
+      <span className="text-sm font-medium tabular-nums text-[#656565]">
+        {summary.count} {summary.count === 1 ? "measure" : "measures"}
+      </span>
+      {summary.status && <MeasureStatusBadge status={summary.status} />}
+    </div>
+  );
+}
 
 function Phase2SelectedStrengthIcon({ size = 14 }: { size?: number }) {
   return (
@@ -98,7 +132,6 @@ function AreaOfActionDialog({
   const [draft, setDraft] = useState<AreaDraft>({
     name: "",
     description: "",
-    desiredTargetDescription: "",
     factorIds: [],
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,10 +144,9 @@ function AreaOfActionDialog({
           ? {
               name: editingArea.name,
               description: editingArea.description,
-              desiredTargetDescription: editingArea.desiredTargetDescription,
               factorIds: [...editingArea.factorIds],
             }
-          : { name: "", description: "", desiredTargetDescription: "", factorIds: [] }
+          : { name: "", description: "", factorIds: [] }
       );
       setSearchQuery("");
       setShowAllFactors(false);
@@ -164,7 +196,7 @@ function AreaOfActionDialog({
             {editingArea ? "Edit area of action" : "New area of action"}
           </DialogTitle>
           <DialogDescription className="text-base text-[#656565]">
-            Give your area a name and select the influencing factors to work on.
+            Capture the area your team agreed on, its current state, and the factors behind it.
           </DialogDescription>
         </DialogHeader>
 
@@ -185,38 +217,17 @@ function AreaOfActionDialog({
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-0.5">
               <label htmlFor="area-current-problem" className="text-sm font-semibold text-[#656565]">
-                Current problem description
+                Current-state description
               </label>
               <span className="text-sm text-[#989898]">
-                Briefly capture the discussion or problem behind this focus area.
+                Summarise what is happening today, based on the discussion with your team.
               </span>
             </div>
             <Textarea
               id="area-current-problem"
               value={draft.description}
               onChange={(e) => setDraft((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder="e.g. Team feedback showed unclear priorities after the reorg..."
-              rows={2}
-              className="min-h-[64px] resize-none"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-col gap-0.5">
-              <label htmlFor="area-desired-target" className="text-sm font-semibold text-[#656565]">
-                Desired target description
-              </label>
-              <span className="text-sm text-[#989898]">
-                Briefly describe the outcome or state you want to reach in this focus area.
-              </span>
-            </div>
-            <Textarea
-              id="area-desired-target"
-              value={draft.desiredTargetDescription}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, desiredTargetDescription: e.target.value }))
-              }
-              placeholder="e.g. Clear priorities agreed by the team within two weeks..."
+              placeholder="e.g. Priorities are unclear after the reorganisation, leading to duplicated work..."
               rows={2}
               className="min-h-[64px] resize-none"
             />
@@ -357,11 +368,19 @@ function AreaOfActionDialog({
 
 interface AreaOfActionCardProps {
   area: AreaOfAction;
+  measureSummary: AreaMeasureSummary;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  readOnly?: boolean;
 }
 
-function AreaOfActionCard({ area, onEdit, onDelete }: AreaOfActionCardProps) {
+function AreaOfActionCard({
+  area,
+  measureSummary,
+  onEdit,
+  onDelete,
+  readOnly = false,
+}: AreaOfActionCardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const factors = area.factorIds
@@ -389,28 +408,26 @@ function AreaOfActionCard({ area, onEdit, onDelete }: AreaOfActionCardProps) {
           >
             {area.name}
           </h4>
-          <ul className="mt-0.5 flex flex-col gap-0.5 list-none">
-            <li className="flex items-start gap-2 text-sm text-[#656565]">
-              <span className="shrink-0 text-[#989898] leading-5" aria-hidden="true">
-                •
-              </span>
-              <span className="line-clamp-2 min-w-0" title={area.description}>
-                {area.description}
-              </span>
-            </li>
-            {area.desiredTargetDescription && (
-              <li className="flex items-start gap-2 text-sm text-[#656565]">
-                <span className="shrink-0 text-[#989898] leading-5" aria-hidden="true">
-                  •
-                </span>
-                <span className="line-clamp-2 min-w-0" title={area.desiredTargetDescription}>
-                  {area.desiredTargetDescription}
-                </span>
-              </li>
+          <div className="mt-1 flex flex-col gap-3">
+            <AreaStateSection
+              label="CURRENT STATE"
+              text={area.description}
+              icon={CircleDot}
+              labelClassName="text-[#989898]"
+              iconClassName="text-[#989898]"
+            />
+            {hasDesiredTarget(area) && (
+              <AreaStateSection
+                label="DESIRED STATE"
+                text={area.desiredTargetDescription}
+                icon={Target}
+                labelClassName="text-[#015ea3]"
+                iconClassName="text-[#015ea3]"
+              />
             )}
-          </ul>
+          </div>
         </div>
-        <DropdownMenu>
+        {!readOnly && <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
@@ -436,7 +453,7 @@ function AreaOfActionCard({ area, onEdit, onDelete }: AreaOfActionCardProps) {
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -453,6 +470,7 @@ function AreaOfActionCard({ area, onEdit, onDelete }: AreaOfActionCardProps) {
           );
         })}
       </div>
+      <AreaMeasureMeta summary={measureSummary} />
     </div>
 
     <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -512,10 +530,28 @@ function AddAreaCard({ hasAreas, onClick }: AddAreaCardProps) {
 
 interface AreasOfActionBuilderProps {
   onPhase4Unlock?: () => void;
+  areasOverride?: AreaOfAction[];
+  measuresOverride?: Measure[];
+  confirmedOverride?: boolean;
+  readOnly?: boolean;
 }
 
-export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderProps) {
-  const { areas, addArea, updateArea, deleteArea } = useCommitmentFlow();
+export function AreasOfActionBuilder({
+  onPhase4Unlock,
+  areasOverride,
+  measuresOverride,
+  confirmedOverride,
+  readOnly = false,
+}: AreasOfActionBuilderProps) {
+  const {
+    areas: contextAreas,
+    measures: contextMeasures,
+    addArea,
+    updateArea,
+    deleteArea,
+  } = useCommitmentFlow();
+  const areas = areasOverride ?? contextAreas;
+  const measures = measuresOverride ?? contextMeasures;
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAreaId, setEditingAreaId] = useState<string | null>(null);
@@ -526,48 +562,52 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
   );
 
   const canProceed = areas.length >= 1;
+  const showConfirmed = confirmedOverride ?? isConfirmed;
 
   const openCreate = useCallback(() => {
+    if (readOnly) return;
     setEditingAreaId(null);
     setDialogOpen(true);
-  }, []);
+  }, [readOnly]);
 
   const openEdit = useCallback((id: string) => {
+    if (readOnly) return;
     setEditingAreaId(id);
     setDialogOpen(true);
-  }, []);
+  }, [readOnly]);
 
   const handleDelete = useCallback(
     (id: string) => {
+      if (readOnly) return;
       deleteArea(id);
     },
-    [deleteArea]
+    [deleteArea, readOnly]
   );
 
   const handleSave = useCallback(
     (draft: AreaDraft, editingId: string | null) => {
+      if (readOnly) return;
       const payload = {
         name: draft.name.trim(),
         description: draft.description.trim(),
-        desiredTargetDescription: draft.desiredTargetDescription.trim(),
         factorIds: draft.factorIds,
       };
       if (editingId) {
         updateArea(editingId, payload);
       } else {
-        addArea(payload);
+        addArea({ ...payload, desiredTargetDescription: "" });
       }
     },
-    [addArea, updateArea]
+    [addArea, updateArea, readOnly]
   );
 
   const handleConfirm = () => {
-    if (!canProceed) return;
+    if (!canProceed || readOnly) return;
     onPhase4Unlock?.();
     setIsConfirmed(true);
   };
 
-  if (isConfirmed) {
+  if (showConfirmed) {
     return (
       <>
         <h3 className="text-2xl font-semibold text-[#0b446f] tracking-tight">
@@ -580,10 +620,24 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
               className="border border-[#dcdcdc] rounded-[12px] p-4 bg-[#fafafa] flex flex-col gap-3"
             >
               <p className="text-lg font-semibold text-[#18181b]">{area.name}</p>
-              <p className="text-sm text-[#656565]">{area.description}</p>
-              {area.desiredTargetDescription && (
-                <p className="text-sm text-[#656565]">{area.desiredTargetDescription}</p>
-              )}
+              <div className="flex flex-col gap-3">
+                <AreaStateSection
+                  label="CURRENT STATE"
+                  text={area.description}
+                  icon={CircleDot}
+                  labelClassName="text-[#989898]"
+                  iconClassName="text-[#989898]"
+                />
+                {hasDesiredTarget(area) && (
+                  <AreaStateSection
+                    label="DESIRED STATE"
+                    text={area.desiredTargetDescription}
+                    icon={Target}
+                    labelClassName="text-[#015ea3]"
+                    iconClassName="text-[#015ea3]"
+                  />
+                )}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {area.factorIds.map((factorId) => {
                   const field = getFactorById(factorId);
@@ -600,10 +654,21 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
                   );
                 })}
               </div>
+              <AreaMeasureMeta summary={getAreaMeasureSummary(measures, area.id)} />
             </div>
           ))}
         </div>
-        <div className="flex justify-end">
+        <div className="flex items-start gap-3 rounded-[12px] border border-[#b9e2fe] bg-[#f0f8ff] p-4">
+          <UsersRound className="mt-0.5 size-5 shrink-0 text-[#015ea3]" strokeWidth={2} />
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-semibold text-[#0b446f]">Next: align on the desired state</p>
+            <p className="text-sm leading-relaxed text-[#656565]">
+              Bring these current-state descriptions back to your team. In Phase 4, you will define
+              what should be different for each area before creating concrete measures.
+            </p>
+          </div>
+        </div>
+        {!readOnly && <div className="flex justify-end">
           <Button
             variant="outline"
             size="big"
@@ -612,7 +677,7 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
           >
             Edit areas
           </Button>
-        </div>
+        </div>}
       </>
     );
   }
@@ -622,10 +687,10 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
       {areas.length === 0 && (
         <div className="flex flex-col gap-0.5">
           <p className="text-base font-semibold text-[#292929]">
-            Start with the outcomes of your team dialogue
+            Capture what you learned with your team
           </p>
           <p className="text-base text-[#656565] leading-relaxed">
-            Create 1–2 areas of action based on the influencing factors you discussed with your team.
+            Define 1–2 areas of action, describe the current state, and connect the influencing factors you discussed.
           </p>
         </div>
       )}
@@ -635,15 +700,17 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
           <AreaOfActionCard
             key={area.id}
             area={area}
+            measureSummary={getAreaMeasureSummary(measures, area.id)}
             onEdit={openEdit}
             onDelete={handleDelete}
+            readOnly={readOnly}
           />
         ))}
 
-        <AddAreaCard hasAreas={areas.length > 0} onClick={openCreate} />
+        {!readOnly && <AddAreaCard hasAreas={areas.length > 0} onClick={openCreate} />}
       </div>
 
-      <div className="flex justify-end pt-2">
+      {!readOnly && <div className="flex justify-end pt-2">
         <Button
           size="big"
           onClick={handleConfirm}
@@ -658,14 +725,14 @@ export function AreasOfActionBuilder({ onPhase4Unlock }: AreasOfActionBuilderPro
           Confirm and proceed
           <ArrowRight className="w-4 h-4" />
         </Button>
-      </div>
+      </div>}
 
-      <AreaOfActionDialog
+      {!readOnly && <AreaOfActionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editingArea={editingArea}
         onSave={handleSave}
-      />
+      />}
     </>
   );
 }

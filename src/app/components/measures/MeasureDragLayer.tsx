@@ -1,4 +1,4 @@
-import type { AreaOfAction } from "../AreasOfActionBuilder";
+import type { AreaOfAction } from "../../data/areasOfAction";
 import { useDragLayer } from "react-dnd";
 import { useCommitmentFlow } from "../../context/CommitmentFlowContext";
 import type { Measure } from "../../data/measures";

@@ -62,7 +62,7 @@ export interface FixedToastProps {
 export function FixedToast({
   phase,
   message,
-  actionText = "Open results",
+  actionText,
   onActionClick,
   onClose,
   onGoBack,

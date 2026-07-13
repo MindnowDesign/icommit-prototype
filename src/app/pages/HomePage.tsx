@@ -23,7 +23,6 @@ export default function HomePage() {
   const [isPhase4Unlocked, setIsPhase4Unlocked] = useState(false);
   const [isPhase5Unlocked, setIsPhase5Unlocked] = useState(false);
   const [isPhase6Unlocked, setIsPhase6Unlocked] = useState(false);
-  const [hasDownloadedPhase4Docs, setHasDownloadedPhase4Docs] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [pendingPhaseUnlock, setPendingPhaseUnlock] = useState<number | null>(null);
   
@@ -33,7 +32,6 @@ export default function HomePage() {
       // Ensure Phase 3 and 4 are unlocked first
       setIsPhase3Unlocked(true);
       setIsPhase4Unlocked(true);
-      setHasDownloadedPhase4Docs(true);
       
       // Show celebration dialog for Phase 5
       setPendingPhaseUnlock(5);
@@ -211,10 +209,10 @@ export default function HomePage() {
             ? "Pulse check"
             : currentPhase === 5
               ? "Implementation progress"
-              : currentPhase === 4 
-                ? "Your measures" 
-                : currentPhase === 3 
-                  ? "Your areas of action" 
+              : currentPhase === 4
+                ? "Desired states and measures"
+                : currentPhase === 3
+                  ? "Areas and current state"
                   : "Analyse data"
         }
         actionText={
@@ -223,7 +221,7 @@ export default function HomePage() {
             : currentPhase === 5
               ? "Proceed to Phase 6"
               : currentPhase === 4 
-                ? (hasDownloadedPhase4Docs ? "Go to Measures" : "Download documentation")
+                ? "Open Phase 4 workspace"
                 : currentPhase === 3 
                   ? "Go to section" 
                   : "Open results"
@@ -284,14 +282,7 @@ export default function HomePage() {
             setPendingPhaseUnlock(6);
             setUnlockDialogOpen(true);
           } else if (currentPhase === 4) {
-            if (hasDownloadedPhase4Docs) {
-              // Navigate to Measures page
-              navigate("/measures");
-            } else {
-              // Download documentation
-              console.log("Downloading Phase 4 documentation...");
-              setHasDownloadedPhase4Docs(true);
-            }
+            navigate("/measures");
           } else if (currentPhase === 3) {
             const phase3Section = document.getElementById("phase-3-section");
             if (phase3Section) {

@@ -6,15 +6,17 @@ import React, {
   useState,
 } from "react";
 
-import type { AreaOfAction } from "../components/AreasOfActionBuilder";
+import { hasDesiredTarget, type AreaOfAction, type AreaOfActionDraft } from "../data/areasOfAction";
 import { getSeedCommitmentFlowState } from "../data/commitmentFlowSeed";
 import type { Measure, MeasureDraft, MeasureStatus } from "../data/measures";
 
 type CommitmentFlowContextValue = {
   areas: AreaOfAction[];
   measures: Measure[];
-  addArea: (area: Omit<AreaOfAction, "id">) => AreaOfAction;
-  updateArea: (id: string, patch: Omit<AreaOfAction, "id">) => void;
+  allAreaTargetsComplete: boolean;
+  addArea: (area: AreaOfActionDraft) => AreaOfAction;
+  updateArea: (id: string, patch: Partial<AreaOfActionDraft>) => void;
+  updateAreaTarget: (id: string, desiredTargetDescription: string) => void;
   deleteArea: (id: string) => void;
   setAreas: React.Dispatch<React.SetStateAction<AreaOfAction[]>>;
   addMeasure: (draft: MeasureDraft, status?: MeasureStatus) => Measure;
@@ -56,15 +58,25 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
     setMeasures((prev) => prev.filter((measure) => measure.areaOfActionId !== id));
   }, []);
 
-  const addArea = useCallback((area: Omit<AreaOfAction, "id">) => {
+  const addArea = useCallback((area: AreaOfActionDraft) => {
     const created: AreaOfAction = { ...area, id: crypto.randomUUID() };
     setAreas((prev) => [...prev, created]);
     return created;
   }, []);
 
-  const updateArea = useCallback((id: string, patch: Omit<AreaOfAction, "id">) => {
+  const updateArea = useCallback((id: string, patch: Partial<AreaOfActionDraft>) => {
     setAreas((prev) =>
       prev.map((area) => (area.id === id ? { ...area, ...patch, id } : area))
+    );
+  }, []);
+
+  const updateAreaTarget = useCallback((id: string, desiredTargetDescription: string) => {
+    setAreas((prev) =>
+      prev.map((area) =>
+        area.id === id
+          ? { ...area, desiredTargetDescription: desiredTargetDescription.trim() }
+          : area
+      )
     );
   }, []);
 
@@ -73,7 +85,7 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
       id: crypto.randomUUID(),
       areaOfActionId: draft.areaOfActionId,
       description: draft.description.trim(),
-      ownerId: draft.ownerId,
+      owner: draft.owner.trim(),
       dueDate: draft.dueDate,
       status: draft.status ?? status,
     };
@@ -89,7 +101,7 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
               ...measure,
               areaOfActionId: draft.areaOfActionId,
               description: draft.description.trim(),
-              ownerId: draft.ownerId,
+              owner: draft.owner.trim(),
               dueDate: draft.dueDate,
               status: draft.status ?? measure.status,
             }
@@ -151,8 +163,10 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
     () => ({
       areas,
       measures,
+      allAreaTargetsComplete: areas.length > 0 && areas.every(hasDesiredTarget),
       addArea,
       updateArea,
+      updateAreaTarget,
       deleteArea,
       setAreas,
       addMeasure,
@@ -166,6 +180,7 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
       measures,
       addArea,
       updateArea,
+      updateAreaTarget,
       deleteArea,
       addMeasure,
       updateMeasure,

@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { format, parseISO } from "date-fns";
-import { Calendar, CornerDownRight } from "lucide-react";
+import { Calendar, CornerDownRight, User } from "lucide-react";
 import type { Measure } from "../../data/measures";
-import { MeasureOwnerDisplay } from "./MeasureOwnerDisplay";
+import { getMeasureOwnerName } from "../../data/measures";
 import { MeasureStatusBadge } from "./MeasureStatusBadge";
 import { Separator } from "../ui/separator";
 
@@ -22,6 +22,8 @@ interface MeasureCardBodyProps {
 }
 
 export function MeasureCardBody({ measure, areaName, actions }: MeasureCardBodyProps) {
+  const ownerName = getMeasureOwnerName(measure);
+
   return (
     <>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
@@ -48,7 +50,12 @@ export function MeasureCardBody({ measure, areaName, actions }: MeasureCardBodyP
       <Separator className="bg-[#efefef]" />
 
       <div className="flex w-full items-center justify-between gap-3 text-sm text-[#656565]">
-        <MeasureOwnerDisplay ownerId={measure.ownerId} className="min-w-0" />
+        <span className="inline-flex min-w-0 flex-1 items-center gap-1.5">
+          <User className="h-4 w-4 shrink-0 text-[#989898]" strokeWidth={2} />
+          <span className="truncate" title={ownerName}>
+            {ownerName}
+          </span>
+        </span>
         <span className="inline-flex shrink-0 items-center gap-1.5">
           <Calendar className="w-4 h-4 text-[#989898]" strokeWidth={2} />
           {formatDueDate(measure.dueDate)}

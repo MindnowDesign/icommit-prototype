@@ -619,16 +619,9 @@ function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => voi
   const [showHouseContent, setShowHouseContent] = useState(true);
   const [houseContentKey, setHouseContentKey] = useState(0);
 
-  const scrollToHouse = useCallback(() => {
-    if (!sectionRef.current) return;
-    const top = sectionRef.current.getBoundingClientRect().top + window.scrollY - 180;
-    window.scrollTo({ top, behavior: "smooth" });
-  }, [sectionRef]);
-
   const handleConfirmSelections = useCallback(
     (selections: { weaknessIds: string[]; strengthIds: string[] }) => {
       setShowHouseContent(false);
-      scrollToHouse();
 
       window.setTimeout(() => {
         setConfirmedSelections(selections);
@@ -636,7 +629,7 @@ function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => voi
         setShowHouseContent(true);
       }, 220);
     },
-    [scrollToHouse]
+    []
   );
 
   const houseViewClassName = cn(

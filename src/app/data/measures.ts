@@ -4,7 +4,7 @@ export type Measure = {
   id: string;
   areaOfActionId: string;
   description: string;
-  ownerId: string;
+  owner: string;
   dueDate: string;
   status: MeasureStatus;
 };
@@ -31,16 +31,68 @@ export const MEASURE_COLUMNS: { status: MeasureStatus; label: string }[] = [
   { status: "done", label: "Done" },
 ];
 
-import { getMeasureOwnerById } from "./measureOwners";
+export type AreaMeasureSummary = {
+  count: number;
+  status: MeasureStatus | null;
+};
+
+export function getAreaMeasureSummary(
+  measures: readonly Measure[],
+  areaOfActionId: string
+): AreaMeasureSummary {
+  const linkedMeasures = measures.filter(
+    (measure) => measure.areaOfActionId === areaOfActionId
+  );
+
+  if (linkedMeasures.length === 0) {
+    return { count: 0, status: null };
+  }
+
+  if (linkedMeasures.some((measure) => measure.status === "in_progress")) {
+    return { count: linkedMeasures.length, status: "in_progress" };
+  }
+
+  if (linkedMeasures.every((measure) => measure.status === "done")) {
+    return { count: linkedMeasures.length, status: "done" };
+  }
+
+  return { count: linkedMeasures.length, status: "todo" };
+}
+
+const LEGACY_OWNER_NAMES: Record<string, string> = {
+  "sarah-chen": "Sarah Chen",
+  "marco-rossi": "Marco Rossi",
+  "elena-weber": "Elena Weber",
+  "james-walsh": "James Walsh",
+};
+
+export function getMeasureOwnerName(
+  measure: Pick<Measure, "owner"> & { ownerId?: string }
+): string {
+  const owner = measure.owner?.trim();
+  if (owner) return owner;
+
+  const legacyId = measure.ownerId?.trim();
+  if (legacyId && LEGACY_OWNER_NAMES[legacyId]) return LEGACY_OWNER_NAMES[legacyId];
+  if (legacyId) return legacyId;
+
+  return "—";
+}
+
+export function normalizeMeasure(measure: Measure & { ownerId?: string }): Measure {
+  return {
+    ...measure,
+    owner: getMeasureOwnerName(measure),
+  };
+}
 
 export function isMeasureValid(
-  draft: Pick<MeasureDraft, "areaOfActionId" | "description" | "ownerId" | "dueDate">
+  draft: Pick<MeasureDraft, "areaOfActionId" | "description" | "owner" | "dueDate">
 ): boolean {
   return (
     draft.areaOfActionId.trim().length > 0 &&
     draft.description.trim().length > 0 &&
-    draft.ownerId.trim().length > 0 &&
-    getMeasureOwnerById(draft.ownerId) !== undefined &&
+    draft.owner.trim().length > 0 &&
     draft.dueDate.trim().length > 0
   );
 }

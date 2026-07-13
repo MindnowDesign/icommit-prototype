@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../ui/utils";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import {
   Dialog,
@@ -19,22 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import type { AreaOfAction } from "../AreasOfActionBuilder";
+import type { AreaOfAction } from "../../data/areasOfAction";
 import type { Measure, MeasureDraft } from "../../data/measures";
 import { isMeasureValid } from "../../data/measures";
 import { useCommitmentFlow } from "../../context/CommitmentFlowContext";
-import { MEASURE_OWNERS } from "../../data/measureOwners";
-import { MeasureOwnerChip } from "./MeasureOwnerDisplay";
 import { MeasureDueDatePicker } from "./MeasureDueDatePicker";
 
 export type MeasureDialogDraft = MeasureDraft;
-
-const COLLAPSED_OWNER_COUNT = 2;
-
-const OWNER_EXPAND_TRANSITION = {
-  duration: 0.28,
-  ease: [0.4, 0, 0.2, 1] as const,
-};
 
 interface MeasureDialogProps {
   open: boolean;
@@ -48,65 +38,9 @@ interface MeasureDialogProps {
 const emptyDraft = (defaultAreaId = ""): MeasureDialogDraft => ({
   areaOfActionId: defaultAreaId,
   description: "",
-  ownerId: "",
+  owner: "",
   dueDate: "",
 });
-
-function getCollapsedOwners(ownerId: string) {
-  const collapsed = MEASURE_OWNERS.slice(0, COLLAPSED_OWNER_COUNT);
-  const selectedOwner = MEASURE_OWNERS.find((owner) => owner.id === ownerId);
-
-  if (!selectedOwner || collapsed.some((owner) => owner.id === selectedOwner.id)) {
-    return collapsed;
-  }
-
-  return [...collapsed, selectedOwner];
-}
-
-function getExpandedOwners(collapsedOwners: readonly (typeof MEASURE_OWNERS)[number][]) {
-  return MEASURE_OWNERS.filter(
-    (owner) => !collapsedOwners.some((collapsed) => collapsed.id === owner.id)
-  );
-}
-
-interface OwnerSelectButtonProps {
-  owner: (typeof MEASURE_OWNERS)[number];
-  isSelected: boolean;
-  onSelect: (ownerId: string) => void;
-}
-
-function OwnerSelectButton({ owner, isSelected, onSelect }: OwnerSelectButtonProps) {
-  return (
-    <motion.button
-      layout
-      type="button"
-      onClick={() => onSelect(owner.id)}
-      className={cn(
-        "flex items-center gap-3 px-3.5 py-3 rounded-[8px] border cursor-pointer transition-colors text-left",
-        isSelected
-          ? "bg-[#f0f8ff] border-[#b9e2fe]"
-          : "bg-white border-[#efefef] hover:bg-[#fafafa]"
-      )}
-      transition={OWNER_EXPAND_TRANSITION}
-    >
-      <MeasureOwnerChip owner={owner} size="md" showJobTitle className="flex-1 min-w-0" />
-      <AnimatePresence initial={false}>
-        {isSelected && (
-          <motion.span
-            key="check"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.15 }}
-            className="inline-flex shrink-0"
-          >
-            <Check className="w-4 h-4 text-[#015ea3]" strokeWidth={2.5} />
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </motion.button>
-  );
-}
 
 export function MeasureDialog({
   open,
@@ -118,7 +52,6 @@ export function MeasureDialog({
 }: MeasureDialogProps) {
   const { measures } = useCommitmentFlow();
   const [draft, setDraft] = useState<MeasureDialogDraft>(emptyDraft());
-  const [showAllOwners, setShowAllOwners] = useState(false);
 
   const measureCountByAreaId = useMemo(() => {
     const counts = new Map<string, number>();
@@ -133,13 +66,12 @@ export function MeasureDialog({
 
   useEffect(() => {
     if (open) {
-      setShowAllOwners(false);
       setDraft(
         editingMeasure
           ? {
               areaOfActionId: editingMeasure.areaOfActionId,
               description: editingMeasure.description,
-              ownerId: editingMeasure.ownerId,
+              owner: editingMeasure.owner,
               dueDate: editingMeasure.dueDate,
               status: editingMeasure.status,
             }
@@ -147,20 +79,6 @@ export function MeasureDialog({
       );
     }
   }, [open, editingMeasure, areas, defaultAreaId]);
-
-  const collapsedOwners = useMemo(
-    () => getCollapsedOwners(draft.ownerId),
-    [draft.ownerId]
-  );
-
-  const expandedOwners = useMemo(
-    () => getExpandedOwners(collapsedOwners),
-    [collapsedOwners]
-  );
-
-  const handleOwnerSelect = (ownerId: string) => {
-    setDraft((prev) => ({ ...prev, ownerId }));
-  };
 
   const selectedArea = useMemo(
     () => areas.find((area) => area.id === draft.areaOfActionId) ?? null,
@@ -261,54 +179,16 @@ export function MeasureDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-[#656565]">Owner</span>
-            <div className="flex flex-col gap-1.5">
-              {collapsedOwners.map((owner) => (
-                <OwnerSelectButton
-                  key={owner.id}
-                  owner={owner}
-                  isSelected={draft.ownerId === owner.id}
-                  onSelect={handleOwnerSelect}
-                />
-              ))}
-              <AnimatePresence initial={false}>
-                {showAllOwners && expandedOwners.length > 0 && (
-                  <motion.div
-                    key="expanded-owners"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={OWNER_EXPAND_TRANSITION}
-                    className="flex flex-col gap-1.5 overflow-hidden"
-                  >
-                    {expandedOwners.map((owner) => (
-                      <OwnerSelectButton
-                        key={owner.id}
-                        owner={owner}
-                        isSelected={draft.ownerId === owner.id}
-                        onSelect={handleOwnerSelect}
-                      />
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {MEASURE_OWNERS.length > COLLAPSED_OWNER_COUNT && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllOwners((prev) => !prev)}
-                  className="flex items-center justify-center gap-1.5 py-2 text-sm font-semibold text-[#015ea3] transition-colors hover:text-[#014a82]"
-                >
-                  {showAllOwners ? "View less" : "View all"}
-                  <motion.span
-                    animate={{ rotate: showAllOwners ? 180 : 0 }}
-                    transition={OWNER_EXPAND_TRANSITION}
-                    className="inline-flex shrink-0"
-                  >
-                    <ChevronDown className="w-4 h-4" strokeWidth={2} />
-                  </motion.span>
-                </button>
-              )}
-            </div>
+            <label htmlFor="measure-owner" className="text-sm font-semibold text-[#656565]">
+              Owner
+            </label>
+            <Input
+              id="measure-owner"
+              value={draft.owner}
+              onChange={(e) => setDraft((prev) => ({ ...prev, owner: e.target.value }))}
+              placeholder="e.g. Sarah Chen"
+              className="h-11"
+            />
           </div>
 
           <div className="flex flex-col gap-2">

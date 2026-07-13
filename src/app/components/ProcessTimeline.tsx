@@ -84,16 +84,16 @@ export const ProcessTimeline = memo(function ProcessTimeline({ currentPhase = 2 
     },
     {
       phase: "Phase 3",
-      title: "Your areas of action",
-      description: "Create custom areas and assign influencing factors.",
+      title: "Areas and current state",
+      description: "Define the areas, current state, and influencing factors with your team.",
       buttonText: "Open areas",
       buttonIcon: <ArrowUpRight className="w-4 h-4" />,
       variant: (currentPhase > 3 ? "default" : currentPhase === 3 ? "active" : "future") as const
     },
     {
       phase: "Phase 4",
-      title: "Your measures",
-      description: "Share and align on next steps together.",
+      title: "Desired states and measures",
+      description: "Agree on the desired state, then define owned and time-bound measures.",
       buttonText: "Open proposals",
       buttonIcon: <ArrowUpRight className="w-4 h-4" />,
       variant: (currentPhase > 4 ? "default" : currentPhase === 4 ? "active" : "future") as const

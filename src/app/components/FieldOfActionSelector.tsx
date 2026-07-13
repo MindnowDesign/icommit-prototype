@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { X, ArrowRight, Download, AlertTriangle, Undo2 } from "lucide-react";
+import { X, ArrowRight, Download, AlertTriangle, Undo2, ChevronDown, ChevronUp } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
@@ -44,6 +45,7 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
   const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
   const [isPhase3Unlocked, setIsPhase3Unlocked] = useState(false);
   const [hasDownloadedDocs, setHasDownloadedDocs] = useState(false);
+  const [showAllAvailableFields, setShowAllAvailableFields] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -73,6 +75,17 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
       .map(id => AVAILABLE_FIELDS.find(field => field.id === id))
       .filter((field): field is typeof AVAILABLE_FIELDS[number] => field !== undefined);
   }, [currentSelections]);
+
+  const availableFields = useMemo(
+    () => AVAILABLE_FIELDS.filter((field) => !currentSelections.has(field.id)),
+    [currentSelections]
+  );
+  const primaryAvailableFields = availableFields.slice(0, 6);
+  const additionalAvailableFields = availableFields.slice(6);
+
+  useEffect(() => {
+    setShowAllAvailableFields(false);
+  }, [currentStep]);
 
   // Handle field selection
   const handleSelect = useCallback((fieldId: string) => {
@@ -172,6 +185,28 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
   // Get fields for summary dialog
   const weaknessFieldsForDialog = AVAILABLE_FIELDS.filter(field => weaknessSelected.has(field.id));
   const strengthFieldsForDialog = AVAILABLE_FIELDS.filter(field => strengthSelected.has(field.id));
+
+  const renderAvailableField = (field: (typeof AVAILABLE_FIELDS)[number]) => {
+    const Icon = field.icon;
+    const isDisabled = currentSelections.size >= maxSelections;
+
+    return (
+      <button
+        key={field.id}
+        onClick={() => !isDisabled && handleSelect(field.id)}
+        disabled={isDisabled}
+        className={cn(
+          "bg-[#fafafa] border border-[#efefef] rounded-full px-3 py-2 flex items-center gap-2 transition-all duration-200 ease-out",
+          isDisabled
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-[#e8e8e8] hover:border-[#dcdcdc] cursor-pointer"
+        )}
+      >
+        <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
+        <span className="text-[#3d3d3d] text-sm">{field.name}</span>
+      </button>
+    );
+  };
 
   // Confirmation view
   if (currentStep === "confirmation") {
@@ -527,28 +562,44 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
             <div className="flex flex-col gap-4">
               <h4 className="text-lg font-semibold text-[#18181b]">Available influencing factors:</h4>
               <div className="flex flex-wrap gap-2">
-                {AVAILABLE_FIELDS.filter(field => !currentSelections.has(field.id)).map((field) => {
-                  const Icon = field.icon;
-                  const isDisabled = currentSelections.size >= maxSelections;
-                  
-                  return (
-                    <button
-                      key={field.id}
-                      onClick={() => !isDisabled && handleSelect(field.id)}
-                      disabled={isDisabled}
-                      className={cn(
-                        "bg-[#fafafa] border border-[#efefef] rounded-full px-3 py-2 flex items-center gap-2 transition-all duration-200 ease-out",
-                        isDisabled 
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:bg-[#e8e8e8] hover:border-[#dcdcdc] cursor-pointer"
-                      )}
-                    >
-                      <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
-                      <span className="text-[#3d3d3d] text-sm">{field.name}</span>
-                    </button>
-                  );
-                })}
+                {primaryAvailableFields.map(renderAvailableField)}
               </div>
+              <AnimatePresence initial={false}>
+                {showAllAvailableFields && additionalAvailableFields.length > 0 && (
+                  <motion.div
+                    key="additional-fields"
+                    initial={{ height: 0, opacity: 0, y: -8 }}
+                    animate={{ height: "auto", opacity: 1, y: 0 }}
+                    exit={{ height: 0, opacity: 0, y: -8 }}
+                    transition={{ duration: 0.38, ease: [0.32, 0.72, 0, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      {additionalAvailableFields.map(renderAvailableField)}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {additionalAvailableFields.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllAvailableFields((visible) => !visible)}
+                  className="flex cursor-pointer items-center justify-center gap-1.5 py-1 text-sm font-semibold text-[#015ea3] transition-colors hover:text-[#014a82]"
+                  aria-expanded={showAllAvailableFields}
+                >
+                  {showAllAvailableFields ? (
+                    <>
+                      View less
+                      <ChevronUp className="size-4" />
+                    </>
+                  ) : (
+                    <>
+                      View all
+                      <ChevronDown className="size-4" />
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>

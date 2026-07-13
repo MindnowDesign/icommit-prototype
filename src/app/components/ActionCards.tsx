@@ -1,6 +1,6 @@
 import React, { memo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { MessageSquare, Target, ArrowDownToLine, Lightbulb, ArrowUpRight, MessageCircleQuestion, Unlock, Download, UsersRound, CheckCircle } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { MessageSquare, Target, ArrowDownToLine, Lightbulb, ArrowUpRight, MessageCircleQuestion, Unlock, Download, CheckCircle } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
 import { Button } from "./ui/button";
@@ -17,6 +17,54 @@ import IllustrationSvg from "../../assets/Illustration-01.svg";
 import Phase4Illustration from "../../assets/Illustration-02-Phase04.svg";
 import Phase6Illustration from "../../assets/Illustration-Phase06.svg";
 import { AreasOfActionBuilder } from "./AreasOfActionBuilder";
+import {
+  getPhase3PreviewMode,
+  Phase3PreviewSwitcher,
+  type Phase3PreviewMode,
+} from "./Phase3PreviewSwitcher";
+import {
+  PHASE3_PREVIEW_AREAS,
+  PHASE3_PREVIEW_MEASURES,
+} from "../data/phase3PreviewData";
+
+const PHASE_GUIDANCE: Record<string, { title: string; copy: string; questions: string[] }> = {
+  "Phase 3": {
+    title: "Validate the current state with your team",
+    copy: "Use the team discussion to refine what is happening today before moving on to solutions.",
+    questions: [
+      "What do we observe in our day-to-day work?",
+      "Which influencing factors matter most?",
+      "Does this description feel accurate to the team?",
+    ],
+  },
+  "Phase 4": {
+    title: "Build the desired state together",
+    copy: "Agree on what should be different first, then define the measures that can move you there.",
+    questions: [
+      "What would success look like in practice?",
+      "What change would the team notice first?",
+      "Which concrete measures can get us there?",
+    ],
+  },
+  "Phase 5": {
+    title: "Implementation progress",
+    copy: "Keep ownership visible and review progress regularly with the team.",
+    questions: [
+      "What has moved forward?",
+      "Where are we blocked?",
+      "What needs to be adjusted?",
+    ],
+  },
+  "Phase 6": {
+    title: "Pulse check",
+    copy: "Review the impact of your measures and decide what to sustain or adapt.",
+    questions: [
+      "What impact can we observe?",
+      "What should we continue?",
+      "What should we adjust?",
+    ],
+  },
+};
 
 interface PhaseAccessCardProps {
   icon?: React.ReactNode;
@@ -90,6 +138,7 @@ interface ActionCardProps {
   onPhase5Unlock?: () => void;
   onPhase6Unlock?: () => void;
   useAreasOfAction?: boolean;
+  phase3PreviewMode?: Phase3PreviewMode;
   usePhase5Style?: boolean;
   usePhase6Style?: boolean;
 }
@@ -112,13 +161,13 @@ const ActionSection = memo(function ActionSection({
   onPhase5Unlock,
   onPhase6Unlock,
   useAreasOfAction = false,
+  phase3PreviewMode = "default",
   usePhase5Style = false,
   usePhase6Style = false
 }: ActionCardProps) {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPhase4Confirmed, setIsPhase4Confirmed] = useState(false);
-  const [hasDownloadedPhase4Docs, setHasDownloadedPhase4Docs] = useState(false);
   const [isPhase6Confirmed, setIsPhase6Confirmed] = useState(false);
 
   const handleAccessClick = () => {
@@ -139,11 +188,6 @@ const ActionSection = memo(function ActionSection({
 
   const handlePhase4Download = () => {
     console.log("Downloading Phase 4 documentation...");
-    setHasDownloadedPhase4Docs(true);
-  };
-
-  const handlePhase5Unlock = () => {
-    onPhase5Unlock?.();
   };
 
   const handlePhase6Unlock = () => {
@@ -153,6 +197,11 @@ const ActionSection = memo(function ActionSection({
 
   // Use confirmed description if Phase 4 is confirmed and we have one
   const displayDescription = isPhase4Confirmed && confirmedDescription ? confirmedDescription : description;
+  const isPhase3Preview = useAreasOfAction && phase3PreviewMode !== "default";
+  const previewConfirmed =
+    phase3PreviewMode === "no-measures" || phase3PreviewMode === "with-measures";
+  const previewMeasures =
+    phase3PreviewMode === "with-measures" ? PHASE3_PREVIEW_MEASURES : [];
 
   return (
     <>
@@ -208,7 +257,14 @@ const ActionSection = memo(function ActionSection({
           <div className="flex-1 w-full min-w-0 max-w-full overflow-hidden border border-[#dcdcdc] rounded-[12px] p-6 bg-white flex flex-col gap-6 h-fit">
           
           {useAreasOfAction ? (
-            <AreasOfActionBuilder onPhase4Unlock={handlePhase4Unlock} />
+            <AreasOfActionBuilder
+              key={phase3PreviewMode}
+              onPhase4Unlock={handlePhase4Unlock}
+              areasOverride={isPhase3Preview ? PHASE3_PREVIEW_AREAS : undefined}
+              measuresOverride={isPhase3Preview ? previewMeasures : undefined}
+              confirmedOverride={isPhase3Preview ? previewConfirmed : undefined}
+              readOnly={isPhase3Preview}
+            />
           ) : usePhase6Style ? (
             /* Phase 6 layout */
             <div 
@@ -337,15 +393,16 @@ const ActionSection = memo(function ActionSection({
                 <Button 
                   variant="outline"
                   size="big"
-                  onClick={() => navigate("/measures")}
+                  onClick={handlePhase4Download}
                   className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] font-normal"
                 >
-                  Go to Measures
+                  Download discussion guide
+                  <Download className="w-4 h-4" />
                 </Button>
                 <Button 
                   size="big"
                   disabled={disabled}
-                  onClick={hasDownloadedPhase4Docs ? handlePhase5Unlock : handlePhase4Download}
+                  onClick={() => navigate("/measures")}
                   className={cn(
                     "font-normal",
                     disabled 
@@ -353,14 +410,8 @@ const ActionSection = memo(function ActionSection({
                       : "bg-[#015ea3] text-white hover:bg-[#014a82]"
                   )}
                 >
-                  {hasDownloadedPhase4Docs ? (
-                    "Proceed to Phase 5"
-                  ) : (
-                    <>
-                      Download documentation
-                      <ArrowDownToLine className="w-4 h-4" />
-                    </>
-                  )}
+                  Start desired states and measures
+                  <ArrowUpRight className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -413,36 +464,51 @@ const ActionSection = memo(function ActionSection({
                   <Lightbulb className="w-5 h-5 text-[#015ea3]" strokeWidth={2} />
                 </div>
                 <p className="text-base font-semibold text-[#0b446f] leading-[1.5]">
-                  {phase === "Phase 3" ? "Define areas of action" : phase === "Phase 4" ? "Discuss with your team" : phase === "Phase 5" ? "Implementation progress" : "Pulse check"}
+                  {PHASE_GUIDANCE[phase]?.title}
                 </p>
               </div>
               <p className="text-sm text-[#0b446f] leading-[1.5] tracking-[-0.14px] min-w-0">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.
+                {PHASE_GUIDANCE[phase]?.copy}
               </p>
             </div>
             
             {/* Question Chips */}
             <div className="flex flex-col gap-2">
-              {[1, 2, 3].map((index) => (
+              {PHASE_GUIDANCE[phase]?.questions.map((question) => (
                 <div 
-                  key={index}
+                  key={question}
                   className="border border-dashed border-[#b9e2fe] rounded-[8px] px-3 py-2.5 flex items-center gap-2 bg-white/50"
                 >
                   <MessageCircleQuestion className="w-4 h-4 text-[#015ea3] shrink-0" strokeWidth={2} />
                   <span className="text-sm font-semibold text-[#0b446f] leading-[1.5]">
-                    Question title here, what should you do?
+                    {question}
                   </span>
                 </div>
               ))}
             </div>
             
             <Button 
+              onClick={
+                phase === "Phase 4"
+                  ? () => navigate("/measures")
+                  : phase === "Phase 5"
+                    ? () => navigate("/measures")
+                    : phase === "Phase 6"
+                      ? () => navigate("/pulse")
+                      : undefined
+              }
               className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] rounded-full w-fit self-end text-base font-normal py-3 px-2"
             >
               <span className="font-normal leading-[0]">
-                {phase === "Phase 5" ? "Go to measures tool" : phase === "Phase 6" ? "Go to Pulse" : "Download documentation"}
+                {phase === "Phase 5"
+                  ? "Go to measures tool"
+                  : phase === "Phase 6"
+                    ? "Go to Pulse"
+                    : phase === "Phase 4"
+                      ? "Open Phase 4 workspace"
+                      : "Download discussion guide"}
               </span>
-              {phase === "Phase 5" || phase === "Phase 6" ? (
+              {phase === "Phase 4" || phase === "Phase 5" || phase === "Phase 6" ? (
                 <ArrowUpRight className="w-4 h-4 shrink-0" strokeWidth={2} />
               ) : (
                 <Download className="w-4 h-4 shrink-0" strokeWidth={2} />
@@ -482,45 +548,46 @@ const ActionSection = memo(function ActionSection({
 const ACTION_CARDS_DATA = [
   {
     phase: "Phase 3",
-    title: "Capture the areas of action from your team dialogue",
+    title: "Define the areas of action and current state",
     description: (
       <span>
-        Name the focus areas your team agreed on and assign the influencing factors behind them.
+        Turn the team discussion into clear areas of action. Capture what is happening today and
+        the influencing factors behind it.
       </span>
     ),
     confirmedDescription: (
       <span>
-        You&apos;ve defined your <span className="font-semibold text-[#525252]">areas of action</span>. You can now proceed to <span className="font-semibold text-[#525252]">Phase 4</span> to define actionable steps.
+        You&apos;ve captured the <span className="font-semibold text-[#525252]">areas of action and current state</span>. In <span className="font-semibold text-[#525252]">Phase 4</span>, revisit them with the team to define the desired state and measures.
       </span>
     ),
     cardIcon: <MessageSquare className="w-8 h-8" />,
     cardTitle: "Define your areas of action",
-    cardText: "Give each area a name and add at least one influencing factor. You can create as many areas as you need.",
+    cardText: "Give each area a name, describe the current state, and connect at least one influencing factor. The desired state comes next in Phase 4.",
     buttonText: "Download documentation",
     isLocked: true,
     useAreasOfAction: true,
     accessCard: {
       title: "Access Phase 3",
-      copy: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet.",
+      copy: "Capture the outcomes of your team dialogue as areas of action and document the current state.",
       buttonText: "Access Phase 3",
     }
   },
   {
     phase: "Phase 4",
-    title: "Define actionable steps towards specific goals",
+    title: "Define the desired state and concrete measures",
     description: (
       <span>
-        Based on the areas of action, we need to <span className="font-semibold text-[#525252]">define specific goals</span> and how to implement them <span className="font-semibold text-[#525252]">over time.</span>
+        Revisit each area from Phase 3, agree on the <span className="font-semibold text-[#525252]">desired state</span>, and translate it into <span className="font-semibold text-[#525252]">owned, time-bound measures.</span>
       </span>
     ),
     cardIcon: <Target className="w-8 h-8" />,
-    cardTitle: "Discuss the measures and goals with your team",
-    cardText: "Download all the documentation to confidently prepare a discussion with your team about next measures and goals",
+    cardTitle: "Move from current state to shared direction",
+    cardText: "Start with a short recap of each area, define its desired state with the team, then create and track the measures that will move you there.",
     buttonText: "Download documentation",
     isLocked: true,
     accessCard: {
       title: "Access Phase 4",
-      copy: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet.",
+      copy: "Define the desired state for every area before opening the measures board.",
       buttonText: "Access Phase 4",
     }
   },
@@ -572,7 +639,9 @@ interface ActionCardsProps {
 }
 
 export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [], onPhaseUnlock }: ActionCardsProps) {
+  const [searchParams] = useSearchParams();
   const [unlockedPhases, setUnlockedPhases] = useState<Set<string>>(new Set(initialUnlockedPhases));
+  const phase3PreviewMode = getPhase3PreviewMode(searchParams);
 
   // Sync internal state when initialUnlockedPhases changes (e.g., when going back to previous phase)
   useEffect(() => {
@@ -592,11 +661,24 @@ export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [
         // Estrai il numero della fase dalla stringa "Phase 3" o "Phase 4"
         const phaseNumber = card.phase.replace("Phase ", "");
         const isUnlocked = unlockedPhases.has(card.phase);
-        const isLocked = card.isLocked && !isUnlocked;
+        const defaultIsLocked = card.isLocked && !isUnlocked;
+        const isPhase3 = card.phase === "Phase 3";
+        const isLocked = isPhase3
+          ? phase3PreviewMode === "locked"
+            ? true
+            : phase3PreviewMode === "default"
+              ? defaultIsLocked
+              : false
+          : defaultIsLocked;
         const sectionId = `phase-${phaseNumber}-section`;
         
         return (
-          <div key={`${card.phase}-${index}`} id={sectionId}>
+          <div
+            key={`${card.phase}-${index}`}
+            id={sectionId}
+            className={isPhase3 ? "flex flex-col gap-4" : undefined}
+          >
+            {isPhase3 && <Phase3PreviewSwitcher />}
             <ActionSection 
               phase={card.phase}
               title={card.title}
@@ -614,6 +696,7 @@ export const ActionCards = memo(function ActionCards({ initialUnlockedPhases = [
               onPhase5Unlock={() => handleUnlock("Phase 5")}
               onPhase6Unlock={() => handleUnlock("Phase 6")}
               useAreasOfAction={'useAreasOfAction' in card ? card.useAreasOfAction : false}
+              phase3PreviewMode={isPhase3 ? phase3PreviewMode : "default"}
               usePhase5Style={'usePhase5Style' in card ? card.usePhase5Style : false}
               usePhase6Style={'usePhase6Style' in card ? card.usePhase6Style : false}
             />

@@ -3,7 +3,7 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { LayoutGroup } from "motion/react";
 import { toast } from "sonner";
-import type { AreaOfAction } from "../AreasOfActionBuilder";
+import type { AreaOfAction } from "../../data/areasOfAction";
 import { useCommitmentFlow } from "../../context/CommitmentFlowContext";
 import { MEASURE_COLUMNS, MEASURE_STATUS_LABELS, wouldMeasurePlacementChange } from "../../data/measures";
 import type { Measure, MeasureDropTarget, MeasureStatus } from "../../data/measures";

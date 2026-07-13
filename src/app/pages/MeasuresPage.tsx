@@ -1,11 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Target } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "../components/Header";
 import { SectionWrapper } from "../components/ui/SectionWrapper";
 import { FixedToast } from "../components/ui/fixed-toast";
 import { Button } from "../components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -20,8 +26,13 @@ import {
   MeasuresPreviewSwitcher,
 } from "../components/measures/MeasuresPreviewSwitcher";
 import { MeasuresEmptyNoAreas } from "../components/measures/MeasuresEmptyNoAreas";
+import {
+  AreaTargetsStep,
+  DesiredStateSummaryCard,
+} from "../components/measures/AreaTargetsStep";
 import { useCommitmentFlow } from "../context/CommitmentFlowContext";
-import { SEED_AREAS_OF_ACTION } from "../data/commitmentFlowSeed";
+import { getPreviewAreasWithTargets } from "../data/commitmentFlowSeed";
+import { hasDesiredTarget } from "../data/areasOfAction";
 import {
   applyMeasurePlacement,
   MEASURE_STATUS_LABELS,
@@ -40,12 +51,20 @@ export default function MeasuresPage() {
   const isEmptyBoardPreview = previewMode === "empty-board";
   const isNoAreasPreview = previewMode === "no-areas";
 
-  const { areas, measures, addMeasure, updateMeasure } = useCommitmentFlow();
+  const {
+    areas,
+    measures,
+    allAreaTargetsComplete,
+    addMeasure,
+    updateMeasure,
+    updateAreaTarget,
+  } = useCommitmentFlow();
   const [previewMeasures, setPreviewMeasures] = useState<Measure[]>([]);
   const [areaFilterId, setAreaFilterId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMeasureId, setEditingMeasureId] = useState<string | null>(null);
   const [createStatus, setCreateStatus] = useState<MeasureStatus>("todo");
+  const [targetSetupConfirmed, setTargetSetupConfirmed] = useState(allAreaTargetsComplete);
 
   useEffect(() => {
     if (isEmptyBoardPreview) {
@@ -53,12 +72,13 @@ export default function MeasuresPage() {
       setAreaFilterId(null);
       setDialogOpen(false);
       setEditingMeasureId(null);
+      setTargetSetupConfirmed(true);
     }
   }, [isEmptyBoardPreview]);
 
   const displayAreas = useMemo(() => {
     if (isNoAreasPreview) return [];
-    if (isEmptyBoardPreview) return SEED_AREAS_OF_ACTION;
+    if (isEmptyBoardPreview) return getPreviewAreasWithTargets();
     return areas;
   }, [isNoAreasPreview, isEmptyBoardPreview, areas]);
 
@@ -77,6 +97,22 @@ export default function MeasuresPage() {
     if (!areaFilterId) return displayMeasures.length;
     return displayMeasures.filter((m) => m.areaOfActionId === areaFilterId).length;
   }, [displayMeasures, areaFilterId]);
+
+  const measureCountByAreaId = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const area of displayAreas) {
+      counts.set(area.id, 0);
+    }
+    for (const measure of displayMeasures) {
+      counts.set(measure.areaOfActionId, (counts.get(measure.areaOfActionId) ?? 0) + 1);
+    }
+    return counts;
+  }, [displayAreas, displayMeasures]);
+
+  const selectedFilterArea = useMemo(
+    () => (areaFilterId ? displayAreas.find((area) => area.id === areaFilterId) ?? null : null),
+    [areaFilterId, displayAreas]
+  );
 
   const openCreate = useCallback((status: MeasureStatus = "todo") => {
     setEditingMeasureId(null);
@@ -100,7 +136,7 @@ export default function MeasuresPage() {
                     ...measure,
                     areaOfActionId: draft.areaOfActionId,
                     description: draft.description.trim(),
-                    ownerId: draft.ownerId,
+                    owner: draft.owner.trim(),
                     dueDate: draft.dueDate,
                     status: draft.status ?? measure.status,
                   }
@@ -113,7 +149,7 @@ export default function MeasuresPage() {
             id: crypto.randomUUID(),
             areaOfActionId: draft.areaOfActionId,
             description: draft.description.trim(),
-            ownerId: draft.ownerId,
+            owner: draft.owner.trim(),
             dueDate: draft.dueDate,
             status: draft.status ?? createStatus,
           };
@@ -158,6 +194,12 @@ export default function MeasuresPage() {
 
   const hasAreas = displayAreas.length > 0;
   const hasMeasures = displayMeasures.length > 0;
+  const displayTargetsComplete =
+    displayAreas.length > 0 && displayAreas.every(hasDesiredTarget);
+  const showTargetSetup =
+    hasAreas &&
+    !isEmptyBoardPreview &&
+    (!displayTargetsComplete || !targetSetupConfirmed);
 
   return (
     <div className="min-h-screen bg-white w-full flex flex-col font-sans">
@@ -169,20 +211,55 @@ export default function MeasuresPage() {
 
           <div className="flex flex-col gap-1.5">
             <h1 className="text-[32px] font-semibold leading-tight tracking-tight text-[#292929]">
-              Your measures
+              {showTargetSetup ? "Define your desired states" : "Your measures"}
             </h1>
             <p className="max-w-3xl text-base leading-relaxed text-[#656565]">
-              Each measure is a concrete step linked to one of your areas of action from Phase 3.
-              Describe the activity and the benefit it brings, assign an owner and a due date, then
-              track progress by moving cards across To do, In progress, and Done. Use the area filter
-              to focus on a single focus area, or view all measures on the board at once.
+              {showTargetSetup
+                ? "Start Phase 4 by revisiting each area from Phase 3. Define the desired state with your team before turning it into concrete measures."
+                : "Turn each desired state into concrete measures. Assign an owner and due date, then track progress across To do, In progress, and Done."}
             </p>
           </div>
 
           {!hasAreas ? (
             <MeasuresEmptyNoAreas onGoToAreas={goToAreasOfAction} />
+          ) : showTargetSetup ? (
+            <AreaTargetsStep
+              areas={displayAreas}
+              onSaveTarget={updateAreaTarget}
+              onComplete={() => {
+                setTargetSetupConfirmed(true);
+              }}
+            />
           ) : (
             <>
+              <Accordion type="single" collapsible defaultValue="desired-states">
+                <AccordionItem
+                  value="desired-states"
+                  className="overflow-hidden rounded-[16px] border border-[#dcdcdc] bg-[#fafafa] last:border-b"
+                >
+                  <AccordionTrigger className="items-center px-5 py-5 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[#e0f0fe] text-[#015ea3]">
+                        <Target className="size-5" strokeWidth={2} />
+                      </div>
+                      <div className="flex flex-col gap-0.5 text-left">
+                        <h2 className="text-lg font-semibold text-[#292929]">Desired states</h2>
+                        <p className="text-sm font-normal text-[#656565]">
+                          The direction agreed for each area of action.
+                        </p>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-5 pb-5">
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {displayAreas.map((area) => (
+                        <DesiredStateSummaryCard key={area.id} area={area} />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                   <span className="shrink-0 text-lg font-normal text-[#525252]">
@@ -204,7 +281,23 @@ export default function MeasuresPage() {
                         "data-[size=default]:h-auto [&_svg]:opacity-70 [&_[data-slot=select-value]]:min-w-0 [&_[data-slot=select-value]]:truncate"
                       )}
                     >
-                      <SelectValue placeholder="All areas" className="block min-w-0 truncate" />
+                      <SelectValue placeholder="All areas" className="block min-w-0 truncate">
+                        {selectedFilterArea ? (
+                          <span className="flex w-full items-center justify-between gap-2">
+                            <span className="truncate">{selectedFilterArea.name}</span>
+                            <span className="shrink-0 tabular-nums text-xs font-semibold text-[#989898]">
+                              {measureCountByAreaId.get(selectedFilterArea.id) ?? 0}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="flex w-full items-center justify-between gap-2">
+                            <span className="truncate">All areas</span>
+                            <span className="shrink-0 tabular-nums text-xs font-semibold text-[#989898]">
+                              {displayMeasures.length}
+                            </span>
+                          </span>
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent
                       position="popper"
@@ -215,7 +308,12 @@ export default function MeasuresPage() {
                         value={ALL_AREAS_VALUE}
                         className="cursor-pointer rounded-lg py-2.5 pl-3 pr-8 text-[#292929] focus:bg-[#e0f0fe] focus:text-[#0b446f] data-[highlighted]:bg-[#e0f0fe] data-[highlighted]:text-[#0b446f]"
                       >
-                        All areas
+                        <span className="flex w-full items-center justify-between gap-3">
+                          <span className="truncate">All areas</span>
+                          <span className="shrink-0 tabular-nums text-xs font-semibold text-[#989898]">
+                            {displayMeasures.length}
+                          </span>
+                        </span>
                       </SelectItem>
                       {displayAreas.map((area) => (
                         <SelectItem
@@ -223,7 +321,12 @@ export default function MeasuresPage() {
                           value={area.id}
                           className="cursor-pointer rounded-lg py-2.5 pl-3 pr-8 text-[#292929] focus:bg-[#e0f0fe] focus:text-[#0b446f] data-[highlighted]:bg-[#e0f0fe] data-[highlighted]:text-[#0b446f]"
                         >
-                          {area.name}
+                          <span className="flex w-full items-center justify-between gap-3">
+                            <span className="truncate">{area.name}</span>
+                            <span className="shrink-0 tabular-nums text-xs font-semibold text-[#989898]">
+                              {measureCountByAreaId.get(area.id) ?? 0}
+                            </span>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -274,13 +377,29 @@ export default function MeasuresPage() {
 
       <FixedToast
         phase="Phase 4"
-        message="Discuss with your team"
-        actionText="Proceed to Phase 5"
+        message={
+          !hasAreas
+            ? "Define areas in Phase 3"
+            : showTargetSetup
+              ? "Complete desired states"
+              : "Develop and track measures"
+        }
+        actionText={
+          !hasAreas
+            ? "Go to areas of action"
+            : showTargetSetup
+              ? undefined
+              : "Proceed to Phase 5"
+        }
         canGoBack={true}
         onGoBack={() => {
           navigate("/");
         }}
         onActionClick={() => {
+          if (!hasAreas) {
+            goToAreasOfAction();
+            return;
+          }
           navigate("/", { state: { unlockPhase5: true } });
         }}
       />
