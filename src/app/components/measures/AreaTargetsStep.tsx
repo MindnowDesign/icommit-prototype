@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, CircleDot, Target } from "lucide-react";
 import { motion } from "motion/react";
 import type { AreaOfAction } from "../../data/areasOfAction";
+import type { AreaMeasureSummary } from "../../data/measures";
 import { InfluencingFactorChip } from "../InfluencingFactorChip";
+import { MeasureStatusBadge } from "./MeasureStatusBadge";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { cn } from "../ui/utils";
@@ -243,15 +245,27 @@ export function AreaTargetsStep({
 export function DesiredStateSummaryCard({
   area,
   target = area.desiredTargetDescription,
+  measureSummary,
 }: {
   area: AreaOfAction;
   target?: string;
+  measureSummary?: AreaMeasureSummary;
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-[12px] border border-[#dcdcdc] bg-white p-4">
-      <h3 className="truncate text-lg font-semibold text-[#18181b]" title={area.name}>
-        {area.name}
-      </h3>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-baseline gap-1.5">
+          <h3 className="truncate text-lg font-semibold text-[#18181b]" title={area.name}>
+            {area.name}
+          </h3>
+          {measureSummary && (
+            <span className="shrink-0 text-sm font-medium tabular-nums text-[#656565]">
+              ({measureSummary.count} {measureSummary.count === 1 ? "measure" : "measures"})
+            </span>
+          )}
+        </div>
+        {measureSummary?.status && <MeasureStatusBadge status={measureSummary.status} />}
+      </div>
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2.5">
           <CircleDot className="size-4 shrink-0 text-[#989898]" strokeWidth={2} />

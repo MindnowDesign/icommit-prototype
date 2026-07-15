@@ -35,6 +35,7 @@ import { getPreviewAreasWithTargets } from "../data/commitmentFlowSeed";
 import { hasDesiredTarget } from "../data/areasOfAction";
 import {
   applyMeasurePlacement,
+  getAreaMeasureSummary,
   MEASURE_STATUS_LABELS,
   type Measure,
   type MeasureDropTarget,
@@ -253,7 +254,11 @@ export default function MeasuresPage() {
                   <AccordionContent className="px-5 pb-5">
                     <div className="grid gap-3 md:grid-cols-2">
                       {displayAreas.map((area) => (
-                        <DesiredStateSummaryCard key={area.id} area={area} />
+                        <DesiredStateSummaryCard
+                          key={area.id}
+                          area={area}
+                          measureSummary={getAreaMeasureSummary(displayMeasures, area.id)}
+                        />
                       ))}
                     </div>
                   </AccordionContent>

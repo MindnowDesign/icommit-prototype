@@ -89,14 +89,11 @@ function AreaStateSection({
   );
 }
 
-function AreaMeasureMeta({ summary }: { summary: AreaMeasureSummary }) {
+function AreaMeasureCount({ count }: { count: number }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-[#efefef] pt-3">
-      <span className="text-sm font-medium tabular-nums text-[#656565]">
-        {summary.count} {summary.count === 1 ? "measure" : "measures"}
-      </span>
-      {summary.status && <MeasureStatusBadge status={summary.status} />}
-    </div>
+    <span className="text-sm font-medium tabular-nums text-[#656565]">
+      ({count} {count === 1 ? "measure" : "measures"})
+    </span>
   );
 }
 
@@ -385,12 +382,15 @@ function AreaOfActionCard({
     >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0 overflow-hidden">
-          <h4
-            className="text-lg font-semibold text-[#18181b] truncate"
-            title={area.name}
-          >
-            {area.name}
-          </h4>
+          <div className="flex min-w-0 items-baseline gap-1.5">
+            <h4
+              className="truncate text-lg font-semibold text-[#18181b]"
+              title={area.name}
+            >
+              {area.name}
+            </h4>
+            <AreaMeasureCount count={measureSummary.count} />
+          </div>
           <div className="mt-1 flex flex-col gap-3">
             <AreaStateSection
               label="CURRENT STATE"
@@ -410,33 +410,36 @@ function AreaOfActionCard({
             )}
           </div>
         </div>
-        {!readOnly && <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="p-1.5 rounded-[8px] text-[#656565] hover:bg-[#f5f5f5] transition-colors cursor-pointer shrink-0"
-              aria-label="Area options"
-            >
-              <MoreHorizontal className="w-4 h-4" strokeWidth={1.75} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem
-              onClick={() => onEdit(area.id)}
-              className="cursor-pointer text-[#3d3d3d] hover:bg-[#f0f8ff] focus:bg-[#f0f8ff] hover:text-[#0b446f] focus:text-[#0b446f] transition-colors"
-            >
-              <Pencil className="w-4 h-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setDeleteDialogOpen(true)}
-              className="cursor-pointer text-[#ff6767] hover:bg-[#fff1f1] focus:bg-[#fff1f1] hover:text-[#ff6767] focus:text-[#ff6767] transition-colors [&_svg]:text-[#ff6767]"
-            >
-              <Trash2 className="w-4 h-4 text-[#ff6767]" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>}
+        <div className="flex items-center gap-2">
+          {measureSummary.status && <MeasureStatusBadge status={measureSummary.status} />}
+          {!readOnly && <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="p-1.5 rounded-[8px] text-[#656565] hover:bg-[#f5f5f5] transition-colors cursor-pointer shrink-0"
+                aria-label="Area options"
+              >
+                <MoreHorizontal className="w-4 h-4" strokeWidth={1.75} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem
+                onClick={() => onEdit(area.id)}
+                className="cursor-pointer text-[#3d3d3d] hover:bg-[#f0f8ff] focus:bg-[#f0f8ff] hover:text-[#0b446f] focus:text-[#0b446f] transition-colors"
+              >
+                <Pencil className="w-4 h-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDeleteDialogOpen(true)}
+                className="cursor-pointer text-[#ff6767] hover:bg-[#fff1f1] focus:bg-[#fff1f1] hover:text-[#ff6767] focus:text-[#ff6767] transition-colors [&_svg]:text-[#ff6767]"
+              >
+                <Trash2 className="w-4 h-4 text-[#ff6767]" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -444,7 +447,6 @@ function AreaOfActionCard({
           <InfluencingFactorChip key={factorId} factorId={factorId} />
         ))}
       </div>
-      <AreaMeasureMeta summary={measureSummary} />
     </div>
 
     <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -588,12 +590,20 @@ export function AreasOfActionBuilder({
           Your areas of action
         </h3>
         <div className="flex flex-col gap-4">
-          {areas.map((area) => (
+          {areas.map((area) => {
+            const measureSummary = getAreaMeasureSummary(measures, area.id);
+            return (
             <div
               key={area.id}
               className="border border-[#dcdcdc] rounded-[12px] p-4 bg-[#fafafa] flex flex-col gap-3"
             >
-              <p className="text-lg font-semibold text-[#18181b]">{area.name}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-baseline gap-1.5">
+                  <p className="truncate text-lg font-semibold text-[#18181b]">{area.name}</p>
+                  <AreaMeasureCount count={measureSummary.count} />
+                </div>
+                {measureSummary.status && <MeasureStatusBadge status={measureSummary.status} />}
+              </div>
               <div className="flex flex-col gap-3">
                 <AreaStateSection
                   label="CURRENT STATE"
@@ -621,9 +631,8 @@ export function AreasOfActionBuilder({
                   />
                 ))}
               </div>
-              <AreaMeasureMeta summary={getAreaMeasureSummary(measures, area.id)} />
             </div>
-          ))}
+          )})}
         </div>
         <div className="flex items-start gap-3 rounded-[12px] border border-[#b9e2fe] bg-[#f0f8ff] p-4">
           <UsersRound className="mt-0.5 size-5 shrink-0 text-[#015ea3]" strokeWidth={2} />
