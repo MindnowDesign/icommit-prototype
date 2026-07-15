@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { format, isValid, parseISO } from "date-fns";
+import { format, isValid, parseISO, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "../ui/utils";
 import { Calendar } from "../ui/calendar";
@@ -20,6 +20,7 @@ interface MeasureDueDatePickerProps {
 export function MeasureDueDatePicker({ id, value, onChange }: MeasureDueDatePickerProps) {
   const [open, setOpen] = useState(false);
   const selected = useMemo(() => parseDueDate(value), [value]);
+  const minSelectableDate = useMemo(() => startOfDay(new Date()), []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -43,8 +44,9 @@ export function MeasureDueDatePicker({ id, value, onChange }: MeasureDueDatePick
         <Calendar
           mode="single"
           selected={selected}
-          defaultMonth={selected ?? new Date()}
+          defaultMonth={selected && selected >= minSelectableDate ? selected : minSelectableDate}
           weekStartsOn={1}
+          disabled={{ before: minSelectableDate }}
           onSelect={(date) => {
             if (!date) return;
             onChange(format(date, "yyyy-MM-dd"));
@@ -62,6 +64,8 @@ export function MeasureDueDatePicker({ id, value, onChange }: MeasureDueDatePick
               "bg-[#015ea3] text-white hover:bg-[#014a82] hover:text-white focus:bg-[#015ea3] focus:text-white",
             day_today: "bg-[#f0f8ff] text-[#0b446f] font-semibold",
             day_outside: "text-[#c8c8c8] aria-selected:text-white",
+            day_disabled:
+              "cursor-not-allowed text-[#c8c8c8] opacity-40 hover:bg-transparent hover:text-[#c8c8c8] aria-selected:bg-transparent aria-selected:text-[#c8c8c8]",
           }}
         />
       </PopoverContent>
