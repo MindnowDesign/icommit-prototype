@@ -15,6 +15,7 @@ import {
 } from "./ui/accordion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { WEAKNESS_DEFAULT, STRENGTH_DEFAULT, idsToFactorNames, areIdSetsEqual } from "../data/influencingFactors";
+import { useCommitmentFlow } from "../context/CommitmentFlowContext";
 import TettoSvg from "../../assets/house/Tetto.svg";
 import RoofSvg from "../../assets/house/Roof.svg";
 import RoofYellowSvg from "../../assets/house/Roof-Yellow.svg";
@@ -582,6 +583,7 @@ const HouseGraphic = memo(function HouseGraphic({ weaknessFactors, strengthFacto
 
 function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => void }) {
   const navigate = useNavigate();
+  const { setPhase2Selections } = useCommitmentFlow();
   const [fieldsFlowState, setFieldsFlowState] = useState<FieldsFlowState>({
     step: "strength",
     isPhase3Unlocked: false,
@@ -625,11 +627,12 @@ function HouseSectionBComponent({ onPhase3Unlock }: { onPhase3Unlock?: () => voi
 
       window.setTimeout(() => {
         setConfirmedSelections(selections);
+        setPhase2Selections(selections);
         setHouseContentKey((key) => key + 1);
         setShowHouseContent(true);
       }, 220);
     },
-    []
+    [setPhase2Selections]
   );
 
   const houseViewClassName = cn(

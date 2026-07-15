@@ -8,16 +8,22 @@ import React, {
 
 import { hasDesiredTarget, type AreaOfAction, type AreaOfActionDraft } from "../data/areasOfAction";
 import { getSeedCommitmentFlowState } from "../data/commitmentFlowSeed";
+import {
+  DEFAULT_PHASE2_SELECTIONS,
+  type Phase2FactorSelections,
+} from "../data/influencingFactors";
 import type { Measure, MeasureDraft, MeasureStatus } from "../data/measures";
 
 type CommitmentFlowContextValue = {
   areas: AreaOfAction[];
   measures: Measure[];
+  phase2Selections: Phase2FactorSelections;
   allAreaTargetsComplete: boolean;
   addArea: (area: AreaOfActionDraft) => AreaOfAction;
   updateArea: (id: string, patch: Partial<AreaOfActionDraft>) => void;
   updateAreaTarget: (id: string, desiredTargetDescription: string) => void;
   deleteArea: (id: string) => void;
+  setPhase2Selections: (selections: Phase2FactorSelections) => void;
   setAreas: React.Dispatch<React.SetStateAction<AreaOfAction[]>>;
   addMeasure: (draft: MeasureDraft, status?: MeasureStatus) => Measure;
   updateMeasure: (id: string, draft: MeasureDraft) => void;
@@ -44,6 +50,9 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
   const seed = getSeedCommitmentFlowState();
   const [areas, setAreas] = useState<AreaOfAction[]>(seed.areas);
   const [measures, setMeasures] = useState<Measure[]>(seed.measures);
+  const [phase2Selections, setPhase2Selections] = useState<Phase2FactorSelections>(
+    DEFAULT_PHASE2_SELECTIONS
+  );
 
   React.useEffect(() => {
     try {
@@ -163,11 +172,13 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
     () => ({
       areas,
       measures,
+      phase2Selections,
       allAreaTargetsComplete: areas.length > 0 && areas.every(hasDesiredTarget),
       addArea,
       updateArea,
       updateAreaTarget,
       deleteArea,
+      setPhase2Selections,
       setAreas,
       addMeasure,
       updateMeasure,
@@ -178,6 +189,7 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
     [
       areas,
       measures,
+      phase2Selections,
       addArea,
       updateArea,
       updateAreaTarget,

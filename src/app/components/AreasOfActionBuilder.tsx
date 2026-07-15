@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { AVAILABLE_FIELDS, getFactorById, getFactorHausRelative, sortFieldsByHausRelative } from "../data/influencingFactors";
+import { AVAILABLE_FIELDS, getFactorById, getFactorPhase2Relative, sortFieldsByHausRelative } from "../data/influencingFactors";
 import { hasDesiredTarget, type AreaOfAction } from "../data/areasOfAction";
 import {
   getAreaMeasureSummary,
@@ -38,6 +38,11 @@ import {
 } from "../data/measures";
 import { useCommitmentFlow } from "../context/CommitmentFlowContext";
 import { MeasureStatusBadge } from "./measures/MeasureStatusBadge";
+import {
+  InfluencingFactorChip,
+  Phase2SelectedStrengthIcon,
+  Phase2SelectedWeaknessIcon,
+} from "./InfluencingFactorChip";
 
 type AreaDraft = {
   name: string;
@@ -95,25 +100,6 @@ function AreaMeasureMeta({ summary }: { summary: AreaMeasureSummary }) {
   );
 }
 
-function Phase2SelectedStrengthIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
-      <circle cx="11" cy="11" r="10" fill="#15803C" stroke="#ffffff" strokeWidth="1.5" />
-      <rect x="10" y="6.5" width="2" height="9" rx="1" fill="#ffffff" />
-      <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
-    </svg>
-  );
-}
-
-function Phase2SelectedWeaknessIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 22 22" fill="none" aria-hidden>
-      <circle cx="11" cy="11" r="10" fill="#F59E0B" stroke="#ffffff" strokeWidth="1.5" />
-      <rect x="6.5" y="10" width="9" height="2" rx="1" fill="#ffffff" />
-    </svg>
-  );
-}
-
 // --- AreaOfActionDialog ---
 
 interface AreaOfActionDialogProps {
@@ -129,6 +115,7 @@ function AreaOfActionDialog({
   editingArea,
   onSave,
 }: AreaOfActionDialogProps) {
+  const { phase2Selections } = useCommitmentFlow();
   const [draft, setDraft] = useState<AreaDraft>({
     name: "",
     description: "",
@@ -159,8 +146,8 @@ function AreaOfActionDialog({
       : AVAILABLE_FIELDS.filter((field) =>
           field.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    return sortFieldsByHausRelative(fields);
-  }, [searchQuery]);
+    return sortFieldsByHausRelative(fields, phase2Selections);
+  }, [searchQuery, phase2Selections]);
 
   const isSearching = searchQuery.trim().length > 0;
   const canExpand = !isSearching && filteredFields.length > COLLAPSED_FACTOR_COUNT;
@@ -252,7 +239,7 @@ function AreaOfActionDialog({
             <div className="flex flex-col gap-1.5">
               {visibleFields.map((field) => {
                 const isSelected = draft.factorIds.includes(field.id);
-                const hausRelative = getFactorHausRelative(field.id);
+                const hausRelative = getFactorPhase2Relative(field.id, phase2Selections);
                 const Icon = field.icon;
                 return (
                   <label
@@ -383,10 +370,6 @@ function AreaOfActionCard({
 }: AreaOfActionCardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const factors = area.factorIds
-    .map((id) => getFactorById(id))
-    .filter((f): f is NonNullable<typeof f> => f !== undefined);
-
   const handleConfirmDelete = () => {
     onDelete(area.id);
     setDeleteDialogOpen(false);
@@ -457,18 +440,9 @@ function AreaOfActionCard({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {factors.map((field) => {
-          const Icon = field.icon;
-          return (
-            <div
-              key={field.id}
-              className="bg-[#fafafa] border border-[#efefef] rounded-full px-3 py-1.5 flex items-center gap-1.5"
-            >
-              <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
-              <span className="text-sm text-[#3d3d3d]">{field.name}</span>
-            </div>
-          );
-        })}
+        {area.factorIds.map((factorId) => (
+          <InfluencingFactorChip key={factorId} factorId={factorId} />
+        ))}
       </div>
       <AreaMeasureMeta summary={measureSummary} />
     </div>
@@ -639,20 +613,13 @@ export function AreasOfActionBuilder({
                 )}
               </div>
               <div className="flex flex-wrap gap-2">
-                {area.factorIds.map((factorId) => {
-                  const field = getFactorById(factorId);
-                  if (!field) return null;
-                  const Icon = field.icon;
-                  return (
-                    <div
-                      key={factorId}
-                      className="bg-white border border-[#efefef] rounded-full px-3 py-1.5 flex items-center gap-1.5"
-                    >
-                      <Icon className="w-4 h-4 text-[#656565]" strokeWidth={2} />
-                      <span className="text-sm text-[#3d3d3d]">{field.name}</span>
-                    </div>
-                  );
-                })}
+                {area.factorIds.map((factorId) => (
+                  <InfluencingFactorChip
+                    key={factorId}
+                    factorId={factorId}
+                    surface="elevated"
+                  />
+                ))}
               </div>
               <AreaMeasureMeta summary={getAreaMeasureSummary(measures, area.id)} />
             </div>

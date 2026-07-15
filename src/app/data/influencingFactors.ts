@@ -48,12 +48,31 @@ export const STRENGTH_DEFAULT = ["work-leisure", "team", "immediate-superior"];
 
 export type HausRelative = "strength" | "weakness";
 
+export type Phase2FactorSelections = {
+  weaknessIds: string[];
+  strengthIds: string[];
+};
+
+export const DEFAULT_PHASE2_SELECTIONS: Phase2FactorSelections = {
+  weaknessIds: [...WEAKNESS_DEFAULT],
+  strengthIds: [...STRENGTH_DEFAULT],
+};
+
 const WEAKNESS_DEFAULT_SET = new Set<string>(WEAKNESS_DEFAULT);
 const STRENGTH_DEFAULT_SET = new Set<string>(STRENGTH_DEFAULT);
 
 export function getFactorHausRelative(factorId: string): HausRelative | undefined {
   if (WEAKNESS_DEFAULT_SET.has(factorId)) return "weakness";
   if (STRENGTH_DEFAULT_SET.has(factorId)) return "strength";
+  return undefined;
+}
+
+export function getFactorPhase2Relative(
+  factorId: string,
+  selections: Phase2FactorSelections
+): HausRelative | undefined {
+  if (selections.weaknessIds.includes(factorId)) return "weakness";
+  if (selections.strengthIds.includes(factorId)) return "strength";
   return undefined;
 }
 
@@ -79,11 +98,12 @@ const HAUS_RELATIVE_SORT_ORDER: Record<HausRelative, number> = {
 };
 
 export function sortFieldsByHausRelative(
-  fields: readonly InfluencingFactorField[]
+  fields: readonly InfluencingFactorField[],
+  selections: Phase2FactorSelections = DEFAULT_PHASE2_SELECTIONS
 ): InfluencingFactorField[] {
   return [...fields].sort((a, b) => {
-    const aRelative = getFactorHausRelative(a.id);
-    const bRelative = getFactorHausRelative(b.id);
+    const aRelative = getFactorPhase2Relative(a.id, selections);
+    const bRelative = getFactorPhase2Relative(b.id, selections);
     const aOrder = aRelative !== undefined ? HAUS_RELATIVE_SORT_ORDER[aRelative] : 2;
     const bOrder = bRelative !== undefined ? HAUS_RELATIVE_SORT_ORDER[bRelative] : 2;
     if (aOrder !== bOrder) return aOrder - bOrder;

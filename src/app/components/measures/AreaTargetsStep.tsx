@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, CircleDot, Target } from "lucide-react";
 import { motion } from "motion/react";
 import type { AreaOfAction } from "../../data/areasOfAction";
-import { getFactorById } from "../../data/influencingFactors";
+import { InfluencingFactorChip } from "../InfluencingFactorChip";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { cn } from "../ui/utils";
@@ -46,10 +46,6 @@ export function AreaTargetsStep({
   );
 
   if (!activeArea) return null;
-
-  const factors = activeArea.factorIds
-    .map((id) => getFactorById(id))
-    .filter((factor): factor is NonNullable<typeof factor> => factor !== undefined);
 
   const handleContinue = () => {
     const target = activeTarget.trim();
@@ -172,18 +168,9 @@ export function AreaTargetsStep({
           <div className="flex flex-col gap-2">
             <span className="text-sm font-semibold text-[#656565]">Influencing factors</span>
             <div className="flex flex-wrap gap-2">
-              {factors.map((factor) => {
-                const Icon = factor.icon;
-                return (
-                  <span
-                    key={factor.id}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#e5e5e5] bg-white px-3 py-1.5 text-sm text-[#3d3d3d]"
-                  >
-                    <Icon className="size-4 text-[#656565]" strokeWidth={2} />
-                    {factor.name}
-                  </span>
-                );
-              })}
+              {activeArea.factorIds.map((factorId) => (
+                <InfluencingFactorChip key={factorId} factorId={factorId} surface="elevated" />
+              ))}
             </div>
           </div>
         </section>
@@ -260,10 +247,6 @@ export function DesiredStateSummaryCard({
   area: AreaOfAction;
   target?: string;
 }) {
-  const factors = area.factorIds
-    .map((id) => getFactorById(id))
-    .filter((factor): factor is NonNullable<typeof factor> => factor !== undefined);
-
   return (
     <div className="flex min-w-0 flex-col gap-3 overflow-hidden rounded-[12px] border border-[#dcdcdc] bg-white p-4">
       <h3 className="truncate text-lg font-semibold text-[#18181b]" title={area.name}>
@@ -294,18 +277,9 @@ export function DesiredStateSummaryCard({
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
-        {factors.map((factor) => {
-          const Icon = factor.icon;
-          return (
-            <span
-              key={factor.id}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#efefef] bg-[#fafafa] px-3 py-1.5 text-sm text-[#3d3d3d]"
-            >
-              <Icon className="size-4 text-[#656565]" strokeWidth={2} />
-              {factor.name}
-            </span>
-          );
-        })}
+        {area.factorIds.map((factorId) => (
+          <InfluencingFactorChip key={factorId} factorId={factorId} />
+        ))}
       </div>
     </div>
   );
