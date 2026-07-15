@@ -18,12 +18,22 @@ type CommitmentFlowContextValue = {
   areas: AreaOfAction[];
   measures: Measure[];
   phase2Selections: Phase2FactorSelections;
+  isPhase3Unlocked: boolean;
+  isPhase3Confirmed: boolean;
+  isPhase4Unlocked: boolean;
+  isPhase5Unlocked: boolean;
+  isPhase6Unlocked: boolean;
   allAreaTargetsComplete: boolean;
   addArea: (area: AreaOfActionDraft) => AreaOfAction;
   updateArea: (id: string, patch: Partial<AreaOfActionDraft>) => void;
   updateAreaTarget: (id: string, desiredTargetDescription: string) => void;
   deleteArea: (id: string) => void;
   setPhase2Selections: (selections: Phase2FactorSelections) => void;
+  setIsPhase3Unlocked: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsPhase3Confirmed: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsPhase4Unlocked: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsPhase5Unlocked: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsPhase6Unlocked: React.Dispatch<React.SetStateAction<boolean>>;
   setAreas: React.Dispatch<React.SetStateAction<AreaOfAction[]>>;
   addMeasure: (draft: MeasureDraft, status?: MeasureStatus) => Measure;
   updateMeasure: (id: string, draft: MeasureDraft) => void;
@@ -53,6 +63,11 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
   const [phase2Selections, setPhase2Selections] = useState<Phase2FactorSelections>(
     DEFAULT_PHASE2_SELECTIONS
   );
+  const [isPhase3Unlocked, setIsPhase3Unlocked] = useState(false);
+  const [isPhase3Confirmed, setIsPhase3Confirmed] = useState(false);
+  const [isPhase4Unlocked, setIsPhase4Unlocked] = useState(false);
+  const [isPhase5Unlocked, setIsPhase5Unlocked] = useState(false);
+  const [isPhase6Unlocked, setIsPhase6Unlocked] = useState(false);
 
   React.useEffect(() => {
     try {
@@ -173,12 +188,22 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
       areas,
       measures,
       phase2Selections,
+      isPhase3Unlocked,
+      isPhase3Confirmed,
+      isPhase4Unlocked,
+      isPhase5Unlocked,
+      isPhase6Unlocked,
       allAreaTargetsComplete: areas.length > 0 && areas.every(hasDesiredTarget),
       addArea,
       updateArea,
       updateAreaTarget,
       deleteArea,
       setPhase2Selections,
+      setIsPhase3Unlocked,
+      setIsPhase3Confirmed,
+      setIsPhase4Unlocked,
+      setIsPhase5Unlocked,
+      setIsPhase6Unlocked,
       setAreas,
       addMeasure,
       updateMeasure,
@@ -190,6 +215,11 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
       areas,
       measures,
       phase2Selections,
+      isPhase3Unlocked,
+      isPhase3Confirmed,
+      isPhase4Unlocked,
+      isPhase5Unlocked,
+      isPhase6Unlocked,
       addArea,
       updateArea,
       updateAreaTarget,

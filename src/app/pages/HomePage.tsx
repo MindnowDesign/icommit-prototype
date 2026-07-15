@@ -8,6 +8,7 @@ import { ActionCards } from "../components/ActionCards";
 import { SectionWrapper } from "../components/ui/SectionWrapper";
 import { FixedToast } from "../components/ui/fixed-toast";
 import { PhaseUnlockDialog } from "../components/ui/phase-unlock-dialog";
+import { useCommitmentFlow } from "../context/CommitmentFlowContext";
 import CompassIcon from "../../assets/Icons/Compass-2.svg";
 
 interface LocationState {
@@ -19,10 +20,16 @@ export default function HomePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as LocationState | null;
-  const [isPhase3Unlocked, setIsPhase3Unlocked] = useState(false);
-  const [isPhase4Unlocked, setIsPhase4Unlocked] = useState(false);
-  const [isPhase5Unlocked, setIsPhase5Unlocked] = useState(false);
-  const [isPhase6Unlocked, setIsPhase6Unlocked] = useState(false);
+  const {
+    isPhase3Unlocked,
+    isPhase4Unlocked,
+    isPhase5Unlocked,
+    isPhase6Unlocked,
+    setIsPhase3Unlocked,
+    setIsPhase4Unlocked,
+    setIsPhase5Unlocked,
+    setIsPhase6Unlocked,
+  } = useCommitmentFlow();
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [pendingPhaseUnlock, setPendingPhaseUnlock] = useState<number | null>(null);
   

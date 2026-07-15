@@ -522,13 +522,14 @@ export function AreasOfActionBuilder({
   const {
     areas: contextAreas,
     measures: contextMeasures,
+    isPhase3Confirmed,
+    setIsPhase3Confirmed,
     addArea,
     updateArea,
     deleteArea,
   } = useCommitmentFlow();
   const areas = areasOverride ?? contextAreas;
   const measures = measuresOverride ?? contextMeasures;
-  const [isConfirmed, setIsConfirmed] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAreaId, setEditingAreaId] = useState<string | null>(null);
 
@@ -538,7 +539,7 @@ export function AreasOfActionBuilder({
   );
 
   const canProceed = areas.length >= 1;
-  const showConfirmed = confirmedOverride ?? isConfirmed;
+  const showConfirmed = confirmedOverride ?? isPhase3Confirmed;
 
   const openCreate = useCallback(() => {
     if (readOnly) return;
@@ -580,7 +581,7 @@ export function AreasOfActionBuilder({
   const handleConfirm = () => {
     if (!canProceed || readOnly) return;
     onPhase4Unlock?.();
-    setIsConfirmed(true);
+    setIsPhase3Confirmed(true);
   };
 
   if (showConfirmed) {
@@ -648,7 +649,7 @@ export function AreasOfActionBuilder({
           <Button
             variant="outline"
             size="big"
-            onClick={() => setIsConfirmed(false)}
+            onClick={() => setIsPhase3Confirmed(false)}
             className="border-[#dcdcdc] text-[#292929] hover:bg-[#f5f5f5] font-normal"
           >
             Edit areas
