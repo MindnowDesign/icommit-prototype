@@ -31,6 +31,7 @@ interface MeasuresKanbanProps {
   onDeleteMeasure?: (id: string) => void;
   onMoveMeasure?: (draggedId: string, target: MeasureDropTarget) => void;
   showColumnAddButton?: boolean;
+  highlightedMeasureId?: string | null;
 }
 
 export function MeasuresKanban({
@@ -43,6 +44,7 @@ export function MeasuresKanban({
   onDeleteMeasure,
   onMoveMeasure,
   showColumnAddButton = true,
+  highlightedMeasureId,
 }: MeasuresKanbanProps) {
   const {
     areas: contextAreas,
@@ -138,6 +140,7 @@ export function MeasuresKanban({
               onAddMeasure={onAddMeasure}
               readOnly={readOnly}
               showAddMeasureButton={showColumnAddButton}
+              highlightedMeasureId={highlightedMeasureId}
             />
           ))}
         </div>

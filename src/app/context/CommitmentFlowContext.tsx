@@ -12,6 +12,7 @@ import {
   DEFAULT_PHASE2_SELECTIONS,
   type Phase2FactorSelections,
 } from "../data/influencingFactors";
+import { CURRENT_USER } from "../data/currentUser";
 import type { Measure, MeasureDraft, MeasureStatus } from "../data/measures";
 
 type CommitmentFlowContextValue = {
@@ -105,32 +106,60 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
   }, []);
 
   const addMeasure = useCallback((draft: MeasureDraft, status: MeasureStatus = "todo") => {
+    const now = new Date().toISOString();
+    const initialStatus = draft.status ?? status;
     const created: Measure = {
       id: crypto.randomUUID(),
       areaOfActionId: draft.areaOfActionId,
       description: draft.description.trim(),
       owner: draft.owner.trim(),
       dueDate: draft.dueDate,
-      status: draft.status ?? status,
+      status: initialStatus,
+      createdAt: now,
+      updatedAt: now,
+      createdBy: CURRENT_USER.id,
+      statusHistory: [
+        {
+          status: initialStatus,
+          changedAt: now,
+          changedBy: CURRENT_USER.id,
+        },
+      ],
     };
     setMeasures((prev) => [...prev, created]);
     return created;
   }, []);
 
   const updateMeasure = useCallback((id: string, draft: MeasureDraft) => {
+    const updatedAt = new Date().toISOString();
     setMeasures((prev) =>
-      prev.map((measure) =>
-        measure.id === id
-          ? {
-              ...measure,
-              areaOfActionId: draft.areaOfActionId,
-              description: draft.description.trim(),
-              owner: draft.owner.trim(),
-              dueDate: draft.dueDate,
-              status: draft.status ?? measure.status,
-            }
-          : measure
-      )
+      prev.map((measure) => {
+        if (measure.id !== id) return measure;
+
+        const nextStatus = draft.status ?? measure.status;
+        const statusHistory =
+          nextStatus === measure.status
+            ? measure.statusHistory
+            : [
+                ...measure.statusHistory,
+                {
+                  status: nextStatus,
+                  changedAt: updatedAt,
+                  changedBy: CURRENT_USER.id,
+                },
+              ];
+
+        return {
+          ...measure,
+          areaOfActionId: draft.areaOfActionId,
+          description: draft.description.trim(),
+          owner: draft.owner.trim(),
+          dueDate: draft.dueDate,
+          status: nextStatus,
+          updatedAt,
+          statusHistory,
+        };
+      })
     );
   }, []);
 
@@ -152,7 +181,23 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
 
         const insertIndex = position === "before" ? targetIndex : targetIndex + 1;
         const next = [...without];
-        next.splice(insertIndex, 0, { ...dragged, status: target.status });
+        const statusChanged = dragged.status !== target.status;
+        const updatedAt = new Date().toISOString();
+        next.splice(insertIndex, 0, {
+          ...dragged,
+          status: target.status,
+          updatedAt,
+          statusHistory: statusChanged
+            ? [
+                ...dragged.statusHistory,
+                {
+                  status: target.status,
+                  changedAt: updatedAt,
+                  changedBy: CURRENT_USER.id,
+                },
+              ]
+            : dragged.statusHistory,
+        });
 
         return isSameArrangement(prev, next) ? prev : next;
       });
@@ -175,7 +220,23 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
         const insertIndex =
           lastSameStatusIndex === -1 ? without.length : lastSameStatusIndex + 1;
         const next = [...without];
-        next.splice(insertIndex, 0, { ...dragged, status });
+        const statusChanged = dragged.status !== status;
+        const updatedAt = new Date().toISOString();
+        next.splice(insertIndex, 0, {
+          ...dragged,
+          status,
+          updatedAt,
+          statusHistory: statusChanged
+            ? [
+                ...dragged.statusHistory,
+                {
+                  status,
+                  changedAt: updatedAt,
+                  changedBy: CURRENT_USER.id,
+                },
+              ]
+            : dragged.statusHistory,
+        });
 
         return isSameArrangement(prev, next) ? prev : next;
       });

@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 import { format, parseISO } from "date-fns";
 import { Calendar, CornerDownRight, User } from "lucide-react";
 import type { Measure } from "../../data/measures";
-import { getMeasureOwnerName } from "../../data/measures";
+import { getMeasureOwnerName, isMeasureOverdue } from "../../data/measures";
 import { MeasureStatusBadge } from "./MeasureStatusBadge";
 import { Separator } from "../ui/separator";
+import { cn } from "../ui/utils";
 
 function formatDueDate(dueDate: string) {
   try {
@@ -23,6 +24,7 @@ interface MeasureCardBodyProps {
 
 export function MeasureCardBody({ measure, areaName, actions }: MeasureCardBodyProps) {
   const ownerName = getMeasureOwnerName(measure);
+  const isOverdue = isMeasureOverdue(measure);
 
   return (
     <>
@@ -44,7 +46,14 @@ export function MeasureCardBody({ measure, areaName, actions }: MeasureCardBodyP
             </span>
           </div>
         </div>
-        {actions}
+        <div className="flex items-center gap-1.5">
+          {isOverdue && (
+            <span className="inline-flex h-7 items-center rounded-full border border-[#ffc9c9] bg-[#fff1f1] px-2.5 text-xs font-semibold text-[#b42318]">
+              Overdue
+            </span>
+          )}
+          {actions}
+        </div>
       </div>
 
       <Separator className="bg-[#efefef]" />
@@ -56,8 +65,16 @@ export function MeasureCardBody({ measure, areaName, actions }: MeasureCardBodyP
             {ownerName}
           </span>
         </span>
-        <span className="inline-flex shrink-0 items-center gap-1.5">
-          <Calendar className="w-4 h-4 text-[#989898]" strokeWidth={2} />
+        <span
+          className={cn(
+            "inline-flex shrink-0 items-center gap-1.5",
+            isOverdue && "font-medium text-[#b42318]"
+          )}
+        >
+          <Calendar
+            className={cn("w-4 h-4 text-[#989898]", isOverdue && "text-[#b42318]")}
+            strokeWidth={2}
+          />
           {formatDueDate(measure.dueDate)}
         </span>
       </div>

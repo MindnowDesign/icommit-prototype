@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Target } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "../components/Header";
@@ -32,7 +32,12 @@ import {
 } from "../components/measures/AreaTargetsStep";
 import { useCommitmentFlow } from "../context/CommitmentFlowContext";
 import { getPreviewAreasWithTargets } from "../data/commitmentFlowSeed";
+import {
+  PHASE3_PREVIEW_AREAS,
+  PHASE3_PREVIEW_MEASURES,
+} from "../data/phase3PreviewData";
 import { hasDesiredTarget } from "../data/areasOfAction";
+import { CURRENT_USER } from "../data/currentUser";
 import {
   applyMeasurePlacement,
   getAreaMeasureSummary,
@@ -47,10 +52,16 @@ const ALL_AREAS_VALUE = "all";
 
 export default function MeasuresPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const previewMode = getMeasuresPreviewMode(searchParams);
+  const isWithMeasuresPreview = previewMode === "with-measures";
   const isEmptyBoardPreview = previewMode === "empty-board";
   const isNoAreasPreview = previewMode === "no-areas";
+  const [highlightedMeasureId, setHighlightedMeasureId] = useState<string | null>(
+    null
+  );
+  const highlightTimeoutRef = useRef<number | null>(null);
 
   const {
     areas,
@@ -60,7 +71,9 @@ export default function MeasuresPage() {
     updateMeasure,
     updateAreaTarget,
   } = useCommitmentFlow();
-  const [previewMeasures, setPreviewMeasures] = useState<Measure[]>([]);
+  const [previewMeasures, setPreviewMeasures] = useState<Measure[]>(() =>
+    isWithMeasuresPreview ? [...PHASE3_PREVIEW_MEASURES] : []
+  );
   const [areaFilterId, setAreaFilterId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMeasureId, setEditingMeasureId] = useState<string | null>(null);
@@ -68,6 +81,45 @@ export default function MeasuresPage() {
   const [targetSetupConfirmed, setTargetSetupConfirmed] = useState(allAreaTargetsComplete);
 
   useEffect(() => {
+    const navigationState = location.state as
+      | { notificationHighlightMeasureId?: string }
+      | null;
+    const measureId = navigationState?.notificationHighlightMeasureId;
+    if (!measureId) return;
+
+    setHighlightedMeasureId(measureId);
+    if (highlightTimeoutRef.current !== null) {
+      window.clearTimeout(highlightTimeoutRef.current);
+    }
+    highlightTimeoutRef.current = window.setTimeout(() => {
+      setHighlightedMeasureId(null);
+      highlightTimeoutRef.current = null;
+    }, 2600);
+
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: null,
+    });
+  }, [location.pathname, location.search, location.state, navigate]);
+
+  useEffect(
+    () => () => {
+      if (highlightTimeoutRef.current !== null) {
+        window.clearTimeout(highlightTimeoutRef.current);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (isWithMeasuresPreview) {
+      setPreviewMeasures([...PHASE3_PREVIEW_MEASURES]);
+      setAreaFilterId(null);
+      setDialogOpen(false);
+      setEditingMeasureId(null);
+      setTargetSetupConfirmed(true);
+      return;
+    }
     if (isEmptyBoardPreview) {
       setPreviewMeasures([]);
       setAreaFilterId(null);
@@ -75,24 +127,39 @@ export default function MeasuresPage() {
       setEditingMeasureId(null);
       setTargetSetupConfirmed(true);
     }
-  }, [isEmptyBoardPreview]);
+  }, [isWithMeasuresPreview, isEmptyBoardPreview]);
 
   const displayAreas = useMemo(() => {
     if (isNoAreasPreview) return [];
+    if (isWithMeasuresPreview) return PHASE3_PREVIEW_AREAS;
     if (isEmptyBoardPreview) return getPreviewAreasWithTargets();
     return areas;
-  }, [isNoAreasPreview, isEmptyBoardPreview, areas]);
+  }, [isNoAreasPreview, isWithMeasuresPreview, isEmptyBoardPreview, areas]);
 
   const displayMeasures = useMemo(() => {
+    if (isWithMeasuresPreview) return previewMeasures;
     if (isEmptyBoardPreview) return previewMeasures;
     if (isNoAreasPreview) return [];
     return measures;
-  }, [isEmptyBoardPreview, isNoAreasPreview, previewMeasures, measures]);
+  }, [
+    isWithMeasuresPreview,
+    isEmptyBoardPreview,
+    isNoAreasPreview,
+    previewMeasures,
+    measures,
+  ]);
 
   const editingMeasure = useMemo(() => {
-    const source = isEmptyBoardPreview ? previewMeasures : measures;
+    const source =
+      isEmptyBoardPreview || isWithMeasuresPreview ? previewMeasures : measures;
     return source.find((m) => m.id === editingMeasureId) ?? null;
-  }, [isEmptyBoardPreview, previewMeasures, measures, editingMeasureId]);
+  }, [
+    isEmptyBoardPreview,
+    isWithMeasuresPreview,
+    previewMeasures,
+    measures,
+    editingMeasureId,
+  ]);
 
   const filteredCount = useMemo(() => {
     if (!areaFilterId) return displayMeasures.length;
@@ -128,31 +195,56 @@ export default function MeasuresPage() {
 
   const handleSave = useCallback(
     (draft: MeasureDialogDraft, editingId: string | null) => {
-      if (isEmptyBoardPreview) {
+      if (isEmptyBoardPreview || isWithMeasuresPreview) {
         if (editingId) {
+          const updatedAt = new Date().toISOString();
           setPreviewMeasures((prev) =>
-            prev.map((measure) =>
-              measure.id === editingId
-                ? {
-                    ...measure,
-                    areaOfActionId: draft.areaOfActionId,
-                    description: draft.description.trim(),
-                    owner: draft.owner.trim(),
-                    dueDate: draft.dueDate,
-                    status: draft.status ?? measure.status,
-                  }
-                : measure
-            )
+            prev.map((measure) => {
+              if (measure.id !== editingId) return measure;
+              const nextStatus = draft.status ?? measure.status;
+              return {
+                ...measure,
+                areaOfActionId: draft.areaOfActionId,
+                description: draft.description.trim(),
+                owner: draft.owner.trim(),
+                dueDate: draft.dueDate,
+                status: nextStatus,
+                updatedAt,
+                statusHistory:
+                  nextStatus === measure.status
+                    ? measure.statusHistory
+                    : [
+                        ...measure.statusHistory,
+                        {
+                          status: nextStatus,
+                          changedAt: updatedAt,
+                          changedBy: CURRENT_USER.id,
+                        },
+                      ],
+              };
+            })
           );
           toast.success("Measure updated successfully");
         } else {
+          const now = new Date().toISOString();
+          const initialStatus = draft.status ?? createStatus;
           const created: Measure = {
             id: crypto.randomUUID(),
             areaOfActionId: draft.areaOfActionId,
             description: draft.description.trim(),
             owner: draft.owner.trim(),
             dueDate: draft.dueDate,
-            status: draft.status ?? createStatus,
+            status: initialStatus,
+            createdAt: now,
+            updatedAt: now,
+            createdBy: CURRENT_USER.id,
+            statusHistory: [
+              {
+                status: initialStatus,
+                changedAt: now,
+                changedBy: CURRENT_USER.id,
+              },
+            ],
           };
           setPreviewMeasures((prev) => [...prev, created]);
           if (areaFilterId && areaFilterId !== draft.areaOfActionId) {
@@ -174,7 +266,14 @@ export default function MeasuresPage() {
         toast.success("Measure created successfully");
       }
     },
-    [isEmptyBoardPreview, addMeasure, updateMeasure, createStatus, areaFilterId]
+    [
+      isEmptyBoardPreview,
+      isWithMeasuresPreview,
+      addMeasure,
+      updateMeasure,
+      createStatus,
+      areaFilterId,
+    ]
   );
 
   const handlePreviewDelete = useCallback((id: string) => {
@@ -199,6 +298,7 @@ export default function MeasuresPage() {
     displayAreas.length > 0 && displayAreas.every(hasDesiredTarget);
   const showTargetSetup =
     hasAreas &&
+    !isWithMeasuresPreview &&
     !isEmptyBoardPreview &&
     (!displayTargetsComplete || !targetSetupConfirmed);
 
@@ -337,14 +437,16 @@ export default function MeasuresPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  size="big"
-                  onClick={() => openCreate()}
-                  className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal shrink-0"
-                >
-                  Add measure
-                  <Plus className="w-4 h-4" />
-                </Button>
+                {!isWithMeasuresPreview && (
+                  <Button
+                    size="big"
+                    onClick={() => openCreate()}
+                    className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal shrink-0"
+                  >
+                    Add measure
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
 
               {filteredCount === 0 && areaFilterId && hasMeasures && (
@@ -360,11 +462,20 @@ export default function MeasuresPage() {
                 measures={displayMeasures}
                 areas={displayAreas}
                 readOnly={false}
+                highlightedMeasureId={highlightedMeasureId}
                 onEdit={openEdit}
                 onAddMeasure={openCreate}
-                onDeleteMeasure={isEmptyBoardPreview ? handlePreviewDelete : undefined}
-                onMoveMeasure={isEmptyBoardPreview ? handlePreviewMove : undefined}
-                showColumnAddButton={!isEmptyBoardPreview}
+                onDeleteMeasure={
+                  isEmptyBoardPreview || isWithMeasuresPreview
+                    ? handlePreviewDelete
+                    : undefined
+                }
+                onMoveMeasure={
+                  isEmptyBoardPreview || isWithMeasuresPreview
+                    ? handlePreviewMove
+                    : undefined
+                }
+                showColumnAddButton={!isEmptyBoardPreview && !isWithMeasuresPreview}
               />
             </>
           )}

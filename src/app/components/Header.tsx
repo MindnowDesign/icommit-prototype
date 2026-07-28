@@ -1,8 +1,10 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User, Info } from "lucide-react";
+import { LayoutDashboard, BarChart3, ScatterChart, Puzzle, Gauge, User } from "lucide-react";
 import { cn } from "./ui/utils";
 import { SectionWrapper } from "./ui/SectionWrapper";
+import { NotificationBell } from "./NotificationBell";
+import { CURRENT_USER } from "../data/currentUser";
 import iCommitLogo from "../../assets/logo/iCommit-logo.png";
 
 const NAV_ITEMS_LEFT = [
@@ -53,7 +55,7 @@ export const Header = memo(function Header() {
           <img src={iCommitLogo} alt="iCommit" className="h-[28px]" loading="lazy" />
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[#525252] text-lg">user-email@gmail.ch</span>
+          <span className="text-[#525252] text-lg">{CURRENT_USER.email}</span>
           <div className="w-8 h-8 bg-[#015ea3] rounded-2xl flex items-center justify-center text-white">
             <User className="w-5 h-5" />
           </div>
@@ -69,9 +71,7 @@ export const Header = memo(function Header() {
           </div>
           <div className="flex items-center">
             <MemoizedNavItem item={NAV_ITEM_RIGHT} />
-            <div className="px-3 py-3 flex items-center justify-center">
-              <Info className="w-6 h-6 text-white cursor-pointer" aria-hidden />
-            </div>
+            <NotificationBell />
           </div>
         </div>
       </div>

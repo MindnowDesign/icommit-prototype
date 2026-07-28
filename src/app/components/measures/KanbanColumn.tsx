@@ -29,6 +29,7 @@ interface KanbanColumnProps {
   onAddMeasure: (status: MeasureStatus) => void;
   readOnly?: boolean;
   showAddMeasureButton?: boolean;
+  highlightedMeasureId?: string | null;
 }
 
 export function KanbanColumn({
@@ -45,6 +46,7 @@ export function KanbanColumn({
   onAddMeasure,
   readOnly = false,
   showAddMeasureButton = true,
+  highlightedMeasureId,
 }: KanbanColumnProps) {
   const dropRef = useRef<HTMLDivElement>(null);
 
@@ -167,6 +169,7 @@ export function KanbanColumn({
                     onDropTargetChange={onDropTargetChange}
                     onDragEnd={onDragEnd}
                     readOnly={readOnly}
+                    highlighted={measure.id === highlightedMeasureId}
                   />
                 </motion.div>
               ))}

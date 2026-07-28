@@ -2,16 +2,22 @@ import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "../ui/utils";
 
-export type MeasuresPreviewMode = "default" | "empty-board" | "no-areas";
+export type MeasuresPreviewMode =
+  | "default"
+  | "with-measures"
+  | "empty-board"
+  | "no-areas";
 
 const PREVIEW_OPTIONS: { mode: MeasuresPreviewMode; label: string; param: string | null }[] = [
   { mode: "default", label: "Default", param: null },
+  { mode: "with-measures", label: "With measures", param: "with-measures" },
   { mode: "empty-board", label: "Empty board", param: "empty-board" },
   { mode: "no-areas", label: "No areas", param: "no-areas" },
 ];
 
 export function getMeasuresPreviewMode(searchParams: URLSearchParams): MeasuresPreviewMode {
   const preview = searchParams.get("preview");
+  if (preview === "with-measures") return "with-measures";
   if (preview === "empty-board") return "empty-board";
   if (preview === "no-areas") return "no-areas";
   return "default";
@@ -32,6 +38,7 @@ export function MeasuresPreviewSwitcher() {
     } else {
       next.delete("preview");
     }
+    next.delete("highlight");
     setSearchParams(next, { replace: true });
   };
 

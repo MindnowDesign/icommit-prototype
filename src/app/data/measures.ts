@@ -1,5 +1,11 @@
 export type MeasureStatus = "todo" | "in_progress" | "done";
 
+export type MeasureStatusHistoryEntry = {
+  status: MeasureStatus;
+  changedAt: string;
+  changedBy: string;
+};
+
 export type Measure = {
   id: string;
   areaOfActionId: string;
@@ -7,9 +13,16 @@ export type Measure = {
   owner: string;
   dueDate: string;
   status: MeasureStatus;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  statusHistory: MeasureStatusHistoryEntry[];
 };
 
-export type MeasureDraft = Omit<Measure, "id" | "status"> & {
+export type MeasureDraft = Omit<
+  Measure,
+  "id" | "status" | "createdAt" | "updatedAt" | "createdBy" | "statusHistory"
+> & {
   status?: MeasureStatus;
 };
 
@@ -95,6 +108,20 @@ export function isMeasureValid(
     draft.owner.trim().length > 0 &&
     draft.dueDate.trim().length > 0
   );
+}
+
+export function isMeasureOverdue(
+  measure: Pick<Measure, "dueDate" | "status">,
+  now = new Date()
+): boolean {
+  if (measure.status === "done" || !measure.dueDate) return false;
+
+  const dueDate = new Date(`${measure.dueDate}T00:00:00`);
+  if (Number.isNaN(dueDate.getTime())) return false;
+
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  return dueDate < today;
 }
 
 function isSameMeasureArrangement(a: Measure[], b: Measure[]): boolean {

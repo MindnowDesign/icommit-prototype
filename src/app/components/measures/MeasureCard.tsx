@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../ui/alert-dialog";
-import type { Measure, MeasureDropTarget } from "../../data/measures";
+import { isMeasureOverdue, type Measure, type MeasureDropTarget } from "../../data/measures";
 import { MeasureCardBody } from "./MeasureCardBody";
 
 export const MEASURE_DRAG_TYPE = "measure";
@@ -35,6 +35,7 @@ interface MeasureCardProps {
   onDropTargetChange: (target: MeasureDropTarget) => void;
   onDragEnd: () => void;
   readOnly?: boolean;
+  highlighted?: boolean;
 }
 
 export function MeasureCard({
@@ -46,9 +47,11 @@ export function MeasureCard({
   onDropTargetChange,
   onDragEnd,
   readOnly = false,
+  highlighted = false,
 }: MeasureCardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const isOverdue = isMeasureOverdue(measure);
 
   const [{ isDragging }, drag, preview] = useDrag({
     type: MEASURE_DRAG_TYPE,
@@ -86,6 +89,14 @@ export function MeasureCard({
     preview(getEmptyImage(), { captureDraggingState: true });
   }, [preview]);
 
+  useEffect(() => {
+    if (!highlighted) return;
+    const timeoutId = window.setTimeout(() => {
+      cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 180);
+    return () => window.clearTimeout(timeoutId);
+  }, [highlighted]);
+
   drag(drop(cardRef));
 
   const handleConfirmDelete = () => {
@@ -97,10 +108,13 @@ export function MeasureCard({
     <>
       <div
         ref={cardRef}
+        id={`measure-card-${measure.id}`}
         className={cn(
-          "relative w-full rounded-[16px] p-4 bg-white flex flex-col gap-5 transition-[opacity,transform] duration-150",
+          "relative w-full overflow-hidden rounded-[16px] p-4 bg-white flex flex-col gap-5 transition-[opacity,transform] duration-150",
           readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing",
-          isDragging && "opacity-35 scale-[0.98] rotate-1"
+          isDragging && "opacity-35 scale-[0.98] rotate-1",
+          highlighted && "measure-card-highlight",
+          isOverdue && "bg-[#fffafa] ring-1 ring-inset ring-[#f0a6a6]"
         )}
       >
         {dropEdge === "top" && (
@@ -118,7 +132,7 @@ export function MeasureCard({
         <MeasureCardBody
           measure={measure}
           areaName={areaName}
-          actions={
+          actions={readOnly ? undefined : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -147,7 +161,7 @@ export function MeasureCard({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          }
+          )}
         />
       </div>
 

@@ -1,5 +1,6 @@
 import type { AreaOfAction } from "./areasOfAction";
 import type { Measure } from "./measures";
+import { CURRENT_USER } from "./currentUser";
 
 export const PHASE3_PREVIEW_AREAS: AreaOfAction[] = [
   {
@@ -39,6 +40,12 @@ export const PHASE3_PREVIEW_MEASURES: Measure[] = [
     owner: "Sarah Chen",
     dueDate: "2026-07-24",
     status: "todo",
+    createdAt: "2026-06-12T08:30:00.000Z",
+    updatedAt: "2026-06-12T08:30:00.000Z",
+    createdBy: CURRENT_USER.id,
+    statusHistory: [
+      { status: "todo", changedAt: "2026-06-12T08:30:00.000Z", changedBy: CURRENT_USER.id },
+    ],
   },
   {
     id: "phase3-preview-measure-todo-2",
@@ -47,6 +54,12 @@ export const PHASE3_PREVIEW_MEASURES: Measure[] = [
     owner: "Marco Rossi",
     dueDate: "2026-07-31",
     status: "todo",
+    createdAt: "2026-06-19T09:15:00.000Z",
+    updatedAt: "2026-06-19T09:15:00.000Z",
+    createdBy: CURRENT_USER.id,
+    statusHistory: [
+      { status: "todo", changedAt: "2026-06-19T09:15:00.000Z", changedBy: CURRENT_USER.id },
+    ],
   },
   {
     id: "phase3-preview-measure-progress-1",
@@ -55,6 +68,17 @@ export const PHASE3_PREVIEW_MEASURES: Measure[] = [
     owner: "Elena Weber",
     dueDate: "2026-07-20",
     status: "in_progress",
+    createdAt: "2026-05-18T07:45:00.000Z",
+    updatedAt: "2026-06-23T10:20:00.000Z",
+    createdBy: CURRENT_USER.id,
+    statusHistory: [
+      { status: "todo", changedAt: "2026-05-18T07:45:00.000Z", changedBy: CURRENT_USER.id },
+      {
+        status: "in_progress",
+        changedAt: "2026-06-23T10:20:00.000Z",
+        changedBy: CURRENT_USER.id,
+      },
+    ],
   },
   {
     id: "phase3-preview-measure-progress-2",
@@ -63,6 +87,12 @@ export const PHASE3_PREVIEW_MEASURES: Measure[] = [
     owner: "James Walsh",
     dueDate: "2026-07-28",
     status: "todo",
+    createdAt: "2026-07-08T12:00:00.000Z",
+    updatedAt: "2026-07-08T12:00:00.000Z",
+    createdBy: CURRENT_USER.id,
+    statusHistory: [
+      { status: "todo", changedAt: "2026-07-08T12:00:00.000Z", changedBy: CURRENT_USER.id },
+    ],
   },
   {
     id: "phase3-preview-measure-done-1",
@@ -71,6 +101,18 @@ export const PHASE3_PREVIEW_MEASURES: Measure[] = [
     owner: "Sarah Chen",
     dueDate: "2026-06-30",
     status: "done",
+    createdAt: "2026-05-05T08:00:00.000Z",
+    updatedAt: "2026-06-28T14:40:00.000Z",
+    createdBy: CURRENT_USER.id,
+    statusHistory: [
+      { status: "todo", changedAt: "2026-05-05T08:00:00.000Z", changedBy: CURRENT_USER.id },
+      {
+        status: "in_progress",
+        changedAt: "2026-05-20T09:30:00.000Z",
+        changedBy: CURRENT_USER.id,
+      },
+      { status: "done", changedAt: "2026-06-28T14:40:00.000Z", changedBy: CURRENT_USER.id },
+    ],
   },
   {
     id: "phase3-preview-measure-done-2",
@@ -79,5 +121,17 @@ export const PHASE3_PREVIEW_MEASURES: Measure[] = [
     owner: "Marco Rossi",
     dueDate: "2026-07-05",
     status: "done",
+    createdAt: "2026-05-14T11:10:00.000Z",
+    updatedAt: "2026-07-03T15:25:00.000Z",
+    createdBy: CURRENT_USER.id,
+    statusHistory: [
+      { status: "todo", changedAt: "2026-05-14T11:10:00.000Z", changedBy: CURRENT_USER.id },
+      {
+        status: "in_progress",
+        changedAt: "2026-06-02T08:50:00.000Z",
+        changedBy: CURRENT_USER.id,
+      },
+      { status: "done", changedAt: "2026-07-03T15:25:00.000Z", changedBy: CURRENT_USER.id },
+    ],
   },
 ];
