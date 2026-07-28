@@ -14,6 +14,7 @@ import CompassIcon from "../../assets/Icons/Compass-2.svg";
 interface LocationState {
   unlockPhase5?: boolean;
   scrollToPhase3?: boolean;
+  scrollToPhase4?: boolean;
 }
 
 export default function HomePage() {
@@ -27,6 +28,7 @@ export default function HomePage() {
     isPhase6Unlocked,
     setIsPhase3Unlocked,
     setIsPhase4Unlocked,
+    setIsPhase4TargetSetupStarted,
     setIsPhase5Unlocked,
     setIsPhase6Unlocked,
   } = useCommitmentFlow();
@@ -62,6 +64,22 @@ export default function HomePage() {
       window.history.replaceState({}, document.title);
     }
   }, [state?.scrollToPhase3]);
+
+  useEffect(() => {
+    if (state?.scrollToPhase4) {
+      setIsPhase3Unlocked(true);
+      setIsPhase4Unlocked(true);
+      setIsPhase4TargetSetupStarted(true);
+      setTimeout(() => {
+        const phase4Section = document.getElementById("phase-4-section");
+        if (phase4Section) {
+          const elementPosition = phase4Section.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top: elementPosition - 180, behavior: "smooth" });
+        }
+      }, 100);
+      window.history.replaceState({}, document.title);
+    }
+  }, [state?.scrollToPhase4]);
 
   const handlePhase3UnlockFromFields = () => {
     setPendingPhaseUnlock(3);

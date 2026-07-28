@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Plus, ArrowRight, MoreHorizontal, Pencil, Trash2, Search, ChevronDown, ChevronUp, UsersRound, CircleDot, Target } from "lucide-react";
+import { Plus, ArrowRight, MoreHorizontal, Pencil, Trash2, Search, ChevronDown, ChevronUp, UsersRound, CircleDot, Target, Download } from "lucide-react";
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -54,6 +54,7 @@ import {
   HausStrengthMuscleIcon,
   HausWeaknessAlertIcon,
 } from "./icons/HausRelativeIcons";
+import Phase3Illustration from "../../assets/Illustration-03-Phase03.svg";
 
 type AreaDraft = {
   name: string;
@@ -570,6 +571,58 @@ function AddAreaCard({ hasAreas, onClick }: AddAreaCardProps) {
   );
 }
 
+function Phase3PreparationStep({
+  hasDownloaded,
+  onDownload,
+  onContinue,
+}: {
+  hasDownloaded: boolean;
+  onDownload: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <div
+      className="flex min-h-[400px] w-full flex-col items-center justify-center gap-8 py-8 text-center animate-in fade-in zoom-in-95 duration-500"
+      style={{ animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" }}
+    >
+      <img
+        src={Phase3Illustration}
+        alt=""
+        className="h-auto w-full max-w-[210px]"
+        loading="lazy"
+      />
+      <div className="flex max-w-lg flex-col items-center gap-2">
+        <h3 className="text-2xl font-semibold tracking-tight text-[#0b446f]">
+          {hasDownloaded ? "Your documentation is ready" : "Prepare the team discussion"}
+        </h3>
+        <p className="text-base leading-relaxed text-[#656565]">
+          {hasDownloaded
+            ? "Use the document with your team, then continue when you are ready to capture the agreed areas of action."
+            : "Download the documentation before defining your areas of action. It will help your team discuss the selected influencing factors and current state."}
+        </p>
+      </div>
+      <Button
+        type="button"
+        size="big"
+        onClick={hasDownloaded ? onContinue : onDownload}
+        className="bg-[#015ea3] font-normal text-white hover:bg-[#014a82]"
+      >
+        {hasDownloaded ? (
+          <>
+            Continue to define areas
+            <ArrowRight className="size-4" />
+          </>
+        ) : (
+          <>
+            Download documentation
+            <Download className="size-4" />
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
+
 // --- AreasOfActionBuilder ---
 
 interface AreasOfActionBuilderProps {
@@ -590,7 +643,11 @@ export function AreasOfActionBuilder({
   const {
     areas: contextAreas,
     measures: contextMeasures,
+    isPhase3DocumentationDownloaded,
+    isPhase3PreparationComplete,
     isPhase3Confirmed,
+    setIsPhase3DocumentationDownloaded,
+    setIsPhase3PreparationComplete,
     setIsPhase3Confirmed,
     addArea,
     updateArea,
@@ -608,6 +665,8 @@ export function AreasOfActionBuilder({
 
   const canProceed = areas.length >= 1;
   const showConfirmed = confirmedOverride ?? isPhase3Confirmed;
+  const showPreparation =
+    !readOnly && !isPhase3PreparationComplete && areas.length === 0;
 
   const openCreate = useCallback(() => {
     if (readOnly) return;
@@ -651,6 +710,22 @@ export function AreasOfActionBuilder({
     onPhase4Unlock?.();
     setIsPhase3Confirmed(true);
   };
+
+  if (showPreparation) {
+    return (
+      <Phase3PreparationStep
+        hasDownloaded={isPhase3DocumentationDownloaded}
+        onDownload={() => {
+          console.log("Downloading Phase 3 documentation...");
+          setIsPhase3DocumentationDownloaded(true);
+        }}
+        onContinue={() => {
+          if (!isPhase3DocumentationDownloaded) return;
+          setIsPhase3PreparationComplete(true);
+        }}
+      />
+    );
+  }
 
   if (showConfirmed) {
     return (

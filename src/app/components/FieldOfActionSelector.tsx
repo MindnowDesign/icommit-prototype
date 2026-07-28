@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { X, ArrowRight, Download, AlertTriangle, Undo2, ChevronDown, ChevronUp } from "lucide-react";
+import { X, ArrowRight, AlertTriangle, Undo2, ChevronDown, ChevronUp } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
@@ -85,7 +85,6 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
   const [isPhase3Unlocked, setIsPhase3Unlocked] = useState(false);
-  const [hasDownloadedDocs, setHasDownloadedDocs] = useState(false);
   const [showAllAvailableFields, setShowAllAvailableFields] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -183,31 +182,11 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
     setIsDropdownOpen(false);
   };
 
-  // Handle download and continue
-  const handleDownloadAndContinue = () => {
-    // Simulate download
-    console.log("Downloading documentation...", {
-      weakness: Array.from(weaknessSelected),
-      strength: Array.from(strengthSelected)
-    });
-    setCurrentStep("confirmation");
-  };
-
   // Handle edit focus areas (restart flow)
   const handleEditFocusAreas = () => {
     setCurrentStep("weakness");
     setSearchQuery("");
     setIsDropdownOpen(false);
-  };
-
-  // Handle download documentation
-  const handleDownloadDocs = () => {
-    // Simulate download
-    console.log("Downloading documentation...", {
-      weakness: Array.from(weaknessSelected),
-      strength: Array.from(strengthSelected)
-    });
-    setHasDownloadedDocs(true);
   };
 
   const handleConfirmUnlock = () => {
@@ -320,23 +299,24 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
           className="w-full flex flex-col items-center justify-center gap-10 py-12 min-h-[400px] animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-700 ease-out"
           style={{ animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
         >
-          {/* Illustration */}
-          <img 
-            src={Phase3Illustration} 
-            alt="Phase 3 illustration" 
-            className="w-full max-w-[210px] h-auto"
+          <img
+            src={Phase3Illustration}
+            alt=""
+            className="h-auto w-full max-w-[210px]"
             loading="lazy"
           />
 
           {/* Title and description */}
           <div className="flex flex-col items-center gap-3 text-center max-w-lg">
             <h3 className="text-3xl font-semibold text-[#0b446f] tracking-tight">
-              Congratulations, you confirmed your strength and weakness factors
+              {isPhase3Unlocked
+                ? "Your strength and weakness factors are confirmed"
+                : "Confirm your strength and weakness factors"}
             </h3>
             <p className="text-base text-[#656565] leading-relaxed">
               {isPhase3Unlocked 
-                ? "Your selected influencing factors are confirmed and Phase 3 is ready. You can still edit them, view the summary, or download the documentation again."
-                : "Your selected influencing factors are confirmed. Download the documentation to discuss and validate them with your team before moving to Phase 3."
+                ? "Your selected influencing factors are saved and Phase 3 is ready."
+                : "Review your selected influencing factors below, then confirm to unlock Phase 3."
               }
             </p>
           </div>
@@ -397,17 +377,10 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
             </Button>
             <Button
               size="big"
-              onClick={hasDownloadedDocs ? handleConfirmUnlock : handleDownloadDocs}
+              onClick={handleConfirmUnlock}
               className="bg-[#015ea3] text-white border-[#015ea3] hover:bg-[#014a82] font-normal"
             >
-              {hasDownloadedDocs ? (
-                "Confirm choices and proceed"
-              ) : (
-                <>
-                  Download documentation
-                  <Download className="w-4 h-4" />
-                </>
-              )}
+              Confirm choices and proceed
             </Button>
             </>
             )}

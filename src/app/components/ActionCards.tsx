@@ -26,6 +26,9 @@ import {
   PHASE3_PREVIEW_AREAS,
   PHASE3_PREVIEW_MEASURES,
 } from "../data/phase3PreviewData";
+import { hasDesiredTarget } from "../data/areasOfAction";
+import { useCommitmentFlow } from "../context/CommitmentFlowContext";
+import { Phase4DesiredStatesBuilder } from "./Phase4DesiredStatesBuilder";
 
 const PHASE_GUIDANCE: Record<string, { title: string; copy: string; questions: string[] }> = {
   "Phase 3": {
@@ -166,6 +169,12 @@ const ActionSection = memo(function ActionSection({
   usePhase6Style = false
 }: ActionCardProps) {
   const navigate = useNavigate();
+  const {
+    areas,
+    allAreaTargetsComplete,
+    isPhase4TargetSetupStarted,
+    setIsPhase4TargetSetupStarted,
+  } = useCommitmentFlow();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPhase4Confirmed, setIsPhase4Confirmed] = useState(false);
   const [isPhase6Confirmed, setIsPhase6Confirmed] = useState(false);
@@ -202,6 +211,9 @@ const ActionSection = memo(function ActionSection({
     phase3PreviewMode === "no-measures" || phase3PreviewMode === "with-measures";
   const previewMeasures =
     phase3PreviewMode === "with-measures" ? PHASE3_PREVIEW_MEASURES : [];
+  const showPhase4TargetSetup =
+    phase === "Phase 4" &&
+    (isPhase4TargetSetupStarted || areas.some(hasDesiredTarget));
 
   return (
     <>
@@ -365,6 +377,8 @@ const ActionSection = memo(function ActionSection({
                 )}
               </div>
             </div>
+          ) : phase === "Phase 4" && showPhase4TargetSetup ? (
+            <Phase4DesiredStatesBuilder onContinueToMeasures={() => navigate("/measures")} />
           ) : phase === "Phase 4" ? (
             /* Phase 4 special layout - similar to confirmation view */
             <div 
@@ -402,7 +416,7 @@ const ActionSection = memo(function ActionSection({
                 <Button 
                   size="big"
                   disabled={disabled}
-                  onClick={() => navigate("/measures")}
+                  onClick={() => setIsPhase4TargetSetupStarted(true)}
                   className={cn(
                     "font-normal",
                     disabled 
@@ -490,7 +504,9 @@ const ActionSection = memo(function ActionSection({
             <Button 
               onClick={
                 phase === "Phase 4"
-                  ? () => navigate("/measures")
+                  ? allAreaTargetsComplete
+                    ? () => navigate("/measures")
+                    : () => setIsPhase4TargetSetupStarted(true)
                   : phase === "Phase 5"
                     ? () => navigate("/measures")
                     : phase === "Phase 6"
@@ -505,7 +521,9 @@ const ActionSection = memo(function ActionSection({
                   : phase === "Phase 6"
                     ? "Go to Pulse"
                     : phase === "Phase 4"
-                      ? "Open Phase 4 workspace"
+                      ? allAreaTargetsComplete
+                        ? "Open measures"
+                        : "Start desired states"
                       : "Download discussion guide"}
               </span>
               {phase === "Phase 4" || phase === "Phase 5" || phase === "Phase 6" ? (
