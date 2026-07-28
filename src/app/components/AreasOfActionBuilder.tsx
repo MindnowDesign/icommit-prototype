@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Checkbox } from "./ui/checkbox";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +30,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { AVAILABLE_FIELDS, getFactorById, getFactorPhase2Relative, sortFieldsByHausRelative } from "../data/influencingFactors";
+import {
+  AVAILABLE_FIELDS,
+  getFactorById,
+  getFactorHausRelative,
+  getFactorPhase2Relative,
+  sortFieldsByHausRelative,
+} from "../data/influencingFactors";
 import { hasDesiredTarget, type AreaOfAction } from "../data/areasOfAction";
 import {
   getAreaMeasureSummary,
@@ -43,6 +50,10 @@ import {
   Phase2SelectedStrengthIcon,
   Phase2SelectedWeaknessIcon,
 } from "./InfluencingFactorChip";
+import {
+  HausStrengthMuscleIcon,
+  HausWeaknessAlertIcon,
+} from "./icons/HausRelativeIcons";
 
 type AreaDraft = {
   name: string;
@@ -94,6 +105,42 @@ function AreaMeasureCount({ count }: { count: number }) {
     <span className="text-sm font-medium tabular-nums text-[#656565]">
       ({count} {count === 1 ? "measure" : "measures"})
     </span>
+  );
+}
+
+function FactorIndicator({
+  children,
+  label,
+  description,
+  className,
+}: {
+  children: React.ReactNode;
+  label: string;
+  description?: string;
+  className: string;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex size-7 cursor-help items-center justify-center rounded-full border p-0 outline-none focus-visible:ring-2 focus-visible:ring-[#015ea3]/30",
+            className
+          )}
+          aria-label={description ? `${label}. ${description}` : label}
+          onClick={(event) => event.preventDefault()}
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent
+        sideOffset={6}
+        className="!z-[300] px-3 py-1.5 text-sm font-normal text-[#292929]"
+      >
+        {description ?? label}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -236,7 +283,8 @@ function AreaOfActionDialog({
             <div className="flex flex-col gap-1.5">
               {visibleFields.map((field) => {
                 const isSelected = draft.factorIds.includes(field.id);
-                const hausRelative = getFactorPhase2Relative(field.id, phase2Selections);
+                const surveyRelative = getFactorHausRelative(field.id);
+                const selectedRelative = getFactorPhase2Relative(field.id, phase2Selections);
                 const Icon = field.icon;
                 return (
                   <label
@@ -272,25 +320,45 @@ function AreaOfActionDialog({
                     >
                       {field.name}
                     </span>
-                    {hausRelative && (
-                      <span
-                        className={cn(
-                          "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
-                          hausRelative === "weakness"
-                            ? "bg-[#FEF0C3] border-[#ECD68A] text-[#A17C07]"
-                            : "bg-[#DCFCE8] border-[#BBF7D0] text-[#15803C]"
-                        )}
-                      >
-                        {hausRelative === "weakness" ? (
-                          <Phase2SelectedWeaknessIcon size={14} />
-                        ) : (
-                          <Phase2SelectedStrengthIcon size={14} />
-                        )}
-                        {hausRelative === "weakness"
-                          ? "Phase 2 selected weakness"
-                          : "Phase 2 selected strength"}
-                      </span>
-                    )}
+                    <span className="flex shrink-0 items-center gap-1">
+                      {selectedRelative && (
+                        <FactorIndicator
+                          label="Selected area"
+                          description="This is one of your selected areas."
+                          className={
+                            selectedRelative === "weakness"
+                              ? "border-[#ECD68A] bg-[#FEF0C3]"
+                              : "border-[#BBF7D0] bg-[#DCFCE8]"
+                          }
+                        >
+                          {selectedRelative === "weakness" ? (
+                            <Phase2SelectedWeaknessIcon size={15} />
+                          ) : (
+                            <Phase2SelectedStrengthIcon size={15} />
+                          )}
+                        </FactorIndicator>
+                      )}
+                      {surveyRelative && (
+                        <FactorIndicator
+                          label={
+                            surveyRelative === "weakness"
+                              ? "Relative weakness"
+                              : "Relative strength"
+                          }
+                          className={
+                            surveyRelative === "weakness"
+                              ? "border-[#ECD68A] bg-[#FEF0C3]"
+                              : "border-[#BBF7D0] bg-[#DCFCE8]"
+                          }
+                        >
+                          {surveyRelative === "weakness" ? (
+                            <HausWeaknessAlertIcon size={15} />
+                          ) : (
+                            <HausStrengthMuscleIcon size={15} />
+                          )}
+                        </FactorIndicator>
+                      )}
+                    </span>
                   </label>
                 );
               })}

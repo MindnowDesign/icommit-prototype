@@ -356,15 +356,15 @@ function getFieldsAccordionCopy({ step, isPhase3Unlocked }: FieldsFlowState) {
   if (step === "confirmation" || step === "summary") {
     if (isPhase3Unlocked || step === "summary") {
       return {
-        title: "Your confirmed strengths and weaknesses",
+        title: "Your confirmed influencing factors",
         description:
-          "The influencing factors your team validated as relative strengths and weaknesses.",
+          "The influencing factors your team validated as strengths and weaknesses.",
       };
     }
     return {
-      title: "Your strengths and weaknesses",
+      title: "Your confirmed influencing factors",
       description:
-        "You've selected your focus areas — take them offline with your team, then confirm to unlock the next phase.",
+        "Your strength and weakness factors are confirmed and ready to discuss with your team.",
     };
   }
 

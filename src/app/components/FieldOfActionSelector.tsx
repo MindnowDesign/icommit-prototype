@@ -4,6 +4,10 @@ import { AnimatePresence, motion } from "motion/react";
 import { cn } from "./ui/utils";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import {
+  Phase2SelectedStrengthIcon,
+  Phase2SelectedWeaknessIcon,
+} from "./InfluencingFactorChip";
 import Phase3Illustration from "../../assets/Illustration-03-Phase03.svg";
 import { AVAILABLE_FIELDS, WEAKNESS_DEFAULT, STRENGTH_DEFAULT } from "../data/influencingFactors";
 
@@ -22,6 +26,43 @@ const MuscleIcon = ({ color = "currentColor", className = "w-6 h-6" }: { color?:
     </defs>
   </svg>
 );
+
+function SelectedInfluencingFactorsBadge({
+  type,
+  size = "default",
+}: {
+  type: "strength" | "weakness";
+  size?: "default" | "compact";
+}) {
+  const isWeakness = type === "weakness";
+
+  return (
+    <div
+      className={cn(
+        "flex w-fit shrink-0 items-center rounded-full border",
+        size === "compact" ? "gap-1.5 px-3 py-1.5" : "gap-2 px-3 py-2",
+        isWeakness
+          ? "border-[#ECD68A] bg-[#FEF0C3] text-[#A17C07]"
+          : "border-[#BBF7D0] bg-[#DCFCE8] text-[#15803C]"
+      )}
+      title={isWeakness ? "Selected relative weakness factors" : "Selected relative strength factors"}
+    >
+      {isWeakness ? (
+        <Phase2SelectedWeaknessIcon size={size === "compact" ? 14 : 16} />
+      ) : (
+        <Phase2SelectedStrengthIcon size={size === "compact" ? 14 : 16} />
+      )}
+      <span
+        className={cn(
+          "font-semibold whitespace-nowrap",
+          size === "compact" ? "text-sm" : "text-base"
+        )}
+      >
+        Selected influencing factors
+      </span>
+    </div>
+  );
+}
 
 type FlowStep = "strength" | "weakness" | "confirmation" | "summary";
 
@@ -221,12 +262,9 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
             </DialogHeader>
             
             <div className="flex flex-col gap-6 mt-4">
-              {/* Relative weakness */}
+              {/* Selected weakness factors */}
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-[#FEF0C3] border border-[#ECD68A] rounded-full px-3 py-2 w-fit">
-                  <AlertTriangle className="w-5 h-5 text-[#A17C07]" />
-                  <span className="text-base font-semibold text-[#A17C07]">Relative weakness</span>
-                </div>
+                <SelectedInfluencingFactorsBadge type="weakness" />
                 <div className="flex gap-2 flex-nowrap whitespace-nowrap">
                   {weaknessFieldsForDialog.map((field) => {
                     const Icon = field.icon;
@@ -246,12 +284,9 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
               {/* Divider */}
               <div className="w-full h-px bg-[#e0e0e0]" />
 
-              {/* Relative strength */}
+              {/* Selected strength factors */}
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 bg-[#DCFCE8] border border-[#BBF7D0] rounded-full px-3 py-2 w-fit">
-                  <MuscleIcon color="#15803C" className="w-5 h-5" />
-                  <span className="text-base font-semibold text-[#15803C]">Relative strength</span>
-                </div>
+                <SelectedInfluencingFactorsBadge type="strength" />
                 <div className="flex gap-2 flex-nowrap whitespace-nowrap">
                   {strengthFieldsForDialog.map((field) => {
                     const Icon = field.icon;
@@ -296,24 +331,21 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
           {/* Title and description */}
           <div className="flex flex-col items-center gap-3 text-center max-w-lg">
             <h3 className="text-3xl font-semibold text-[#0b446f] tracking-tight">
-              {isPhase3Unlocked ? "Proceed to Phase 3" : "Take it offline with your team"}
+              Congratulations, you confirmed your strength and weakness factors
             </h3>
             <p className="text-base text-[#656565] leading-relaxed">
               {isPhase3Unlocked 
-                ? "You've selected your focus areas and discussed them with your team. You can still edit them, view your summary or download the documentation again."
-                : "You've selected your focus areas. Download the documentation, discuss them with your team, validate them in practice, and come back to confirm or adjust before moving on."
+                ? "Your selected influencing factors are confirmed and Phase 3 is ready. You can still edit them, view the summary, or download the documentation again."
+                : "Your selected influencing factors are confirmed. Download the documentation to discuss and validate them with your team before moving to Phase 3."
               }
             </p>
           </div>
 
           {/* Selected focus areas */}
           <div className="flex flex-col gap-3 items-center w-full">
-            {/* Relative weakness row */}
+            {/* Selected weakness factors row */}
             <div className="flex items-center gap-6 justify-center">
-              <div className="flex items-center gap-1.5 bg-[#FEF0C3] border border-[#ECD68A] rounded-full px-3 py-1.5 shrink-0">
-                <AlertTriangle className="w-4 h-4 text-[#A17C07]" />
-                <span className="text-sm font-semibold text-[#A17C07] whitespace-nowrap">Relative weakness</span>
-              </div>
+              <SelectedInfluencingFactorsBadge type="weakness" size="compact" />
               <div className="flex items-center gap-2">
                 {AVAILABLE_FIELDS.filter(f => weaknessSelected.has(f.id)).map(field => {
                   const Icon = field.icon;
@@ -326,12 +358,9 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
                 })}
               </div>
             </div>
-            {/* Relative strength row */}
+            {/* Selected strength factors row */}
             <div className="flex items-center gap-6 justify-center">
-              <div className="flex items-center gap-1.5 bg-[#DCFCE8] border border-[#BBF7D0] rounded-full px-3 py-1.5 shrink-0">
-                <MuscleIcon color="#15803C" className="w-4 h-4" />
-                <span className="text-sm font-semibold text-[#15803C] whitespace-nowrap">Relative strength</span>
-              </div>
+              <SelectedInfluencingFactorsBadge type="strength" size="compact" />
               <div className="flex items-center gap-2">
                 {AVAILABLE_FIELDS.filter(f => strengthSelected.has(f.id)).map(field => {
                   const Icon = field.icon;
@@ -400,17 +429,14 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
       >
         {/* Title */}
         <h3 className="text-2xl font-semibold text-[#0b446f] tracking-tight">
-          You selected these focus areas
+          Your selected influencing factors
         </h3>
 
         {/* Focus areas sections */}
         <div className="w-full flex flex-col gap-8">
-          {/* Relative weakness */}
+          {/* Selected weakness factors */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-3.5 rounded-full border-2 border-[#ECD68A]" />
-              <span className="text-base text-[#656565]">Relative weakness</span>
-            </div>
+            <SelectedInfluencingFactorsBadge type="weakness" size="compact" />
             <div className="flex flex-wrap gap-2">
               {weaknessFields.map((field) => {
                 const Icon = field.icon;
@@ -427,12 +453,9 @@ export function FieldOfActionSelector({ onPhase3Unlock, onFlowStateChange, onCon
             </div>
           </div>
 
-          {/* Relative strength */}
+          {/* Selected strength factors */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-3.5 rounded-full border-2 border-[#BBF7D0]" />
-              <span className="text-base text-[#656565]">Relative strength</span>
-            </div>
+            <SelectedInfluencingFactorsBadge type="strength" size="compact" />
             <div className="flex flex-wrap gap-2">
               {strengthFields.map((field) => {
                 const Icon = field.icon;
