@@ -47,11 +47,6 @@ export function MeasureCardBody({ measure, areaName, actions }: MeasureCardBodyP
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          {isOverdue && (
-            <span className="inline-flex h-7 items-center rounded-full border border-[#ffc9c9] bg-[#fff1f1] px-2.5 text-xs font-semibold text-[#b42318]">
-              Overdue
-            </span>
-          )}
           {actions}
         </div>
       </div>

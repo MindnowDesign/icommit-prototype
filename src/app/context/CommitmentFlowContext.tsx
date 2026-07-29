@@ -24,7 +24,6 @@ type CommitmentFlowContextValue = {
   isPhase3PreparationComplete: boolean;
   isPhase3Confirmed: boolean;
   isPhase4Unlocked: boolean;
-  isPhase4TargetSetupStarted: boolean;
   isPhase5Unlocked: boolean;
   isPhase6Unlocked: boolean;
   allAreaTargetsComplete: boolean;
@@ -38,7 +37,6 @@ type CommitmentFlowContextValue = {
   setIsPhase3PreparationComplete: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPhase3Confirmed: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPhase4Unlocked: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsPhase4TargetSetupStarted: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPhase5Unlocked: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPhase6Unlocked: React.Dispatch<React.SetStateAction<boolean>>;
   setAreas: React.Dispatch<React.SetStateAction<AreaOfAction[]>>;
@@ -76,7 +74,6 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
   const [isPhase3PreparationComplete, setIsPhase3PreparationComplete] = useState(false);
   const [isPhase3Confirmed, setIsPhase3Confirmed] = useState(false);
   const [isPhase4Unlocked, setIsPhase4Unlocked] = useState(false);
-  const [isPhase4TargetSetupStarted, setIsPhase4TargetSetupStarted] = useState(false);
   const [isPhase5Unlocked, setIsPhase5Unlocked] = useState(false);
   const [isPhase6Unlocked, setIsPhase6Unlocked] = useState(false);
 
@@ -264,7 +261,6 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
       isPhase3PreparationComplete,
       isPhase3Confirmed,
       isPhase4Unlocked,
-      isPhase4TargetSetupStarted,
       isPhase5Unlocked,
       isPhase6Unlocked,
       allAreaTargetsComplete: areas.length > 0 && areas.every(hasDesiredTarget),
@@ -278,7 +274,6 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
       setIsPhase3PreparationComplete,
       setIsPhase3Confirmed,
       setIsPhase4Unlocked,
-      setIsPhase4TargetSetupStarted,
       setIsPhase5Unlocked,
       setIsPhase6Unlocked,
       setAreas,
@@ -297,7 +292,6 @@ export function CommitmentFlowProvider({ children }: { children: React.ReactNode
       isPhase3PreparationComplete,
       isPhase3Confirmed,
       isPhase4Unlocked,
-      isPhase4TargetSetupStarted,
       isPhase5Unlocked,
       isPhase6Unlocked,
       addArea,

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Plus, Target } from "lucide-react";
+import { Lock, Plus, Target } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "../components/Header";
 import { SectionWrapper } from "../components/ui/SectionWrapper";
@@ -26,7 +26,10 @@ import {
   MeasuresPreviewSwitcher,
 } from "../components/measures/MeasuresPreviewSwitcher";
 import { MeasuresEmptyNoAreas } from "../components/measures/MeasuresEmptyNoAreas";
-import { DesiredStateSummaryCard } from "../components/measures/AreaTargetsStep";
+import {
+  AreaTargetsStep,
+  DesiredStateSummaryCard,
+} from "../components/measures/AreaTargetsStep";
 import { useCommitmentFlow } from "../context/CommitmentFlowContext";
 import { getPreviewAreasWithTargets } from "../data/commitmentFlowSeed";
 import {
@@ -63,8 +66,10 @@ export default function MeasuresPage() {
   const {
     areas,
     measures,
+    allAreaTargetsComplete,
     addMeasure,
     updateMeasure,
+    updateAreaTarget,
   } = useCommitmentFlow();
   const [previewMeasures, setPreviewMeasures] = useState<Measure[]>(() =>
     isWithMeasuresPreview ? [...PHASE3_PREVIEW_MEASURES] : []
@@ -73,21 +78,29 @@ export default function MeasuresPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMeasureId, setEditingMeasureId] = useState<string | null>(null);
   const [createStatus, setCreateStatus] = useState<MeasureStatus>("todo");
+  const [targetSetupConfirmed, setTargetSetupConfirmed] = useState(allAreaTargetsComplete);
   useEffect(() => {
     const navigationState = location.state as
-      | { notificationHighlightMeasureId?: string }
+      | { notificationHighlightMeasureId?: string; scrollToTop?: boolean }
       | null;
     const measureId = navigationState?.notificationHighlightMeasureId;
-    if (!measureId) return;
+    const shouldScrollToTop = navigationState?.scrollToTop;
+    if (!measureId && !shouldScrollToTop) return;
 
-    setHighlightedMeasureId(measureId);
-    if (highlightTimeoutRef.current !== null) {
-      window.clearTimeout(highlightTimeoutRef.current);
+    if (shouldScrollToTop) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }
-    highlightTimeoutRef.current = window.setTimeout(() => {
-      setHighlightedMeasureId(null);
-      highlightTimeoutRef.current = null;
-    }, 2600);
+
+    if (measureId) {
+      setHighlightedMeasureId(measureId);
+      if (highlightTimeoutRef.current !== null) {
+        window.clearTimeout(highlightTimeoutRef.current);
+      }
+      highlightTimeoutRef.current = window.setTimeout(() => {
+        setHighlightedMeasureId(null);
+        highlightTimeoutRef.current = null;
+      }, 2600);
+    }
 
     navigate(`${location.pathname}${location.search}`, {
       replace: true,
@@ -110,6 +123,7 @@ export default function MeasuresPage() {
       setAreaFilterId(null);
       setDialogOpen(false);
       setEditingMeasureId(null);
+      setTargetSetupConfirmed(true);
       return;
     }
     if (isEmptyBoardPreview) {
@@ -117,6 +131,7 @@ export default function MeasuresPage() {
       setAreaFilterId(null);
       setDialogOpen(false);
       setEditingMeasureId(null);
+      setTargetSetupConfirmed(true);
     }
   }, [isWithMeasuresPreview, isEmptyBoardPreview]);
 
@@ -282,19 +297,15 @@ export default function MeasuresPage() {
   const goToAreasOfAction = () => {
     navigate("/", { state: { scrollToPhase3: true } });
   };
-  const goToDesiredStates = () => {
-    navigate("/", { state: { scrollToPhase4: true } });
-  };
-
   const hasAreas = displayAreas.length > 0;
   const hasMeasures = displayMeasures.length > 0;
   const displayTargetsComplete =
     displayAreas.length > 0 && displayAreas.every(hasDesiredTarget);
-  const requiresTargetSetup =
+  const showTargetSetup =
     hasAreas &&
     !isWithMeasuresPreview &&
     !isEmptyBoardPreview &&
-    !displayTargetsComplete;
+    (!displayTargetsComplete || !targetSetupConfirmed);
 
   return (
     <div className="min-h-screen bg-white w-full flex flex-col font-sans">
@@ -306,40 +317,50 @@ export default function MeasuresPage() {
 
           <div className="flex flex-col gap-1.5">
             <h1 className="text-[32px] font-semibold leading-tight tracking-tight text-[#292929]">
-              {requiresTargetSetup ? "Complete your desired states" : "Your measures"}
+              {showTargetSetup ? "Define your desired states" : "Your measures"}
             </h1>
             <p className="max-w-3xl text-base leading-relaxed text-[#656565]">
-              {requiresTargetSetup
-                ? "Return to Phase 4 on the dashboard and define the desired state for every area before creating measures."
+              {showTargetSetup
+                ? "Revisit each area from Phase 3 and define the desired state with your team. The measures board stays visible and unlocks when every area is complete."
                 : "Turn each desired state into concrete measures. Assign an owner and due date, then track progress across To do, In progress, and Done."}
             </p>
           </div>
 
           {!hasAreas ? (
             <MeasuresEmptyNoAreas onGoToAreas={goToAreasOfAction} />
-          ) : requiresTargetSetup ? (
-            <section className="flex min-h-[360px] flex-col items-center justify-center gap-6 rounded-[16px] border border-[#dcdcdc] bg-[#fafafa] p-6 text-center md:p-10">
-              <div className="flex size-14 items-center justify-center rounded-[14px] bg-[#e0f0fe] text-[#015ea3]">
-                <Target className="size-7" strokeWidth={2} />
-              </div>
-              <div className="flex max-w-xl flex-col gap-2">
-                <h2 className="text-2xl font-semibold tracking-tight text-[#292929]">
-                  Desired states are defined in Phase 4
-                </h2>
-                <p className="text-base leading-relaxed text-[#656565]">
-                  Complete the desired state for every area on the dashboard. The measures board
-                  will be ready as soon as all areas are complete.
-                </p>
-              </div>
-              <Button
-                type="button"
-                size="big"
-                onClick={goToDesiredStates}
-                className="bg-[#015ea3] font-normal text-white hover:bg-[#014a82]"
-              >
-                Return to Phase 4
-              </Button>
-            </section>
+          ) : showTargetSetup ? (
+            <div className="flex flex-col gap-10">
+              <AreaTargetsStep
+                areas={displayAreas}
+                onSaveTarget={updateAreaTarget}
+                onComplete={() => setTargetSetupConfirmed(true)}
+              />
+
+              <section className="flex flex-col gap-4 rounded-[16px] border border-[#dcdcdc] bg-[#fafafa] p-4 md:p-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-[#efefef] text-[#656565]">
+                    <Lock className="size-5" strokeWidth={2} />
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <h2 className="text-lg font-semibold text-[#292929]">Measures board</h2>
+                    <p className="text-sm leading-relaxed text-[#656565]">
+                      Complete every desired state to unlock measure creation and progress tracking.
+                    </p>
+                  </div>
+                </div>
+                <div className="pointer-events-none select-none opacity-60">
+                  <MeasuresKanban
+                    areaFilterId={null}
+                    measures={displayMeasures}
+                    areas={displayAreas}
+                    readOnly={true}
+                    onEdit={openEdit}
+                    onAddMeasure={openCreate}
+                    showColumnAddButton={false}
+                  />
+                </div>
+              </section>
+            </div>
           ) : (
             <>
               <Accordion type="single" collapsible defaultValue="desired-states">
@@ -505,14 +526,14 @@ export default function MeasuresPage() {
         message={
           !hasAreas
             ? "Define areas in Phase 3"
-            : requiresTargetSetup
+            : showTargetSetup
               ? "Complete desired states"
               : "Develop and track measures"
         }
         actionText={
           !hasAreas
             ? "Go to areas of action"
-            : requiresTargetSetup
+            : showTargetSetup
               ? undefined
               : "Proceed to Phase 5"
         }
